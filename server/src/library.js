@@ -131,18 +131,17 @@ export async function ingest(url, { onStage } = {}, signal) {
   const id = newId();
 
   onStage?.({ stage: 'downloading', message: `Downloading ${meta.title}`, meta });
-  const destination = await download(
+  const ext = await download(
     url,
     { root: LIBRARY_DIR, subdir: artistFolder, filename: base },
     (p) => onStage?.({ stage: 'downloading', percent: p.percent, bytes: p.bytes, total: p.total, speed: p.speed, eta: p.eta, meta }),
     signal
   );
 
-  const stored = relPath(path.resolve(LIBRARY_DIR, destination));
+  const stored = relPath(path.resolve(LIBRARY_DIR, `${artistFolder}/${base}.${ext}`));
 
-  const bare = destination.replace(/\.[^.]+$/, '');
-  for (const ext of ['.webp', '.jpg', '.jpeg', '.png']) {
-    const leftover = path.resolve(LIBRARY_DIR, bare + ext);
+  for (const orphan of ['.webp', '.jpg', '.jpeg', '.png']) {
+    const leftover = path.resolve(LIBRARY_DIR, `${artistFolder}/${base}${orphan}`);
     if (existsSync(leftover)) rmSync(leftover, { force: true });
   }
 
@@ -199,7 +198,9 @@ export async function scanLibrary() {
         const tags = (await readTags(full)) ?? {};
         const artistName = tags.artist || (dir === LIBRARY_DIR ? 'Unknown artist' : path.basename(dir));
         insertTrack({
-          title: tags.title || tidyTitle(path.basename(stored, path.extname(stored)), artistName),
+          /* A tag copied straight off YouTube reads "Bôa - Duvet (Official Video)"; the shelf
+             should show the song, not the upload. */
+          title: tidyTitle(tags.title || path.basename(stored, path.extname(stored)), artistName),
           artistName,
           albumTitle: tags.album,
           duration: tags.duration || 0,

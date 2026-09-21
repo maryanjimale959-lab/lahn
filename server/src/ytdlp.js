@@ -119,8 +119,11 @@ function infothumbnailsFallback(info) {
 }
 
 const PROGRESS_PREFIX = 'LAHNPROGRESS|';
-const DEST_PREFIX = 'LAHNDEST|';
+const EXT_PREFIX = 'LAHNEXT|';
 
+/* yt-dlp writes plain text in the console's code page, so a printed "Bôa/Duvet.m4a" arrives as
+   invalid UTF-8 and the library stores a path no file matches. Only the extension is read back
+   from it — that is ASCII, and the rest of the name is one we chose ourselves. */
 export function download(url, target, onProgress, signal) {
   return new Promise((resolve, reject) => {
     const t = tools();
@@ -147,7 +150,7 @@ export function download(url, target, onProgress, signal) {
       `download:${PROGRESS_PREFIX}%(progress.downloaded_bytes)s|%(progress.total_bytes)s|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s`,
       '--no-simulate',
       '--print',
-      `after_move:${DEST_PREFIX}%(filepath)s`,
+      `after_move:${EXT_PREFIX}%(ext)s`,
       '-o',
       `${target.subdir.replace(/[\\/]+$/, '')}/${target.filename}.%(ext)s`,
       url,
@@ -162,7 +165,7 @@ export function download(url, target, onProgress, signal) {
     signal?.addEventListener('abort', abort, { once: true });
 
     let tail = '';
-    let destination = null;
+    let extension = null;
 
     runTool(bin, args, {
       cwd: target.root,
@@ -183,8 +186,8 @@ export function download(url, target, onProgress, signal) {
               speed: (speed || '').trim(),
               eta: (eta || '').trim(),
             });
-          } else if (line.startsWith(DEST_PREFIX)) {
-            destination = line.slice(DEST_PREFIX.length).trim();
+          } else if (line.startsWith(EXT_PREFIX)) {
+            extension = line.slice(EXT_PREFIX.length).trim();
           }
         }
       },
@@ -192,8 +195,8 @@ export function download(url, target, onProgress, signal) {
       .then(() => {
         signal?.removeEventListener('abort', abort);
         if (cancelled) reject(Object.assign(new Error('Cancelled'), { code: 'CANCELLED' }));
-        else if (!destination) reject(new Error('yt-dlp finished without reporting the saved file.'));
-        else resolve(destination);
+        else if (!extension) reject(new Error('yt-dlp finished without reporting the saved file.'));
+        else resolve(extension);
       })
       .catch((err) => {
         signal?.removeEventListener('abort', abort);
