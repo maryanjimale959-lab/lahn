@@ -1,0 +1,724 @@
+/* ---------- now playing / vinyl deck ---------- */
+
+.now {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: max(14px, env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+  overflow: hidden;
+  animation: now-in 0.42s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes now-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+}
+
+.now-bg {
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  filter: blur(64px) saturate(1.5) brightness(1.02);
+  transform: scale(1.18);
+  transition: background-image 0.7s ease;
+}
+
+.now-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 42%, transparent), color-mix(in oklab, var(--bg) 88%, transparent) 72%, var(--bg));
+}
+
+.now-bar {
+  width: 100%;
+  max-width: 980px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+.now-bar .crumb {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.now-stage {
+  flex: 1;
+  width: 100%;
+  max-width: 980px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  align-content: center;
+  gap: 22px;
+  min-height: 0;
+  padding: 0;
+}
+
+.now-stage .right {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The deck is a physical object and time on a scrub bar always runs left→right,
+   so both keep their geometry in Arabic too. */
+.deck,
+.seek,
+.transport {
+  direction: ltr;
+}
+
+.deck {
+  position: relative;
+  width: min(88vw, 420px, 54vh);
+  aspect-ratio: 1;
+  flex: none;
+}
+
+.deck-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 26%;
+  background: linear-gradient(150deg, var(--platter), color-mix(in oklab, var(--platter) 78%, var(--ink)) 120%);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -22px 40px -26px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+[data-theme='dark'] .deck-body {
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -22px 40px -26px rgba(0, 0, 0, 0.8);
+}
+
+.deck-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.16) 1px, transparent 0);
+  background-size: 4px 4px;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+}
+
+.deck-mark {
+  position: absolute;
+  top: 11%;
+  left: 11%;
+  width: 7%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--ink) 45%, transparent);
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.deck-mark svg {
+  width: 58%;
+  height: 58%;
+}
+
+.disc-well {
+  position: absolute;
+  inset: 13% 21% 13% 5%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--ink) 14%, transparent), transparent 74%);
+}
+
+.disc {
+  position: absolute;
+  inset: 14% 22% 14% 6%;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3.4px),
+    radial-gradient(circle at 38% 30%, var(--disc-hi), var(--disc) 58%, #050406 100%);
+  box-shadow: 0 22px 44px -20px rgba(0, 0, 0, 0.62), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  animation: spin 3.4s linear infinite;
+  animation-play-state: paused;
+}
+
+.disc.spinning {
+  animation-play-state: running;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.disc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0 8%, rgba(255, 255, 255, 0.16) 12%, transparent 18% 55%, rgba(255, 255, 255, 0.09) 61%, transparent 68%);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+
+.disc-label {
+  position: absolute;
+  inset: 31%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.55), inset 0 0 22px rgba(0, 0, 0, 0.28);
+  background: linear-gradient(140deg, var(--glow), var(--glow-2));
+  display: grid;
+  place-items: center;
+}
+
+.disc-label img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.disc-label .mono {
+  font-size: clamp(18px, 5.4vw, 30px);
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.spindle {
+  position: absolute;
+  top: 50%;
+  left: 42%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #b9b4ac 60%, #6d6862);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+}
+
+.tonearm {
+  position: absolute;
+  top: 8%;
+  right: 6%;
+  width: 12%;
+  height: 12%;
+  z-index: 4;
+}
+
+.tonearm-pivot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, var(--arm-hi), var(--arm) 62%, color-mix(in oklab, var(--arm) 60%, #000));
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+
+.tonearm-pivot::after {
+  content: '';
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--arm) 70%, #000);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.tonearm-arm {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 350%;
+  height: 3.4%;
+  min-height: 5px;
+  transform-origin: 0 50%;
+  transform: rotate(var(--arm-angle, 26deg));
+  transition: transform 1.1s cubic-bezier(0.34, 1.1, 0.4, 1);
+}
+
+.tonearm-arm i {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--arm-hi), var(--arm));
+  box-shadow: 0 3px 8px -3px rgba(0, 0, 0, 0.55);
+}
+
+.tonearm-arm .head {
+  position: absolute;
+  right: -4%;
+  top: 50%;
+  width: 15%;
+  height: 460%;
+  transform: translateY(-50%) rotate(-16deg);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #fff, color-mix(in oklab, var(--arm) 80%, #000));
+  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.6);
+}
+
+.tonearm-arm .weight {
+  position: absolute;
+  left: -14%;
+  top: 50%;
+  width: 26%;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, var(--arm-hi), color-mix(in oklab, var(--arm) 70%, #000));
+  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.6);
+}
+
+.deck-controls {
+  position: absolute;
+  right: 8%;
+  bottom: 10%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.deck-knob {
+  width: 15px;
+  height: 30px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, var(--arm-hi), var(--arm));
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 3px 8px -4px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.deck-knob::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 5px;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--ink) 55%, transparent);
+  transition: top 0.5s cubic-bezier(0.3, 1.4, 0.4, 1);
+}
+
+.deck-knob.live::after {
+  top: auto;
+  bottom: 5px;
+}
+
+.deck-led {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--glow) 70%, #fff);
+  box-shadow: 0 0 10px 2px color-mix(in oklab, var(--glow) 70%, transparent);
+  opacity: 0.25;
+  transition: opacity 0.4s;
+}
+
+.deck-led.live {
+  opacity: 1;
+}
+
+.now-text {
+  width: 100%;
+  max-width: 560px;
+  flex: none;
+  margin-top: 6px;
+}
+
+.now-text h2 {
+  margin: 0;
+  font-size: clamp(22px, 5.2vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.18;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.now-text p {
+  margin: 5px 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
+  font-weight: 600;
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.now-text p em {
+  font-style: normal;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.seek {
+  width: 100%;
+  max-width: 560px;
+  flex: none;
+  margin-top: 18px;
+}
+
+.seek input {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 26px;
+  background: none;
+  cursor: pointer;
+  display: block;
+}
+
+.seek input::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--ink) var(--fill, 0%), var(--line) var(--fill, 0%));
+}
+
+.seek input::-moz-range-track {
+  height: 5px;
+  border-radius: 99px;
+  background: var(--line);
+}
+
+.seek input::-moz-range-progress {
+  height: 5px;
+  border-radius: 99px;
+  background: var(--ink);
+}
+
+.seek input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--ink) 12%, transparent);
+  transition: box-shadow 0.2s;
+}
+
+.seek input:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 9px color-mix(in oklab, var(--ink) 16%, transparent);
+}
+
+.seek input::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.seek .times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  margin-top: -2px;
+}
+
+.transport {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 14px;
+  flex: none;
+}
+
+.transport .mid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.t-btn {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  transition: color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.t-btn:hover {
+  color: var(--ink);
+  background: var(--surface-soft);
+}
+
+.t-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.t-btn.on {
+  color: var(--ink);
+}
+
+.t-btn.on::after {
+  content: '';
+  position: absolute;
+  margin-top: 26px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.t-btn.big {
+  width: 74px;
+  height: 74px;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.22s;
+}
+
+.t-btn.big:hover {
+  transform: scale(1.06);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.t-btn.big svg {
+  width: 30px;
+  height: 30px;
+}
+
+.now-actions {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.now-actions::-webkit-scrollbar {
+  display: none;
+}
+
+/* On phones the three actions read better as icons than as clipped words. */
+@media (max-width: 560px) {
+  .now-actions {
+    gap: 10px;
+    justify-content: center;
+  }
+  .now-actions .chip-label {
+    display: none;
+  }
+  .now-actions .chip {
+    width: 50px;
+    min-height: 50px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 99px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-soft);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.chip:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.chip.on {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: transparent;
+}
+
+.chip svg {
+  width: 17px;
+  height: 17px;
+}
+
+.queue {
+  width: 100%;
+  max-width: 560px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin-top: 14px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.now.with-queue .queue {
+  display: flex;
+}
+
+.queue h3 {
+  margin: 6px 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@media (min-width: 901px) {
+  .now {
+    padding-inline: 34px;
+  }
+  .deck {
+    width: min(46vw, 470px, 58vh);
+  }
+  .now-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.86fr);
+    align-items: center;
+    gap: 44px;
+  }
+  .now-stage .right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+  .now-text,
+  .seek,
+  .transport,
+  .now-actions,
+  .queue {
+    width: 100%;
+    max-width: none;
+  }
+  .queue {
+    display: flex;
+    max-height: 30vh;
+  }
+}
+
+/* ---------- mini player ---------- */
+
+.mini {
+  position: fixed;
+  inset-inline: 12px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 44;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 12px;
+  border-radius: 22px;
+  background: var(--surface-glass);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  animation: mini-in 0.36s cubic-bezier(0.2, 0.9, 0.2, 1);
+  overflow: hidden;
+}
+
+@keyframes mini-in {
+  from {
+    transform: translateY(120%);
+  }
+}
+
+.mini .art {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.mini-meta {
+  min-width: 0;
+}
+
+.mini-meta b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-meta span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini .t-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.mini .t-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mini-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2.5px;
+  background: var(--ink);
+  opacity: 0.55;
+  transition: width 0.25s linear;
+}
+
+@media (min-width: 901px) {
+  .mini {
+    inset-inline: auto;
+    right: 26px;
+    bottom: 26px;
+    width: 380px;
+  }
+  [dir='rtl'] .mini {
+    right: auto;
+    left: 26px;
+  }
+}
+
+[data-theme='dark'] .mini {
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+}

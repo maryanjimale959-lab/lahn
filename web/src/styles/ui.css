@@ -1,0 +1,600 @@
+/* ---------- menus ---------- */
+
+.menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 8px);
+  z-index: 70;
+  min-width: 226px;
+  max-height: 320px;
+  overflow: auto;
+  padding: 8px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: rise 0.2s ease;
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  text-align: start;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--ink);
+  transition: background 0.16s;
+}
+
+.menu button:hover {
+  background: var(--surface-soft);
+}
+
+.menu button span:first-child {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu button em {
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.menu button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.menu .tick {
+  color: #2f9e5f;
+}
+
+.menu-new {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 4px;
+  color: var(--ink-2) !important;
+}
+
+.menu-empty {
+  padding: 12px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* ---------- track row extras ---------- */
+
+.track .acts .menu-root {
+  width: 38px;
+  height: 38px;
+}
+
+.track .acts .row-menu {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  min-height: 0;
+}
+
+.track .fav.on {
+  color: #d6453f;
+}
+
+/* ---------- sort bar ---------- */
+
+.sortbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.sort-count {
+  margin-inline-start: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+/* ---------- search field ---------- */
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  min-height: 56px;
+  margin-bottom: 26px;
+  border-radius: 18px;
+  background: var(--surface-soft);
+  border: 1.5px solid var(--line);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.search-field:focus-within {
+  border-color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--glow) 30%, transparent);
+}
+
+.search-field > svg {
+  width: 21px;
+  height: 21px;
+  color: var(--ink-3);
+  flex: none;
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  font-size: 16.5px;
+  font-weight: 600;
+}
+
+.search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-field button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink-3);
+}
+
+.search-field button:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.search-field svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- detail headers ---------- */
+
+.detail-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 26px;
+  margin-bottom: 22px;
+}
+
+.detail-art {
+  width: clamp(132px, 26vw, 214px);
+  aspect-ratio: 1;
+  flex: none;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.detail-meta {
+  min-width: 0;
+  padding-bottom: 6px;
+}
+
+.detail-meta .crumb {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.detail-meta h2 {
+  margin: 6px 0 8px;
+  font-size: clamp(28px, 6.4vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.03;
+  overflow-wrap: anywhere;
+}
+
+.detail-meta p {
+  margin: 0 0 3px;
+  font-size: 14px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.detail-cta {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+  .detail-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .detail-art {
+    width: min(58vw, 220px);
+  }
+}
+
+/* ---------- settings ---------- */
+
+.set-group {
+  margin-bottom: 30px;
+}
+
+.set-group > h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-inline-start: 4px;
+}
+
+.set-group {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.set-row:last-of-type {
+  border-bottom: 0;
+}
+
+.set-label {
+  flex: 1;
+  min-width: 160px;
+}
+
+.set-label b {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.set-label span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.seg {
+  display: inline-flex;
+  padding: 4px;
+  gap: 3px;
+  border-radius: 15px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 11px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  transition: background 0.2s, color 0.2s;
+}
+
+.seg button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.seg button.on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.mono-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.mono-value.small {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin: 4px 0 0;
+}
+
+/* Windows paths are LTR runs; isolating them stops "…WinGet|Links\…" breaks
+   and keeps the tool name pinned to the row's start edge in RTL. */
+.engine-lines p {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.engine-lines .tool {
+  flex: none;
+}
+
+.engine-lines bdi {
+  min-width: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.badge.ok {
+  background: color-mix(in oklab, #2f9e5f 18%, transparent);
+  color: #1f7a47;
+}
+
+[data-theme='dark'] .badge.ok {
+  color: #6ee7a3;
+}
+
+.badge.bad {
+  background: color-mix(in oklab, #d6453f 18%, transparent);
+  color: #b13028;
+}
+
+[data-theme='dark'] .badge.bad {
+  color: #ff9b92;
+}
+
+.lan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lan-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.lan-list a:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.lan-list svg {
+  width: 17px;
+  height: 17px;
+  color: var(--ink-3);
+}
+
+.about {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.about > svg {
+  flex: none;
+  box-shadow: var(--shadow-md);
+}
+
+.about div {
+  display: grid;
+  gap: 2px;
+}
+
+.about b {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.about span {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.about .credit {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-top: 4px;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- home extras ---------- */
+
+.lib-stats {
+  margin: -10px 0 26px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.offline-bar {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: 90;
+  padding: 11px 18px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 800;
+  background: #d6453f;
+  color: #fff;
+}
+
+.fan {
+  position: relative;
+  height: 168px;
+  display: grid;
+  place-items: center;
+}
+
+.fan-card {
+  position: absolute;
+  width: 116px;
+  height: 116px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  border: 4px solid var(--surface);
+  transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.fan-card svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.92;
+}
+
+.fan-card.c1 {
+  background: linear-gradient(140deg, #8f7ae0, #5f47b8);
+  transform: translateX(-74px) rotate(-15deg);
+}
+
+.fan-card.c2 {
+  background: linear-gradient(140deg, #f0b184, #dd6a4a);
+  transform: translateY(-12px) scale(1.12);
+  z-index: 2;
+}
+
+.fan-card.c3 {
+  background: linear-gradient(140deg, #6fb9a8, #3d8577);
+  transform: translateX(74px) rotate(15deg);
+}
+
+.onboard:hover .fan-card.c1 {
+  transform: translateX(-88px) rotate(-19deg);
+}
+
+.onboard:hover .fan-card.c3 {
+  transform: translateX(88px) rotate(19deg);
+}
+
+.pill-btn.big-cta {
+  min-height: 56px;
+  padding: 0 28px;
+  font-size: 16.5px;
+  border-radius: 20px;
+}
+
+.job-art {
+  width: 62px;
+  height: 62px;
+  flex: none;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--glow), var(--glow-2));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.job-art svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 900px) {
+  .add-label {
+    display: none;
+  }
+  .topbar .pill-btn {
+    padding: 0 15px;
+  }
+  .mini {
+    grid-template-columns: 50px minmax(0, 1fr) auto auto;
+    gap: 11px;
+  }
+  .mini .next-peek {
+    color: var(--ink-2);
+  }
+  .seg {
+    width: 100%;
+  }
+  .seg button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Four round buttons leave no room for the page title. */
+@media (max-width: 560px) {
+  .topbar .theme-btn {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 700px) {
+  .fan-card {
+    width: 128px;
+    height: 128px;
+  }
+}

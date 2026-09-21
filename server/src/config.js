@@ -1,0 +1,77 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export const SERVER_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const REPO_ROOT = path.resolve(SERVER_ROOT, '..');
+
+const ENV = (name, fallback) => (process.env[name] && process.env[name].trim()) || fallback;
+
+export const PORT = Number(ENV('LAHN_PORT', '4780'));
+export const LIBRARY_DIR = path.resolve(ENV('LAHN_LIBRARY', path.join(REPO_ROOT, 'library')));
+export const COVERS_DIR = path.join(LIBRARY_DIR, 'covers');
+export const DATA_DIR = path.resolve(ENV('LAHN_DATA', path.join(SERVER_ROOT, 'data')));
+export const DB_FILE = path.join(DATA_DIR, 'lahn.db');
+export const WEB_DIST = path.join(REPO_ROOT, 'web', 'dist');
+
+export const AUDIO_EXTENSIONS = new Set(['.m4a', '.mp3', '.opus', '.ogg', '.wav', '.flac', '.mka', '.aac']);
+
+const EXE = process.platform === 'win32' ? '.exe' : '';
+
+function fromPath(name) {
+  try {
+    const finder = process.platform === 'win32' ? 'where' : 'which';
+    const out = execFileSync(finder, [name], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const hit = out.split(/\r?\n/).map((l) => l.trim()).find(Boolean);
+    return hit || null;
+  } catch {
+    return null;
+  }
+}
+
+function shallowFind(root, name, depth = 4) {
+  if (!existsSync(root) || depth < 0) return null;
+  let entries;
+  try {
+    entries = readdirSync(root, { withFileTypes: true });
+  } catch {
+    return null;
+  }
+  for (const entry of entries) {
+    const full = path.join(root, entry.name);
+    if (entry.isFile() && entry.name.toLowerCase() === name) return full;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const nested = shallowFind(path.join(root, entry.name), name, depth - 1);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+export function resolveTool(envName, name) {
+  const override = process.env[envName];
+  if (override && existsSync(override)) return override;
+  const exe = name + EXE;
+  const local = path.join(DATA_DIR, 'bin', exe);
+  if (existsSync(local)) return local;
+  return (
+    fromPath(exe) ||
+    shallowFind(path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Links'), exe, 0) ||
+    shallowFind(path.join(os.homedir(), 'AppData', 'Local', 'Microsoft', 'WinGet', 'Packages'), exe) ||
+    shallowFind(path.join(os.homedir(), 'Downloads'), exe, 2) ||
+    null
+  );
+}
+
+export function tools() {
+  return {
+    ytDlp: resolveTool('LAHN_YTDLP', 'yt-dlp'),
+    ffmpeg: resolveTool('LAHN_FFMPEG', 'ffmpeg'),
+    ffprobe: resolveTool('LAHN_FFPROBE', 'ffprobe'),
+  };
+}
+
+export const APP_VERSION = '0.1.0';

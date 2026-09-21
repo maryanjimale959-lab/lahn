@@ -1,0 +1,22 @@
+{
+  "name": "Lahn — لحن",
+  "short_name": "Lahn",
+  "description": "Your own music library. Paste a link, keep the song.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f1ee",
+  "theme_color": "#f2f1ee",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Add a song", "url": "/?add=1", "description": "Paste a link and pull it into your library" }
+  ]
+}
