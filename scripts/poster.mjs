@@ -193,6 +193,7 @@ ${FONTS}
 html,body{width:${w}px;height:${h}px;overflow:hidden}
 body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .poster{position:relative;width:${w}px;height:${h}px;background:${t.bg};color:${t.ink};
+  --fit:1;--dfit:1;
   display:flex;flex-direction:column;overflow:hidden;font-size:${px(27)};padding:${px(60)} ${px(62)} ${px(48)}}
 .poster::before,.poster::after{content:'';position:absolute;border-radius:50%;filter:blur(${px(92)});pointer-events:none}
 .poster::before{width:${Math.round(w * 0.78)}px;height:${Math.round(w * 0.78)}px;top:-${Math.round(w * 0.3)}px;left:-${Math.round(w * 0.24)}px;background:${t.glowA}}
@@ -215,18 +216,19 @@ h1{font-size:${px(92)};font-weight:800;line-height:.98;letter-spacing:-.045em}
 
 .body{flex:1;min-height:0;display:flex;${side ? `flex-direction:row;gap:${px(50)};align-items:center` : `flex-direction:column;gap:${px(14)};justify-content:center`}}
 .stage{flex:none;display:grid;place-items:center;min-height:0}
-.deck{width:${deck}px;height:${deck}px}
-.tracks{flex:1;min-width:0;list-style:none;display:grid;align-content:center;gap:${px(9)};${cols === 2 ? `grid-template-columns:1fr 1fr;column-gap:${px(32)}` : ''}}
-li{display:flex;align-items:center;gap:${px(17)};min-width:0}
-.n{width:2.5ch;font-size:${px(20)};font-weight:700;color:${t.mute};font-variant-numeric:tabular-nums}
-.thumb{width:${px(thumb)};height:${px(thumb)};border-radius:${px(14)};object-fit:cover;flex:none;box-shadow:0 ${px(6)} ${px(16)} rgba(0,0,0,.22)}
+.deck{width:calc(${deck}px * var(--dfit));height:calc(${deck}px * var(--dfit))}
+.tracks{flex:1;min-width:0;list-style:none;display:grid;align-content:center;gap:calc(${px(9)} * var(--fit));${cols === 2 ? `grid-template-columns:1fr 1fr;column-gap:${px(32)}` : ''}}
+li{display:flex;align-items:center;gap:calc(${px(17)} * var(--fit));min-width:0}
+li.more{justify-content:center;font-size:calc(${px(22)} * var(--fit));font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${t.mute}}
+.n{width:2.5ch;font-size:calc(${px(20)} * var(--fit));font-weight:700;color:${t.mute};font-variant-numeric:tabular-nums}
+.thumb{width:calc(${px(thumb)} * var(--fit));height:calc(${px(thumb)} * var(--fit));border-radius:calc(${px(14)} * var(--fit));object-fit:cover;flex:none;box-shadow:0 ${px(6)} ${px(16)} rgba(0,0,0,.22)}
 .thumb.blank{background:linear-gradient(140deg,#ff9d5c,#e0523f)}
-.meta{flex:1;min-width:0;display:grid;gap:${px(3)}}
-.meta b{font-size:${px(30)};font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.meta i{font-style:normal;font-size:${px(22)};font-weight:500;color:${t.mute};white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{flex:1;min-width:0;display:grid;gap:calc(${px(3)} * var(--fit))}
+.meta b{font-size:calc(${px(30)} * var(--fit));font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta i{font-style:normal;font-size:calc(${px(22)} * var(--fit));font-weight:500;color:${t.mute};white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Long upload titles shrink instead of cutting off mid-word, which reads as a mistake on a poster. */
-li.long .meta b{font-size:${px(cols === 2 ? 21 : 25)}}
-.d{font-size:${px(21)};font-weight:600;color:${t.mute};font-variant-numeric:tabular-nums}
+li.long .meta b{font-size:calc(${px(cols === 2 ? 21 : 25)} * var(--fit))}
+.d{font-size:calc(${px(21)} * var(--fit));font-weight:600;color:${t.mute};font-variant-numeric:tabular-nums}
 
 footer{margin-top:${px(22)};padding-top:${px(22)};border-top:1px solid ${t.line};display:flex;align-items:center;
   justify-content:space-between;font-size:${px(21)};color:${t.mute};font-weight:600}
@@ -250,7 +252,49 @@ footer{margin-top:${px(22)};padding-top:${px(22)};border-top:1px solid ${t.line}
     <span class="tag">${logoMark(Math.round(34 * s))} made with Lahn — your own music library</span>
     <span>lahn · لحن</span>
   </footer>
-</div></body></html>`;
+</div>
+<script>
+/* The library grows, the canvas does not. Shrink the record and the rows until the list fits,
+   then drop the overflow into a "+N more" line so nothing is ever cut mid-word.
+   main() calls this once the web fonts have landed, so it measures the real layout. */
+window.__refit = () => {
+  const poster = document.querySelector('.poster');
+  const area = document.querySelector('.body');
+  const list = document.querySelector('.tracks');
+  const rows = () => [...list.querySelectorAll('li')];
+  const fits = () => {
+    const b = area.getBoundingClientRect();
+    return rows().every((li) => {
+      const r = li.getBoundingClientRect();
+      return r.top >= b.top - 1 && r.bottom <= b.bottom + 1;
+    });
+  };
+  for (let i = 0; i < 14 && !fits(); i++) {
+    /* Tighten the rows first; the record is the poster's face, so it only gives ground after. */
+    poster.style.setProperty('--fit', Math.max(0.7, 1 - (i + 1) * 0.05));
+    poster.style.setProperty('--dfit', Math.max(0.55, 1 - Math.max(0, i - 5) * 0.1));
+  }
+  let hidden = 0;
+  while (!fits() && rows().length > 1) {
+    rows().at(-1).remove();
+    hidden++;
+  }
+  if (hidden) {
+    const more = document.createElement('li');
+    more.className = 'more';
+    const say = () => { more.textContent = '+ ' + hidden + ' more ' + (hidden === 1 ? 'song' : 'songs'); };
+    say();
+    list.append(more);
+    while (!fits() && rows().length > 2) {
+      rows().at(-2).remove();
+      hidden++;
+      say();
+    }
+  }
+  return { hidden, scale: Number(getComputedStyle(poster).getPropertyValue('--fit')) };
+};
+</script>
+</body></html>`;
 }
 
 /* ---------------------------------------------------------------- render */
@@ -270,6 +314,7 @@ async function main() {
     await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(300);
+    const shrunk = await page.evaluate(() => window.__refit());
 
     const fit = await page.evaluate(() => {
       const box = document.querySelector('.poster').getBoundingClientRect();
@@ -283,7 +328,8 @@ async function main() {
     const name = `lahn-playlist-${format.id}-${format.theme}.png`;
     await page.locator('.poster').screenshot({ path: path.join(OUT, name) });
     console.log(
-      `${name}  ${format.w}x${format.h}  ${fit.outside || fit.cut ? `⚠ ${fit.outside} outside frame, ${fit.cut} truncated` : '✓ fits'}`
+      `${name}  ${format.w}x${format.h}  ${fit.outside || fit.cut ? `⚠ ${fit.outside} outside frame, ${fit.cut} truncated` : '✓ fits'}` +
+        (shrunk.hidden ? ` · ${shrunk.hidden} song(s) folded into "+ more"` : shrunk.scale < 1 ? ` · rows at ${Math.round(shrunk.scale * 100)}%` : '')
     );
   }
 
