@@ -77,10 +77,18 @@ server/data/  the database (gitignored)
 ```bash
 npm run doctor                     # check tools, ports, library, database
 node scripts/shots.mjs             # 22 screenshots + a real playback assertion
+node scripts/poster.mjs            # share/ — posters of the library for social media
 ```
 
 The shot suite walks every screen in light, dark, mobile and Arabic, and fails loudly if
 audio stalls — it is the fastest way to see a regression before it reaches the app.
+
+`poster.mjs` renders the turntable as a printable card in story (1080×1920), square
+(1080×1080) and wide (1600×900). Set `POSTER_TITLE` and `POSTER_BY` to rename it:
+
+```bash
+POSTER_TITLE="Late Shift" POSTER_BY="curated by Maryam J." node scripts/poster.mjs
+```
 
 ## Backing it up
 

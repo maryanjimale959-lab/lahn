@@ -3,5 +3,6 @@ web/dist/
 library/
 server/data/
 shots/
+share/
 *.log
 .DS_Store
