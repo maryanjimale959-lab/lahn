@@ -132,6 +132,15 @@ const LEDE =
   process.env.POSTER_LEDE ||
   'Paste a link and <b>keep the song</b>. Lahn plays your library on your PC and your phone — <b>offline, ad‑free, no subscription</b>.';
 
+/* LGTM is the studio; Lahn is the first thing it ships. The teaser says who made it. */
+const COMPANY = process.env.POSTER_COMPANY || 'LGTM';
+const COMPANY_TAG = process.env.POSTER_COMPANY_TAG || 'looks good to me';
+const SOON = (process.env.POSTER_SOON || 'Coming Soon').split(/\s+/).slice(0, 3);
+const SOON_LEDE =
+  process.env.POSTER_SOON_LEDE ||
+  'Music, podcasts and lessons from the channels you follow — saved to your own library, offline on every screen you own.';
+const CREDIT = process.env.POSTER_CREDIT || 'created by Maryam J.';
+
 /* -------------------------------------------------------------- capture */
 
 const SCREENS = [
@@ -327,11 +336,103 @@ body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-
 </div></body></html>`;
 }
 
+/** The studio lockup: the company that ships Lahn, spelled out once so it lands. */
+function companyChip(size) {
+  return `<div class="co" style="font-size:${size}px"><b>${esc(COMPANY)}</b><span>${esc(COMPANY_TAG)}</span></div>`;
+}
+
+const DEVICES = ['PC', 'Android', 'iPhone', 'Tablet', 'Offline', 'No ads'];
+
+/** The teaser: what is coming, whose it is, and a real screen of it running. */
+function coming(f, shots, hero) {
+  const t = THEME[f.theme];
+  const sq = f.h === 1080;
+  const soon = `${SOON.slice(0, -1).join('<br>')}${SOON.length > 1 ? '<br>' : ''}<em>${SOON.at(-1)}</em>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
+${FONTS}
+*{margin:0;box-sizing:border-box}
+html,body{width:${f.w}px;height:${f.h}px;overflow:hidden}
+body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.poster{position:relative;width:${f.w}px;height:${f.h}px;background:${t.bg};color:${t.ink};overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(120px)}
+.g1{width:900px;height:900px;left:-300px;top:${sq ? '-360px' : '-260px'};background:${t.glowA}}
+.g2{width:760px;height:760px;right:-260px;bottom:-200px;background:${t.glowB}}
+.disc{position:absolute;width:${sq ? 760 : 1180}px;height:${sq ? 760 : 1180}px;right:-${sq ? 300 : 430}px;top:${sq ? 520 : 300}px;opacity:.9}
+.disc svg{width:100%;height:100%}
+.grain{position:absolute;inset:0;mix-blend-mode:soft-light;opacity:${t.grain}}
+.brand{position:absolute;left:${sq ? 60 : 76}px;top:${sq ? 52 : 84}px;display:flex;align-items:center;gap:20px}
+.brand .mark{border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.28)}
+.word{display:flex;align-items:baseline;gap:12px}
+.word b{font-size:${sq ? 40 : 54}px;font-weight:800;letter-spacing:-.045em}
+.word span{font-family:'Noto Kufi Arabic',sans-serif;font-size:${sq ? 23 : 30}px;font-weight:600;color:${t.mute}}
+.co{position:absolute;right:${sq ? 60 : 76}px;top:${sq ? 56 : 96}px;display:flex;align-items:baseline;gap:12px;
+  padding:14px 24px;border:1px solid ${t.line};border-radius:99px}
+.co b{font-size:1.55em;font-weight:800;letter-spacing:.02em}
+.co span{font-size:.95em;font-weight:600;color:${t.mute};letter-spacing:.04em}
+.kicker{position:absolute;left:0;right:0;top:${sq ? 150 : 268}px;text-align:center;font-size:${sq ? 21 : 26}px;font-weight:800;
+  letter-spacing:.34em;text-transform:uppercase;color:${t.mute}}
+h1{position:absolute;left:0;right:0;top:${sq ? 196 : 330}px;text-align:center;font-size:${sq ? 148 : 200}px;font-weight:800;
+  line-height:.84;letter-spacing:-.055em}
+h1 em{font-style:normal;color:#e0523f}
+.lede{position:absolute;left:118px;right:118px;top:700px;text-align:center;font-size:30px;line-height:1.5;font-weight:500;color:${t.mute}}
+.lede b{color:${t.ink};font-weight:700}
+.phone{position:absolute;top:${sq ? 470 : 884}px;${sq ? 'left:500px' : 'left:357px'};width:${sq ? 210 : 336}px;
+  transform:rotate(${sq ? '3deg' : '-3deg'});transform-origin:top center}
+.frame{border-radius:${sq ? 36 : 56}px;padding:${sq ? 9 : 14}px;background:linear-gradient(155deg,#4b4852,#131217 42%,#33313a);
+  box-shadow:0 50px 84px rgba(0,0,0,.46),inset 0 0 0 2px rgba(255,255,255,.12)}
+.screen{border-radius:${sq ? 29 : 44}px;overflow:hidden;background:${t.bg}}
+.screen img{display:block;width:100%}
+.status{display:flex;align-items:center;justify-content:space-between;padding:${sq ? '12px 18px 6px' : '20px 30px 11px'};font-size:${sq ? 14 : 24}px;font-weight:700}
+.status svg{width:${sq ? 40 : 66}px;height:${sq ? 9 : 15}px}
+.card{position:absolute;left:${sq ? 56 : 70}px;top:${sq ? 640 : 1060}px;width:${sq ? 430 : 560}px;background:${t.card};
+  border-radius:${sq ? 22 : 30}px;padding:${sq ? 22 : 30}px;display:flex;gap:${sq ? 18 : 26}px;
+  box-shadow:0 34px 70px rgba(0,0,0,.42);border:1px solid ${t.line}}
+.art{width:${sq ? 108 : 158}px;height:${sq ? 108 : 158}px;border-radius:${sq ? 14 : 20}px;object-fit:cover;flex:none;box-shadow:0 12px 26px rgba(0,0,0,.35)}
+.art.blank{background:linear-gradient(140deg,#ff9d5c,#e0523f)}
+.body{flex:1;min-width:0;display:flex;flex-direction:column}
+.who{display:grid;gap:${sq ? 4 : 6}px}
+.who b{font-size:${sq ? 21 : 27}px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span{font-size:${sq ? 17 : 22}px;font-weight:500;color:${t.mute};white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{margin-top:${sq ? 16 : 22}px;height:7px;border-radius:99px;background:${t.line};position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,#ff9d5c,#e0523f)}
+.times{display:flex;justify-content:space-between;margin-top:10px;font-size:${sq ? 15 : 20}px;font-weight:600;color:${t.mute};font-variant-numeric:tabular-nums}
+.ctl{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:${sq ? 20 : 34}px;color:${t.ink}}
+.ctl svg{width:${sq ? 24 : 36}px;height:${sq ? 24 : 36}px}
+.ctl svg:nth-child(1),.ctl svg:nth-child(5){width:${sq ? 18 : 27}px;height:${sq ? 18 : 27}px;color:${t.mute}}
+.ctl svg:nth-child(3){width:${sq ? 36 : 54}px;height:${sq ? 36 : 54}px}
+.pills{position:absolute;left:0;right:0;bottom:${sq ? 88 : 140}px;display:grid;justify-items:center;gap:${sq ? 14 : 20}px}
+.pills b{font-size:${sq ? 17 : 21}px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:${t.mute}}
+.chips{display:flex;justify-content:center;align-items:center;gap:${sq ? 10 : 16}px}
+.chips span{font-size:${sq ? 17 : 22}px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${t.ink};
+  padding:${sq ? '9px 18px' : '13px 26px'};border:1px solid ${t.line};border-radius:99px;background:${t.card}}
+.credit{position:absolute;left:0;right:0;bottom:${sq ? 40 : 70}px;text-align:center;font-size:${sq ? 19 : 24}px;font-weight:600;color:${t.mute}}
+.credit b{color:${t.ink}}
+</style></head>
+<body><div class="poster">
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="disc">${bigDisc(t)}</div>
+  <div class="brand">${logoMark(sq ? 56 : 84)}<span class="word"><b>Lahn</b><span dir="rtl">لحن</span></span></div>
+  ${companyChip(sq ? 19 : 24)}
+  <div class="kicker">${sq ? 'Lahn on every screen' : 'Music · Podcasts · Lessons'}</div>
+  <h1>${soon}</h1>
+  ${sq ? '' : `<p class="lede">${SOON_LEDE}</p>`}
+  ${phone(shots.deck, t)}
+  ${playerCard(hero, t)}
+  <div class="pills"><b>Works on</b><div class="chips">${DEVICES.map((d) => `<span>${esc(d)}</span>`).join('')}</div></div>
+  <p class="credit"><b>${esc(COMPANY)}</b> · ${esc(CREDIT)}</p>
+  <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+</div></body></html>`;
+}
+
 const POSTERS = [
-  { name: 'lahn-promo-story-dark.png', kind: story, theme: 'dark' },
-  { name: 'lahn-promo-story-light.png', kind: story, theme: 'light' },
-  { name: 'lahn-promo-showcase-dark.png', kind: showcase, theme: 'dark' },
-  { name: 'lahn-promo-showcase-light.png', kind: showcase, theme: 'light' },
+  { name: 'lahn-promo-story-dark.png', kind: story, theme: 'dark', w: 1080, h: 1920 },
+  { name: 'lahn-promo-story-light.png', kind: story, theme: 'light', w: 1080, h: 1920 },
+  { name: 'lahn-promo-showcase-dark.png', kind: showcase, theme: 'dark', w: 1080, h: 1080 },
+  { name: 'lahn-promo-showcase-light.png', kind: showcase, theme: 'light', w: 1080, h: 1080 },
+  { name: 'lahn-coming-story-dark.png', kind: coming, theme: 'dark', w: 1080, h: 1920 },
+  { name: 'lahn-coming-story-light.png', kind: coming, theme: 'light', w: 1080, h: 1920 },
+  { name: 'lahn-coming-square-dark.png', kind: coming, theme: 'dark', w: 1080, h: 1080 },
+  { name: 'lahn-coming-square-light.png', kind: coming, theme: 'light', w: 1080, h: 1080 },
 ];
 
 /* ---------------------------------------------------------------- render */
@@ -346,9 +447,20 @@ async function main() {
 
   const shots = {};
   let now = null;
+  /* Re-shooting the app costs two minutes; PROMO_REUSE=1 redresses the posters from the last shoot. */
+  const stateFile = path.join(SHOTS, 'state.json');
+  const saved = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, 'utf8')) : {};
   for (const theme of ['dark', 'light']) {
+    const cached = saved[theme] && SCREENS.every((s) => existsSync(path.join(SHOTS, `${s.id}-${theme}.png`)));
+    if (cached && process.env.PROMO_REUSE === '1') {
+      shots[theme] = Object.fromEntries(SCREENS.map((s) => [s.id, dataUri(path.join(SHOTS, `${s.id}-${theme}.png`))]));
+      now ??= saved[theme].playing;
+      continue;
+    }
     const captured = await capture(browser, theme);
     shots[theme] = captured.files;
+    saved[theme] = { playing: captured.playing };
+    writeFileSync(stateFile, JSON.stringify(saved, null, 2));
     now ??= captured.playing;
   }
   const hero = heroTrack(now?.id);
@@ -358,13 +470,13 @@ async function main() {
   for (const poster of POSTERS) {
     const file = path.join(TMP, poster.name.replace('.png', '.html'));
     writeFileSync(file, poster.kind(poster, shots[poster.theme], hero));
-    await page.setViewportSize({ width: 1080, height: poster.name.includes('story') ? 1920 : 1080 });
+    await page.setViewportSize({ width: poster.w, height: poster.h });
     await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(400);
     const off = await page.evaluate(() => {
       const box = document.querySelector('.poster').getBoundingClientRect();
-      return [...document.querySelectorAll('.brand,.nav,h1,.lede,.card,.phone,.foot,.tag,.row,.labels')]
+      return [...document.querySelectorAll('.brand,.nav,.co,h1,.lede,.card,.phone,.foot,.tag,.row,.labels,.pills,.chips,.credit')]
         .filter((el) => {
           const r = el.getBoundingClientRect();
           return r.bottom > box.bottom + 2 || r.top < box.top - 2 || r.right > box.right + 2 || r.left < box.left - 2;
