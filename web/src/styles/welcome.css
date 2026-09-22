@@ -1,0 +1,345 @@
+/* ---------- the door: sign in, then choose what you like ---------- */
+
+.welcome {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+  align-items: center;
+  gap: clamp(28px, 5vw, 76px);
+  padding: clamp(28px, 5vw, 64px) clamp(22px, 5vw, 72px) clamp(48px, 7vw, 88px);
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgba(249, 122, 61, 0.14), transparent 58%),
+    radial-gradient(100% 80% at 92% 100%, rgba(185, 163, 214, 0.13), transparent 60%),
+    var(--bg-deep);
+}
+
+.welcome-brand {
+  max-width: 520px;
+}
+
+.welcome-mark {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.welcome-brand h1 {
+  margin: 18px 0 0;
+  font-size: clamp(38px, 5.4vw, 62px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.welcome-brand > p {
+  margin: 16px 0 0;
+  max-width: 44ch;
+  font-size: clamp(16px, 1.5vw, 19px);
+  color: var(--ink-2);
+}
+
+.welcome-lang {
+  margin-top: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 14.5px;
+  font-weight: 700;
+  transition: color 0.18s, border-color 0.18s, transform 0.18s;
+}
+
+.welcome-lang:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.welcome-lang svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* the card itself */
+
+.welcome-card {
+  width: 100%;
+  display: grid;
+  gap: 15px;
+  padding: clamp(24px, 3vw, 36px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.welcome-card h1 {
+  margin: 4px 0 0;
+  font-size: clamp(25px, 3vw, 33px);
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  font-weight: 800;
+}
+
+.welcome-card > p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 15.5px;
+}
+
+.welcome-card .welcome-mark {
+  margin-bottom: 6px;
+}
+
+.welcome-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+}
+
+.welcome-tabs button {
+  min-height: 40px;
+  border-radius: 999px;
+  color: var(--ink-3);
+  font-size: 14.5px;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s;
+}
+
+.welcome-tabs button.on {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.welcome-card label {
+  display: grid;
+  gap: 7px;
+}
+
+.welcome-card label > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.welcome-card input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-size: 16px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.welcome-card input::placeholder {
+  color: var(--ink-3);
+  opacity: 0.75;
+}
+
+.welcome-card input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(249, 122, 61, 0.2);
+}
+
+.welcome-error {
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 13px;
+  background: rgba(233, 96, 78, 0.14);
+  border: 1px solid rgba(233, 96, 78, 0.34);
+  color: #ff9d8c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+[data-theme='light'] .welcome-error {
+  color: #a5321f;
+}
+
+.welcome-card .big-cta {
+  margin-top: 6px;
+  justify-content: center;
+  width: 100%;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.welcome-card .big-cta:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  transform: none;
+  cursor: default;
+}
+
+.welcome-switch {
+  justify-self: center;
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line-strong);
+}
+
+.welcome-switch:hover {
+  color: var(--ink);
+}
+
+/* the interest picker */
+
+.welcome.pick {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.welcome.pick .welcome-card {
+  max-width: 760px;
+  gap: 17px;
+}
+
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+}
+
+.pick-tile {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  padding: 17px 15px 19px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--bg-deep);
+  color: var(--ink-2);
+  font-size: 14.5px;
+  font-weight: 700;
+  text-align: center;
+  transition: border-color 0.18s, color 0.18s, transform 0.18s, background 0.18s;
+}
+
+.pick-tile:hover {
+  transform: translateY(-3px);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.pick-tile.on {
+  background: rgba(249, 122, 61, 0.12);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.pick-glyph {
+  width: 52px;
+  height: 52px;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.pick-tile.on .pick-glyph {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.pick-glyph svg {
+  width: 24px;
+  height: 24px;
+}
+
+.pick-tile > svg:last-child {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+
+.pick-hint {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* the splash while the account check runs */
+
+.splash {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  background: var(--bg-deep);
+}
+
+.splash .welcome-mark {
+  animation: splash-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes splash-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash .welcome-mark {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 900px) {
+  .welcome {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 26px;
+    padding: 30px 18px 44px;
+  }
+  .welcome-brand {
+    max-width: none;
+    text-align: center;
+  }
+  .welcome-brand > p {
+    margin-inline: auto;
+  }
+  .welcome-lang {
+    margin-top: 20px;
+  }
+  .welcome-card {
+    border-radius: 26px;
+  }
+  .pick-grid {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+}

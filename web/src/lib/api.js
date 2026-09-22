@@ -13,7 +13,13 @@ async function request(method, route, body) {
   } catch {
     data = null;
   }
-  if (!res.ok) throw new Error(data?.error || `${method} ${route} failed (${res.status})`);
+  if (!res.ok) {
+    /* The server answers with a code, not a sentence, so the wording stays translatable. */
+    const err = new Error(data?.error || `${method} ${route} failed (${res.status})`);
+    err.status = res.status;
+    err.code = data?.error;
+    throw err;
+  }
   return data;
 }
 
@@ -64,6 +70,17 @@ export const api = {
 
   session: () => request('GET', '/session'),
   saveSession: (device, session) => request('PUT', '/session', { device, session }),
+
+  me: () => request('GET', '/me'),
+  signUp: (details) => request('POST', '/signup', details),
+  logIn: (email, password) => request('POST', '/login', { email, password }),
+  logOut: () => request('POST', '/logout'),
+  interests: () => request('GET', '/interests'),
+  saveInterests: (list) => request('PATCH', '/me', { interests: list }),
+  deleteAccount: () => request('DELETE', '/me'),
+  mine: () => request('GET', '/mine'),
+  like: (key, on) => request('POST', '/mine/like', { key, on }),
+  heard: (key, position) => request('POST', '/mine/played', { key, position }),
 };
 
 function openStream(route, onMessage) {
@@ -82,6 +99,8 @@ export const watchJob = (id, onMessage) => openStream(`/jobs/${id}/events`, onMe
 export const watchSession = (onMessage) => openStream('/session/events', onMessage);
 
 export const audioUrl = (id) => `${BASE}/tracks/${id}/audio`;
+/* A shelf item plays without ever being saved; the server fetches and streams it. */
+export const playUrl = (key) => `${BASE}/play/${encodeURIComponent(key)}/audio`;
 
 /* Covers are stored as "covers/<id>.jpg" in the library, but a channel or shelf can
    hand back a remote poster. Only the stored form needs the API prefix. */

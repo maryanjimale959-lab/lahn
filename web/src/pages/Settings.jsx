@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
-import { bytes, longDuration } from '../lib/format.js';
 import { Icon } from '../components/Icons.jsx';
 import { LogoMark } from '../components/Logo.jsx';
 import { PageHeader } from '../components/Shell.jsx';
+import { INTEREST_ART } from '../lib/kinds.js';
+import { shelfTitle } from '../lib/shelves.js';
+import { useAuth } from '../state/auth.jsx';
 import { useLibrary } from '../state/library.jsx';
 import { useUi } from '../state/ui.jsx';
 
@@ -30,9 +32,80 @@ function Group({ title, children }) {
   );
 }
 
+/** Her name, what she is into, and the way out. Only once there is an account to show. */
+function Account() {
+  const { t, navigate } = useUi();
+  const { user, saveInterests, logOut, refresh } = useAuth();
+  const [known, setKnown] = useState([]);
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    api.interests().then((res) => setKnown(res?.interests ?? [])).catch(() => {});
+  }, []);
+
+  if (!user) return null;
+
+  const picked = user.interests ?? [];
+  const toggle = (id) => saveInterests(picked.includes(id) ? picked.filter((x) => x !== id) : [...picked, id]);
+
+  const leave = async () => {
+    setBusy(true);
+    await logOut();
+    setBusy(false);
+    navigate('/home');
+  };
+
+  const drop = async () => {
+    if (!confirm) return setConfirm(true);
+    setBusy(true);
+    await api.deleteAccount().catch(() => {});
+    await refresh();
+    setBusy(false);
+    navigate('/home');
+  };
+
+  return (
+    <Group title={t('settings.account')}>
+      <Row label={t('auth.name')} hint={user.email}>
+        <div className="account-name">
+          <span className="account-chip">
+            <LogoMark size={26} />
+            {user.name}
+          </span>
+          <button type="button" className="pill-btn ghost" onClick={leave} disabled={busy}>
+            <Icon.back />
+            {t('auth.signOut')}
+          </button>
+        </div>
+      </Row>
+      <Row label={t('auth.interestsTitle')} hint={t('settings.interestsHint')}>
+        <div className="interest-list">
+          {known.map((item) => {
+            const Glyph = Icon[INTEREST_ART[item.id]] ?? Icon.song;
+            const on = picked.includes(item.id);
+            return (
+              <button key={item.id} type="button" className={`chip ${on ? 'on' : ''}`} aria-pressed={on} onClick={() => toggle(item.id)}>
+                <Glyph />
+                {t(shelfTitle(item.id))}
+              </button>
+            );
+          })}
+        </div>
+      </Row>
+      <Row label={t('settings.deleteAccount')} hint={confirm ? t('settings.deleteWarning') : t('settings.deleteHint')}>
+        <button type="button" className={`pill-btn ${confirm ? 'danger' : 'ghost'}`} onClick={drop} disabled={busy}>
+          <Icon.trash />
+          {confirm ? t('settings.deleteConfirm') : t('settings.deleteAccount')}
+        </button>
+      </Row>
+    </Group>
+  );
+}
+
 export function Settings() {
-  const { t, lang, count, setLang, theme, setTheme } = useUi();
-  const { health, stats, refresh } = useLibrary();
+  const { t, lang, setLang, theme, setTheme } = useUi();
+  const { health, refresh } = useLibrary();
   const [scanning, setScanning] = useState(false);
   const [scanMsg, setScanMsg] = useState(null);
 
@@ -56,6 +129,8 @@ export function Settings() {
   return (
     <>
       <PageHeader title={t('settings.title')} />
+
+      <Account />
 
       <Group title={t('settings.appearance')}>
         <Row label={t('settings.theme')}>
@@ -84,16 +159,12 @@ export function Settings() {
 
       <Group title={t('settings.group.library')}>
         <Row label={t('settings.libraryFolder')} hint={<bdi dir="ltr">{health?.libraryDir}</bdi>}>
-          <span className="mono-value">{count(stats?.songs ?? 0, 'song')} · {longDuration(stats?.music_seconds ?? 0, lang)} · {bytes(stats?.bytes ?? 0)}</span>
-        </Row>
-        <Row label={t('settings.scan')}>
           <button type="button" className="pill-btn ghost" onClick={scan} disabled={scanning}>
             <Icon.folder />
             {scanning ? '…' : t('settings.rescan')}
           </button>
         </Row>
         {scanMsg && <p className="hint">{t('settings.scanDone')}: {scanMsg}</p>}
-        <p className="hint">{t('settings.libraryHint')}</p>
       </Group>
 
       <Group title={t('settings.tools')}>
@@ -135,19 +206,12 @@ export function Settings() {
         </Row>
       </Group>
 
-      <Group title={t('settings.about')}>
-        <div className="about">
-          <LogoMark size={64} spin />
-          <div>
-            <b>Lahn</b>
-            <span>
-              {t('app.tagline')} — {t('settings.version')} {health?.version ?? '—'}
-            </span>
-            <span className="credit">{t('settings.createdBy')}</span>
-            <span className="hint">{t('settings.privacy')}</span>
-          </div>
-        </div>
-      </Group>
+      <p className="settings-foot">
+        <LogoMark size={22} />
+        <span>
+          Laxan {health?.version ?? ''} · {t('settings.privacy')}
+        </span>
+      </p>
     </>
   );
 }

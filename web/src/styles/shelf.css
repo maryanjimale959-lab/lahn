@@ -97,8 +97,8 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   box-shadow: var(--shadow-md);
   opacity: 0;
   transform: translateY(9px) scale(0.92);
@@ -172,6 +172,40 @@
 }
 
 .cat-cancel svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Keeping a copy on the device is the rare case now, so it waits for a hover. */
+.cat-save {
+  position: absolute;
+  top: 20px;
+  inset-inline-end: 20px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s, background 0.2s;
+}
+
+.cat:hover .cat-save,
+.cat:focus-within .cat-save {
+  opacity: 1;
+  transform: none;
+}
+
+.cat-save:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.cat-save svg {
   width: 15px;
   height: 15px;
 }

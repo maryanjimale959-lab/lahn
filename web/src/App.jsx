@@ -12,9 +12,11 @@ import { Shelf } from './pages/Shelf.jsx';
 import { Talks } from './pages/Talks.jsx';
 import { Search } from './pages/Search.jsx';
 import { Settings } from './pages/Settings.jsx';
-import { useLibrary } from './state/library.jsx';
-import { usePlayer } from './state/player.jsx';
-import { useSession } from './state/session.jsx';
+import { Welcome } from './pages/Welcome.jsx';
+import { useAuth } from './state/auth.jsx';
+import { LibraryProvider, useLibrary } from './state/library.jsx';
+import { PlayerProvider, usePlayer } from './state/player.jsx';
+import { SessionProvider, useSession } from './state/session.jsx';
 import { parseRoute, useUi } from './state/ui.jsx';
 
 function CurrentPage({ section, id }) {
@@ -83,5 +85,32 @@ export function App() {
       {!remote && current && !playerOpen && <MiniPlayer onOpen={() => setPlayerOpen(true)} />}
       {playerOpen && <NowPlaying onClose={() => setPlayerOpen(false)} />}
     </div>
+  );
+}
+
+/**
+ * Nobody fetches library data before they are in, so a signed-out phone never sees a
+ * wall of 401s — it sees the door. Someone with an account and no interests is still
+ * at the door too: the picker is part of getting in, not a page they can lose.
+ */
+export function Gate() {
+  const { checked, signedIn, user, accounts } = useAuth();
+  const needsInterests = accounts > 0 && Boolean(user) && !user.interests?.length;
+  if (!checked) {
+    return (
+      <div className="splash">
+        <span className="welcome-mark">Laxan</span>
+      </div>
+    );
+  }
+  if (!signedIn || needsInterests) return <Welcome />;
+  return (
+    <SessionProvider>
+      <PlayerProvider>
+        <LibraryProvider>
+          <App />
+        </LibraryProvider>
+      </PlayerProvider>
+    </SessionProvider>
   );
 }

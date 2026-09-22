@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api, audioUrl, coverFor } from '../lib/api.js';
 import { useSession } from './session.jsx';
+import { useUi } from './ui.jsx';
 
 export const PlayerContext = createContext(null);
 
@@ -17,6 +18,7 @@ const shuffled = (length, keepFirst) => {
 };
 
 export function PlayerProvider({ children }) {
+  const { t } = useUi();
   const [audio] = useState(() => {
     const el = new Audio();
     el.preload = 'metadata';
@@ -86,14 +88,17 @@ export function PlayerProvider({ children }) {
       const track = list[bounded];
       if (!track) return;
       setLoading(true);
-      audio.src = audioUrl(track.id);
+      /* A saved track plays from the library; a shelf item carries its own stream
+         address and the server fetches it on demand, so nothing is stored. */
+      audio.src = track.src ?? audioUrl(track.id);
       if (autoplay) {
         audio.play().catch((err) => {
           if (err.name !== 'AbortError') setError(err.message);
           setLoading(false);
         });
       }
-      api.played(track.id).catch(() => {});
+      if (track.src) api.heard(track.id).catch(() => {});
+      else api.played(track.id).catch(() => {});
     },
     [audio]
   );
@@ -236,7 +241,7 @@ export function PlayerProvider({ children }) {
     const onPause = () => setPlaying(false);
     const onError = () => {
       setLoading(false);
-      if (audio.src) setError('This one would not play.');
+      if (audio.src) setError(t('player.playFailed'));
     };
     const onEnded = () => {
       const { repeat: r } = stateRef.current;
@@ -263,7 +268,7 @@ export function PlayerProvider({ children }) {
       audio.removeEventListener('error', onError);
       audio.removeEventListener('ended', onEnded);
     };
-  }, [audio, next]);
+  }, [audio, next, t]);
 
   /* The driver announces every transport change, and keeps beating while a track is
      loaded — a screen that stops beating has been closed, and the house drops it. */

@@ -6,12 +6,26 @@ export function hashHue(seed = '') {
   return h;
 }
 
+/* Laxan's whole family is the logo's — rose through amber. Cover art is read for its brightness
+   and contrast, but its hue is folded into that arc, so a blue poster still yields a warm tile
+   rather than a colour that belongs to another brand. */
+const WARM_FROM = 338;
+const WARM_ARC = 58;
+const warmHue = (h) => (WARM_FROM + (((((h % 360) + 360) % 360) / 360) * WARM_ARC)) % 360;
+
 export function fallbackPalette(seed) {
-  const hue = hashHue(String(seed));
+  const hue = warmHue(hashHue(String(seed)));
   return {
     glow: `hsl(${hue} 62% 68%)`,
-    glow2: `hsl(${(hue + 48) % 360} 48% 62%)`,
+    glow2: `hsl(${warmHue(hashHue(String(seed)) + 120)} 48% 62%)`,
   };
+}
+
+/* Every generated cover — a shelf tile, a record label, an artist with no poster — is drawn
+   from this, so the app keeps one colour story instead of one per name. */
+export function warmGradient(seed) {
+  const h = hashHue(String(seed));
+  return `linear-gradient(140deg, hsl(${warmHue(h)} 66% 68%), hsl(${warmHue(h + 120)} 52% 52%))`;
 }
 
 const toHex = (r, g, b) => `#${[r, g, b].map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
@@ -86,8 +100,8 @@ export function paletteFor(url, seed) {
         const dominantHue = ranked.count ? ranked.h / ranked.count : best.h;
         const avgL = (sumR + sumG + sumB) / (3 * n);
 
-        const glow = hslToHex(dominantHue, 0.66, Math.min(0.78, Math.max(0.56, avgL * 0.7 + 0.34)));
-        const glow2 = hslToHex((dominantHue + 46) % 360, 0.5, Math.min(0.74, Math.max(0.52, avgL * 0.7 + 0.3)));
+        const glow = hslToHex(warmHue(dominantHue), 0.66, Math.min(0.78, Math.max(0.56, avgL * 0.7 + 0.34)));
+        const glow2 = hslToHex(warmHue(dominantHue + 46), 0.5, Math.min(0.74, Math.max(0.52, avgL * 0.7 + 0.3)));
         done({ glow, glow2 });
       } catch {
         done(fallbackPalette(seed));

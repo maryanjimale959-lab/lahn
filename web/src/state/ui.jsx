@@ -13,7 +13,7 @@ function readRoute() {
 
 export function UiProvider({ children }) {
   const [lang, setLangState] = useState(loadLang);
-  const [theme, setThemeState] = useState(() => localStorage.getItem(THEME_KEY) || 'system');
+  const [theme, setThemeState] = useState(() => localStorage.getItem(THEME_KEY) || 'dark');
   const [systemDark, setSystemDark] = useState(media.matches);
   const [route, setRoute] = useState(readRoute);
 

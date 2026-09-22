@@ -3,7 +3,7 @@ import { CatalogGrid, ShelfSkeleton } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { api } from '../lib/api.js';
-import { SHELF_QUERY, shelfTitle } from '../lib/shelves.js';
+import { shelfQuery, shelfTitle } from '../lib/shelves.js';
 import { useUi } from '../state/ui.jsx';
 
 export function Shelf({ id }) {
@@ -14,7 +14,7 @@ export function Shelf({ id }) {
 
   const load = useCallback(async () => {
     try {
-      const res = await api.catalog(SHELF_QUERY[id] ?? {});
+      const res = await api.catalog(shelfQuery(id));
       setItems(res.items ?? []);
       return res;
     } catch (err) {
@@ -30,8 +30,8 @@ export function Shelf({ id }) {
     (async () => {
       let res = await load();
       /* A cold catalog is still being read, so keep asking until the server says it is done. */
-      for (let n = 0; alive && res && !res.ready && n < 14; n += 1) {
-        await new Promise((done) => setTimeout(done, 12000));
+      for (let n = 0; alive && res && !res.ready && n < 40; n += 1) {
+        await new Promise((done) => setTimeout(done, 6000));
         if (!alive) return;
         res = await load();
       }

@@ -6,7 +6,7 @@ import { useUi } from '../state/ui.jsx';
 
 export function MiniPlayer({ onOpen }) {
   const { t } = useUi();
-  const { current, playing, time, duration, toggle, next } = usePlayer();
+  const { current, playing, loading, time, duration, toggle, next } = usePlayer();
   if (!current) return null;
 
   const fill = duration ? Math.min(100, (time / duration) * 100) : 0;
@@ -16,8 +16,8 @@ export function MiniPlayer({ onOpen }) {
       <Art track={current} className="art" />
       <span className="mini-meta">
         <b>{current.title}</b>
-        <span>
-          {current.artist} · {clock(duration || current.duration)}
+        <span className={loading ? 'preparing' : ''}>
+          {loading ? t('player.preparing') : `${current.artist} · ${clock(duration || current.duration)}`}
         </span>
       </span>
       <button
@@ -29,7 +29,7 @@ export function MiniPlayer({ onOpen }) {
           toggle();
         }}
       >
-        {playing ? <Icon.pause /> : <Icon.play />}
+        {playing ? <Icon.pause /> : loading ? <Icon.disc className="spin" /> : <Icon.play />}
       </button>
       <button
         type="button"

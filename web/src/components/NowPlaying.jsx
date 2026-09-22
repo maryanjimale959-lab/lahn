@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, coverFor } from '../lib/api.js';
 import { clock } from '../lib/format.js';
+import { useMine } from '../lib/useMine.js';
 import { AddToPlaylist } from './AddToPlaylist.jsx';
 import { Icon } from './Icons.jsx';
 import { Vinyl } from './Vinyl.jsx';
@@ -14,9 +15,13 @@ export function NowPlaying({ onClose }) {
   const { current, playing, loading, time, duration, shuffle, repeat, upNext, slot, error, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo } = usePlayer();
   const [scrub, setScrub] = useState(null);
   const [queueOpen, setQueueOpen] = useState(false);
-  const [fav, setFav] = useState(Boolean(current?.favourite));
+  /* A streamed item is not a row in the library, so a like on it belongs to the
+     listener, not to a track that does not exist. */
+  const streamed = Boolean(current?.src);
+  const { liked, toggleLike } = useMine();
+  const [kept, setKept] = useState(Boolean(current?.favourite));
 
-  useEffect(() => setFav(Boolean(current?.favourite)), [current?.id, current?.favourite]);
+  useEffect(() => setKept(Boolean(current?.favourite)), [current?.id, current?.favourite]);
 
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onClose();
@@ -27,11 +32,16 @@ export function NowPlaying({ onClose }) {
   const shown = scrub ?? time;
   const fill = duration ? Math.min(100, (shown / duration) * 100) : 0;
   const cover = coverFor(current?.cover);
+  const fav = streamed ? liked(current?.id) : kept;
 
   const flipFavourite = async () => {
     if (!current) return;
-    const nextVal = !fav;
-    setFav(nextVal);
+    if (streamed) {
+      toggleLike(current.id);
+      return;
+    }
+    const nextVal = !kept;
+    setKept(nextVal);
     await api.favourite(current.id, nextVal);
     refresh().catch(() => {});
   };
@@ -112,14 +122,26 @@ export function NowPlaying({ onClose }) {
             </button>
           </div>
 
-          {error && <p className="hint" role="status">{error}</p>}
+          {error ? (
+            <p className="now-note bad" role="status">
+              {error}
+            </p>
+          ) : loading ? (
+            <p className="now-note" role="status">
+              <span className="spin">
+                <Icon.disc />
+              </span>
+              {t('player.preparing')}
+            </p>
+          ) : null}
 
           <div className="now-actions">
             <button type="button" className={`chip ${fav ? 'on' : ''}`} onClick={flipFavourite} disabled={!current} title={t('player.favourite')}>
               {fav ? <Icon.heartOn /> : <Icon.heart />}
               <span className="chip-label">{t('player.favourite')}</span>
             </button>
-            {current && <AddToPlaylist trackIds={[current.id]} />}
+            {/* There is no library row to file a stream under, so the playlist button waits. */}
+            {current && !streamed && <AddToPlaylist trackIds={[current.id]} />}
             <button type="button" className={`chip ${queueOpen ? 'on' : ''}`} onClick={() => setQueueOpen((v) => !v)} title={t('player.queue')}>
               <Icon.queue />
               <span className="chip-label">{t('player.queue')}</span>

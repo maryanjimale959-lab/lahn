@@ -1,5 +1,36 @@
 :root {
   --font-latin: 'Manrope Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --bg: #12100f;
+  --bg-deep: #080707;
+  --surface: #1c1a19;
+  --surface-soft: rgba(38, 35, 33, 0.72);
+  --surface-glass: rgba(30, 28, 26, 0.78);
+  --ink: #f6f4f0;
+  --ink-2: #bdb7b0;
+  --ink-3: #857f79;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.18);
+  --disc: #0b0a0e;
+  --disc-hi: #2a2733;
+  --platter: #23202b;
+  --arm: #4b4655;
+  --arm-hi: #6f6879;
+  --shadow-lg: 0 40px 90px -30px rgba(0, 0, 0, 0.8), 0 4px 16px -6px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 18px 44px -26px rgba(0, 0, 0, 0.85);
+  --shadow-sm: 0 6px 20px -10px rgba(0, 0, 0, 0.7);
+  --glow: #ff9d5c;
+  --glow-2: #e0523f;
+  /* Laxan's own amber, straight off the logo: play buttons, active nav, anything live. */
+  --accent: #f97a3d;
+  --on-accent: #2b1405;
+  --radius-lg: 34px;
+  --radius-md: 22px;
+  --radius-sm: 14px;
+  --tap: 46px;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
   --bg: #f2f1ee;
   --bg-deep: #e6e4de;
   --surface: #ffffff;
@@ -18,37 +49,11 @@
   --shadow-lg: 0 40px 80px -32px rgba(46, 38, 26, 0.42), 0 4px 14px -6px rgba(46, 38, 26, 0.18);
   --shadow-md: 0 18px 40px -24px rgba(46, 38, 26, 0.4);
   --shadow-sm: 0 6px 18px -10px rgba(46, 38, 26, 0.35);
-  --glow: #e9b58c;
-  --glow-2: #b9a3d6;
-  --accent: #17150f;
-  --radius-lg: 34px;
-  --radius-md: 22px;
-  --radius-sm: 14px;
-  --tap: 46px;
+  --glow: #f0a271;
+  --glow-2: #e0523f;
+  --accent: #c8452a;
+  --on-accent: #fff3ea;
   color-scheme: light;
-}
-
-[data-theme='dark'] {
-  --bg: #0d0c10;
-  --bg-deep: #07060a;
-  --surface: #191720;
-  --surface-soft: rgba(30, 27, 38, 0.7);
-  --surface-glass: rgba(38, 34, 48, 0.66);
-  --ink: #f6f4f0;
-  --ink-2: #b8b2c0;
-  --ink-3: #7d7787;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.18);
-  --disc: #0b0a0e;
-  --disc-hi: #2a2733;
-  --platter: #23202b;
-  --arm: #4b4655;
-  --arm-hi: #6f6879;
-  --shadow-lg: 0 40px 90px -30px rgba(0, 0, 0, 0.8), 0 4px 16px -6px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 18px 44px -26px rgba(0, 0, 0, 0.85);
-  --shadow-sm: 0 6px 20px -10px rgba(0, 0, 0, 0.7);
-  --accent: #f6f4f0;
-  color-scheme: dark;
 }
 
 * {
@@ -464,8 +469,8 @@ a {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--on-accent);
   box-shadow: var(--shadow-md);
   opacity: 0;
   transform: translateY(10px) scale(0.9);
@@ -481,6 +486,88 @@ a {
 .tile .play-fab svg {
   width: 20px;
   height: 20px;
+}
+
+/* ---------- home short cuts ---------- */
+
+.quick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+  gap: 11px;
+  margin-bottom: 36px;
+}
+
+.quick-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 64px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  overflow: hidden;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.quick-tile:hover {
+  background: var(--surface);
+  transform: translateY(-2px);
+}
+
+.quick-tile b {
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-art {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--glow), var(--glow-2));
+  color: #0b0a0e;
+}
+
+.quick-art svg {
+  width: 21px;
+  height: 21px;
+}
+
+.quick-tile .play-fab {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 13px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.quick-tile:hover .play-fab,
+.quick-tile:focus-within .play-fab {
+  opacity: 1;
+  transform: none;
+}
+
+.quick-tile .play-fab svg {
+  width: 17px;
+  height: 17px;
 }
 
 .art {
@@ -632,7 +719,8 @@ a {
   .track .acts {
     opacity: 1;
   }
-  .tile .play-fab {
+  .tile .play-fab,
+  .quick-tile .play-fab {
     opacity: 1;
     transform: none;
   }
@@ -780,6 +868,13 @@ a {
   }
   .topbar {
     margin-bottom: 18px;
+    /* A long English shelf name should not be squeezed into three lines beside the buttons. */
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .topbar h1 {
+    flex: 1 1 100%;
+    font-size: clamp(24px, 7vw, 32px);
   }
   .card-row {
     grid-auto-columns: clamp(142px, 44vw, 178px);

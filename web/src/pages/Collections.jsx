@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../lib/api.js';
 import { longDuration } from '../lib/format.js';
 import { Art } from '../components/Art.jsx';
+import { streamTrack } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { Tile } from '../components/Tile.jsx';
@@ -164,7 +165,13 @@ export function ArtistPage({ id }) {
 
   const mine = tracks.filter((x) => x.artist_id === id);
   if (!data && !mine.length) return null;
-  const list = data?.tracks?.length ? data.tracks : mine;
+  /* A curated artist is a saved search rather than a row in the database, so her songs come off
+     a shelf and stream from there instead of playing a file. */
+  const list = data?.items?.length
+    ? data.items.map(streamTrack)
+    : data?.tracks?.length
+      ? data.tracks
+      : mine;
 
   return (
     <>

@@ -13,7 +13,7 @@ export function LogoMark({ size = 34, spin = false, className = '' }) {
       height={size}
       viewBox="0 0 64 64"
       role="img"
-      aria-label="Lahn"
+      aria-label="Laxan"
     >
       <defs>
         <radialGradient id="lm-disc" cx="40%" cy="32%" r="74%">
@@ -57,7 +57,7 @@ export function Logo({ size = 34, stacked = false }) {
     <span className={`logo ${stacked ? 'stacked' : ''}`}>
       <LogoMark size={size} spin />
       <span className="logo-word">
-        <b>Lahn</b>
+        <b>Laxan</b>
       </span>
     </span>
   );

@@ -1,13 +1,12 @@
-import { bytes, longDuration } from '../lib/format.js';
 import { Icon } from './Icons.jsx';
 import { Logo } from './Logo.jsx';
-import { useLibrary } from '../state/library.jsx';
 import { useUi } from '../state/ui.jsx';
 
 export const NAV = [
   { to: '/home', key: 'nav.home', icon: 'library', mobile: 'nav.home' },
   { to: '/songs', key: 'nav.songs', icon: 'song', mobile: 'nav.songs' },
   { to: '/talks', key: 'nav.talks', icon: 'mic', mobile: 'nav.tab.talks' },
+  { to: '/shelf/quran', key: 'shelf.quran', icon: 'spark' },
   { to: '/channels', key: 'nav.channels', icon: 'channel', mobile: 'nav.tab.channels' },
   { to: '/artists', key: 'nav.artists', icon: 'artist' },
   { to: '/albums', key: 'nav.albums', icon: 'disc' },
@@ -15,16 +14,15 @@ export const NAV = [
   { to: '/search', key: 'nav.search', icon: 'search', mobile: 'nav.tab.search' },
 ];
 
+/* Two-level routes like #/shelf/quran are their own nav entry, so the whole path decides. */
 function useActive() {
   const { route } = useUi();
-  return route.split('/')[1] || 'home';
+  return route.replace(/^\//, '');
 }
 
 export function Sidebar() {
-  const { t, lang, count } = useUi();
+  const { t } = useUi();
   const active = useActive();
-  const { health } = useLibrary();
-  const songs = health?.stats?.songs ?? 0;
 
   return (
     <aside className="sidebar">
@@ -42,17 +40,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="side-note">
-        <b>{t('settings.library')}</b>
-        {t('settings.libraryHint')}
-        {songs > 0 && (
-          <>
-            <br />
-            <br />
-            {t('home.stats', { songs: count(songs, 'song'), time: longDuration(health.stats.music_seconds ?? 0, lang), size: bytes(health.stats.bytes ?? 0) })}
-          </>
-        )}
-      </div>
     </aside>
   );
 }

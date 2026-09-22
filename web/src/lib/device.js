@@ -5,7 +5,7 @@ const isPhone = () => /android|iphone|ipod|ipad|mobile/i.test(navigator.userAgen
 /**
  * A stable per-browser identity so the house knows which screen is driving
  * playback. Two tabs on one machine count as two screens, which is what you
- * would expect when you open Lahn twice.
+ * would expect when you open Laxan twice.
  */
 export function thisDevice() {
   const kind = isPhone() ? 'phone' : 'desktop';

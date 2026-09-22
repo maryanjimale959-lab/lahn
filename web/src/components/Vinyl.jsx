@@ -1,5 +1,5 @@
 import { coverFor } from '../lib/api.js';
-import { hashHue } from '../lib/art.js';
+import { warmGradient } from '../lib/art.js';
 import { initials } from '../lib/format.js';
 import { Icon } from './Icons.jsx';
 
@@ -11,7 +11,7 @@ const INNER = 129;
 
 export function Vinyl({ track, playing, loading, progress = 0 }) {
   const cover = coverFor(track?.cover);
-  const hue = hashHue(track?.title ?? 'lahn');
+  const art = warmGradient(track?.title ?? 'Laxan');
   const landed = playing || loading;
   const angle = landed ? OUTER + (INNER - OUTER) * Math.min(1, Math.max(0, progress)) : PARKED;
 
@@ -29,9 +29,9 @@ export function Vinyl({ track, playing, loading, progress = 0 }) {
             ) : (
               <span
                 className="mono"
-                style={{ background: `linear-gradient(140deg, hsl(${hue} 66% 66%), hsl(${(hue + 46) % 360} 52% 50%))` }}
+                style={{ background: art }}
               >
-                {initials(track?.title ?? 'Lahn')}
+                {initials(track?.title ?? 'Laxan')}
               </span>
             )}
           </span>

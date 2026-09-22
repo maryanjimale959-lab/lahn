@@ -1,14 +1,82 @@
-import { CatalogRow, ShelfSkeleton } from '../components/Catalog.jsx';
+import { CatalogRow, ShelfSkeleton, streamTrack } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { Section, Tile } from '../components/Tile.jsx';
 import { shelfTitle } from '../lib/shelves.js';
 import { useShelves } from '../lib/useShelves.js';
-import { bytes, longDuration } from '../lib/format.js';
+import { useMine } from '../lib/useMine.js';
+import { INTEREST_ART } from '../lib/kinds.js';
+import { useAuth } from '../state/auth.jsx';
 import { useLibrary } from '../state/library.jsx';
+import { usePlayer } from '../state/player.jsx';
 import { useUi } from '../state/ui.jsx';
 
 const STEPS = ['home.step1', 'home.step2', 'home.step3'];
+
+const partOfDay = () => {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'night';
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return hour < 21 ? 'evening' : 'night';
+};
+
+/** The six short cuts along the top, the way Spotify opens its home. */
+function QuickPicks({ shelves }) {
+  const { t } = useUi();
+  const { playList } = usePlayer();
+  const picks = shelves.filter((s) => s.items?.length).slice(0, 6);
+  if (!picks.length) return null;
+
+  return (
+    <div className="quick">
+      {picks.map((shelf) => {
+        const Glyph = Icon[INTEREST_ART[shelf.id]] ?? Icon.library;
+        return (
+          <a className="quick-tile" key={shelf.id} href={`#/shelf/${shelf.id}`}>
+            <span className="quick-art">
+              <Glyph />
+            </span>
+            <b>{t(shelfTitle(shelf.id))}</b>
+            <span
+              className="play-fab"
+              role="button"
+              tabIndex={-1}
+              aria-label={t('player.play')}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                playList(shelf.items.slice(0, 12).map(streamTrack), 0);
+              }}
+            >
+              <Icon.play />
+            </span>
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * Everything Laxan carries, one tap wide. The rows below are only what she picked; these chips
+ * are how she reaches the rest without digging through the nav.
+ */
+function ShelfChips({ shelves, picked }) {
+  const { t } = useUi();
+  const list = shelves.filter((shelf) => shelf.id !== 'fresh' && shelf.id !== 'foryou');
+  if (list.length < 2) return null;
+
+  return (
+    <div className="shelf-chips">
+      {list.map((shelf) => (
+        <a key={shelf.id} className={`chip ${picked.includes(shelf.id) ? 'on' : ''}`} href={`#/shelf/${shelf.id}`}>
+          {t(shelfTitle(shelf.id))}
+        </a>
+      ))}
+    </div>
+  );
+}
 
 function Onboard() {
   const { t } = useUi();
@@ -46,21 +114,24 @@ function Onboard() {
 }
 
 export function Home() {
-  const { t, lang, count } = useUi();
+  const { t, count } = useUi();
+  const { user } = useAuth();
   const { stats, recent = [], popular = [], spoken = [], artists, albums, playlists } = useLibrary();
-  const { shelves, ready, loaded, error, reload } = useShelves();
+  const { history } = useMine();
+  const { shelves, picked, ready, loaded, error, reload } = useShelves();
+  const greeting = `${t(`home.greet.${partOfDay()}`)}${user?.name ? `, ${user.name}` : ''}`;
+  const pickedSet = new Set(picked);
+  /* What she chose during sign-up is the app she gets. "Made for you" is still there, and
+     everything else stays one tap away in Browse. */
+  const rows = pickedSet.size ? shelves.filter((shelf) => pickedSet.has(shelf.id) || shelf.id === 'foryou') : shelves;
+  const played = history.map((row) => {
+    const [channelId, id] = String(row.item_key).split(':');
+    return { key: row.item_key, id, channelId, channel: row.channel, title: row.title, thumbnail: row.thumbnail, duration: row.duration, kind: row.kind ?? 'song' };
+  });
 
   return (
     <>
-      <PageHeader title={t('home.title')} />
-
-      {!stats?.tracks && stats && <Onboard />}
-
-      {stats?.tracks > 0 && (
-        <p className="lib-stats">
-          {t('home.stats', { songs: count(stats.songs ?? 0, 'song'), time: longDuration(stats.music_seconds ?? 0, lang), size: bytes(stats.bytes) })}
-        </p>
-      )}
+      <PageHeader title={greeting} />
 
       {!loaded || (!shelves.length && !error) ? (
         <Section title={t('home.loading')}>
@@ -75,11 +146,24 @@ export function Home() {
           </button>
         </p>
       ) : (
-        shelves
-          .filter((shelf) => shelf.id !== 'fresh')
-          .map((shelf) => (
+        <>
+          {played.length > 0 && <CatalogRow title={t('home.continue')} items={played.slice(0, 12)} />}
+          <ShelfChips shelves={shelves} picked={picked} />
+          <QuickPicks shelves={rows} />
+          {rows.map((shelf) => (
             <CatalogRow key={shelf.id} title={t(shelfTitle(shelf.id))} more={`#/shelf/${shelf.id}`} items={shelf.items.slice(0, 12)} />
-          ))
+          ))}
+        </>
+      )}
+
+      {spoken.length > 0 && (
+        <Section title={t('home.talks')} more="#/talks">
+          <div className="card-row">
+            {spoken.map((track) => (
+              <Tile key={track.id} to={`#/talks/${track.kind}`} track={track} subtitle={track.artist} />
+            ))}
+          </div>
+        </Section>
       )}
 
       {recent.length > 0 && (
@@ -92,11 +176,11 @@ export function Home() {
         </Section>
       )}
 
-      {spoken.length > 0 && (
-        <Section title={t('home.talks')} more="#/talks">
+      {artists?.length > 0 && (
+        <Section title={t('nav.artists')} more="#/artists">
           <div className="card-row">
-            {spoken.map((track) => (
-              <Tile key={track.id} to={`#/talks/${track.kind}`} track={track} subtitle={track.artist} />
+            {artists.map((ar) => (
+              <Tile key={ar.id} to={`#/artists/${ar.id}`} title={ar.name} subtitle={count(ar.track_count, 'song')} cover={ar.image} round />
             ))}
           </div>
         </Section>
@@ -132,15 +216,7 @@ export function Home() {
         </Section>
       )}
 
-      {artists?.length > 0 && (
-        <Section title={t('nav.artists')} more="#/artists">
-          <div className="card-row">
-            {artists.map((ar) => (
-              <Tile key={ar.id} to={`#/artists/${ar.id}`} title={ar.name} subtitle={count(ar.track_count, 'song')} cover={ar.image} round />
-            ))}
-          </div>
-        </Section>
-      )}
+      {!stats?.tracks && stats && <Onboard />}
     </>
   );
 }

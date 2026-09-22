@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api.js';
 
-const POLL_MS = 12000;
-const MAX_POLLS = 14;
+const POLL_MS = 6000;
+const MAX_POLLS = 40;
 
 /**
  * The first read of a cold catalog kicks off a server-wide sweep, so the shelves come back
@@ -42,5 +42,14 @@ export function useShelves() {
     };
   }, [load]);
 
-  return { shelves: data?.shelves ?? [], ready: data?.ready ?? false, total: data?.total ?? 0, loaded: !!data, error, reload: load };
+  return {
+    shelves: data?.shelves ?? [],
+    /* The shelves she said she is into during sign-up. Home shows these and nothing else. */
+    picked: data?.picked ?? [],
+    ready: data?.ready ?? false,
+    total: data?.total ?? 0,
+    loaded: !!data,
+    error,
+    reload: load,
+  };
 }

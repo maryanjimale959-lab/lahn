@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { coverFor } from '../lib/api.js';
-import { fallbackPalette, hashHue, paletteFor } from '../lib/art.js';
+import { fallbackPalette, paletteFor, warmGradient } from '../lib/art.js';
 import { initials } from '../lib/format.js';
 
 export function Art({ track, cover, name, className = '', children }) {
   const src = coverFor(track?.cover ?? cover);
   const label = track?.title ?? name ?? '';
   const [failed, setFailed] = useState(false);
-  const hue = hashHue(label);
 
   useEffect(() => setFailed(false), [src]);
 
@@ -15,7 +14,7 @@ export function Art({ track, cover, name, className = '', children }) {
     <span
       className={`art ${className}`}
       style={{
-        background: `linear-gradient(140deg, hsl(${hue} 66% 68%), hsl(${(hue + 46) % 360} 52% 52%))`,
+        background: warmGradient(label),
       }}
     >
       {src && !failed ? (
