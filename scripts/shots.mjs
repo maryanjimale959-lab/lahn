@@ -3,6 +3,8 @@ import path from 'node:path';
 import { chromium } from 'playwright-core';
 
 const BASE = process.env.LAHN_URL ?? 'http://localhost:5173';
+/* These shots fill a form whose submit route is mocked, so the account is never touched. */
+const DEV_PASSWORD = 'shot-password';
 const OUT = path.resolve('shots');
 mkdirSync(OUT, { recursive: true });
 
@@ -16,7 +18,7 @@ function report(err) {
 }
 
 /* Windows suspends the Wi-Fi adapter mid-run now and then; the long-lived session
-   stream is the first thing to show it, and it says nothing about Lahn. */
+   stream is the first thing to show it, and it says nothing about Laxan. */
 const transient = /ERR_NETWORK_IO_SUSPENDED|ERR_INTERNET_DISCONNECTED/i;
 const note = (text) => {
   if (!transient.test(text)) problems.push(text);
@@ -261,6 +263,71 @@ const settleHealth = async (page) =>
   await shot(page, '22-somali-settings', true);
 
   await page.evaluate(() => localStorage.setItem('lahn.lang', 'en'));
+  await ctx.close();
+}
+
+/* ---------- the door ---------- */
+{
+  const { page, ctx } = await pageFor('door', { width: 1320, height: 900 });
+  /* Her real library is open to whoever reaches it until an account exists, and shooting
+     a signup for real would lock her out. So the door is posed with a fake /api/me. */
+  const listener = { id: 'shot', email: 'maryam@lahn.local', name: 'Maryam', interests: [], created_at: '2026-09-22' };
+  await page.route('**/api/me', async (route) => {
+    const signed = route.request().method() !== 'GET';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ user: signed ? listener : null, accounts: 1 }),
+    });
+  });
+  await page.route('**/api/signup', (route) =>
+    route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ user: listener }) })
+  );
+
+  await page.goto(`${BASE}/#/home`, { waitUntil: 'networkidle' });
+  await settle(page);
+  await shot(page, '40-door-signin');
+
+  await page.click('.welcome-tabs button:nth-child(2)');
+  await settle(page, 300);
+  await page.fill('.welcome-card input[type="email"]', 'maryam@lahn.local');
+  await page.fill('.welcome-card input[type="password"]', DEV_PASSWORD);
+  await shot(page, '41-door-signup');
+
+  await page.evaluate(() => localStorage.setItem('lahn.lang', 'so'));
+  await page.reload({ waitUntil: 'networkidle' });
+  await settle(page);
+  await page.click('.welcome-tabs button:nth-child(2)');
+  await settle(page, 300);
+  await shot(page, '42-door-signup-so');
+  await page.evaluate(() => localStorage.setItem('lahn.lang', 'en'));
+
+  /* The interest picker only appears after a real account, so step in through the
+     same state the app uses rather than signing up on her machine. */
+  await page.fill('.welcome-card input[type="email"]', 'maryam@lahn.local');
+  await page.fill('.welcome-card input[type="password"]', DEV_PASSWORD);
+  await page.click('.welcome-card button[type="submit"]');
+  await page.waitForSelector('.pick-grid', { timeout: 6000 });
+  await settle(page, 800);
+  await shot(page, '43-door-interests');
+  await page.click('.pick-tile:nth-child(1)');
+  await page.click('.pick-tile:nth-child(4)');
+  await page.click('.pick-tile:nth-child(8)');
+  await settle(page, 300);
+  await shot(page, '44-door-interests-picked');
+
+  await ctx.close();
+}
+
+/* ---------- mobile door ---------- */
+{
+  const { page, ctx } = await pageFor('door-phone', { width: 390, height: 844 });
+  await page.route('**/api/me', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: null, accounts: 1 }) })
+  );
+  await page.goto(`${BASE}/#/home`, { waitUntil: 'networkidle' });
+  await settle(page);
+  await shot(page, '45-door-phone');
   await ctx.close();
 }
 

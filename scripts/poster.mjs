@@ -235,7 +235,7 @@ footer{margin-top:${px(22)};padding-top:${px(22)};border-top:1px solid ${t.line}
 </style></head>
 <body><div class="poster">
   <header>
-    <span class="brand">${logoMark(Math.round(60 * s))}<span class="word"><b>Lahn</b></span></span>
+    <span class="brand">${logoMark(Math.round(60 * s))}<span class="word"><b>Laxan</b></span></span>
     <span class="stats">${tracks.length} songs · ${total} min</span>
   </header>
   <div class="head">
@@ -247,7 +247,7 @@ footer{margin-top:${px(22)};padding-top:${px(22)};border-top:1px solid ${t.line}
     <ol class="tracks">${tracks.map((track, i) => row(track, i, cols === 2 ? 24 : 30)).join('')}</ol>
   </main>
   <footer>
-    <span class="tag">${logoMark(Math.round(34 * s))} made with Lahn — Somali songs, podcasts &amp; lessons</span>
+    <span class="tag">${logoMark(Math.round(34 * s))} made with Laxan — Somali songs, podcasts &amp; lessons</span>
     <span>created by Maryam J.</span>
   </footer>
 </div>

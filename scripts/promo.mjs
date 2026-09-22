@@ -5,7 +5,7 @@
  *   node scripts/promo.mjs
  *
  * The phone mockups are not drawings: they are her real app screens captured from the
- * running Lahn server, so the poster shows what the product actually looks like.
+ * running Laxan server, so the poster shows what the product actually looks like.
  * Requires `npm start` (or `npm run dev`) to be serving the app.
  */
 import { DatabaseSync } from 'node:sqlite';
@@ -130,7 +130,7 @@ const LEDE =
   process.env.POSTER_LEDE ||
   'Browse the Somali shelves and <b>keep the audio</b> — songs, rap, podcasts, stories and lessons, offline on your PC and your phone.';
 
-/* LGTM is the studio; Lahn is the first thing it ships. The teaser says who made it. */
+/* LGTM is the studio; Laxan is the first thing it ships. The teaser says who made it. */
 const COMPANY = process.env.POSTER_COMPANY || 'LGTM';
 const COMPANY_TAG = process.env.POSTER_COMPANY_TAG || 'looks good to me';
 const SOON = (process.env.POSTER_SOON || 'Coming Soon').split(/\s+/).slice(0, 3);
@@ -269,13 +269,13 @@ h1 em{font-style:normal;color:#e0523f}
 <body><div class="poster">
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="disc">${bigDisc(t)}</div>
-  <div class="brand">${logoMark(84)}<span class="word"><b>Lahn</b></span></div>
+  <div class="brand">${logoMark(84)}<span class="word"><b>Laxan</b></span></div>
   <div class="nav"><i>Songs</i><span>Podcasts</span><span>Channels</span><span>Playlists</span></div>
   <h1>${head}</h1>
   <p class="lede">${LEDE}</p>
   ${phone(shots.deck, t)}
   ${playerCard(hero, t)}
-  <div class="foot"><span><b>${hero.count} tracks</b> · no ads · no subscription · yours offline</span><span>made with Lahn</span></div>
+  <div class="foot"><span><b>${hero.count} tracks</b> · no ads · no subscription · yours offline</span><span>made with Laxan</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
@@ -324,16 +324,16 @@ body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialias
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="watermark">LAHN</div>
   <div class="disc">${bigDisc(t)}</div>
-  <div class="brand">${logoMark(58)}<span class="word"><b>Lahn</b></span></div>
+  <div class="brand">${logoMark(58)}<span class="word"><b>Laxan</b></span></div>
   <p class="tag">One app, <b>your whole library</b> — on the PC and on the phone, over your own Wi-Fi</p>
   <div class="row">${ids.map((id) => phone(shots[id], t)).join('')}</div>
   <div class="labels"><span>Home</span><span>Songs</span><span>Turntable</span><span>Search</span></div>
-  <div class="foot"><span><b>${hero.count} tracks</b> · offline on PC and phone · nothing in the cloud</span><span>made with Lahn</span></div>
+  <div class="foot"><span><b>${hero.count} tracks</b> · offline on PC and phone · nothing in the cloud</span><span>made with Laxan</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
 
-/** The studio lockup: the company that ships Lahn, spelled out once so it lands. */
+/** The studio lockup: the company that ships Laxan, spelled out once so it lands. */
 function companyChip(size) {
   return `<div class="co" style="font-size:${size}px"><b>${esc(COMPANY)}</b><span>${esc(COMPANY_TAG)}</span></div>`;
 }
@@ -408,9 +408,9 @@ h1 em{font-style:normal;color:#e0523f}
 <body><div class="poster">
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="disc">${bigDisc(t)}</div>
-  <div class="brand">${logoMark(sq ? 56 : 84)}<span class="word"><b>Lahn</b></span></div>
+  <div class="brand">${logoMark(sq ? 56 : 84)}<span class="word"><b>Laxan</b></span></div>
   ${companyChip(sq ? 19 : 24)}
-  <div class="kicker">${sq ? 'Lahn on every screen' : 'Music · Podcasts · Lessons'}</div>
+  <div class="kicker">${sq ? 'Laxan on every screen' : 'Music · Podcasts · Lessons'}</div>
   <h1>${soon}</h1>
   ${sq ? '' : `<p class="lede">${SOON_LEDE}</p>`}
   ${phone(shots.deck, t)}

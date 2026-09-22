@@ -2,7 +2,7 @@
   "name": "lahn",
   "private": true,
   "version": "0.1.0",
-  "description": "Lahn — your own music library. Paste a link, keep the song. Created by Maryam J.",
+  "description": "Laxan — Somali music, podcasts, Quran and stories, streamed on your own devices. Created by Maryam J.",
   "type": "module",
   "workspaces": [
     "server",
