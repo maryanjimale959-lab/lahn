@@ -16,18 +16,33 @@ const browser = await chromium.launch({
 const PHONE_UA =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 
+/* Every screen sits behind an account now, so the rig signs one in and takes it back out. */
+const RIG = { email: 'handoff@lahn.test', password: 'handoff123', name: 'Rig' };
+const tokenOf = (res) => (res.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
+const json = { 'content-type': 'application/json' };
+let token = tokenOf(await fetch(`${API}/signup`, { method: 'POST', headers: json, body: JSON.stringify({ ...RIG, interests: ['music'] }) }));
+if (!token) token = tokenOf(await fetch(`${API}/login`, { method: 'POST', headers: json, body: JSON.stringify(RIG) }));
+if (!token) {
+  console.log('the hand-off rig could not sign in — is the server up?');
+  await browser.close();
+  process.exit(1);
+}
+
 async function screen(name, userAgent, viewport) {
   const ctx = await browser.newContext({ viewport, userAgent });
+  await ctx.addCookies([{ name: 'lahn_token', value: token, domain: 'localhost', path: '/' }]);
   const page = await ctx.newPage();
   page.on('pageerror', (err) => problems.push(`[${name}] pageerror: ${err.message.slice(0, 200)}`));
   page.on('console', (msg) => {
     if (msg.type() === 'error') problems.push(`[${name}] console: ${msg.text().slice(0, 200)}`);
   });
+  /* Her play counts are hers — answered, not blocked, so the console stays clean. */
+  await page.route('**/api/tracks/*/play', (route) => route.fulfill({ status: 204, body: '' }));
   await page.goto(`${BASE}/#/songs`, { waitUntil: 'networkidle' });
   return page;
 }
 
-const get = (route) => fetch(`${API}${route}`).then((r) => r.json());
+const get = (route) => fetch(`${API}${route}`, { headers: { cookie: `lahn_token=${token}` } }).then((r) => r.json());
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const until = async (what, fn) => {
   for (let i = 0; i < 40; i += 1) {
@@ -80,8 +95,36 @@ if ((await until('the PC to see the phone', async () => (await pc.locator('.else
 const pcBar = await pc.locator('.elsewhere').innerText().catch(() => '');
 if (!/your phone/i.test(pcBar)) fail(`PC bar did not name the phone: ${JSON.stringify(pcBar)}`);
 
+/* The case that regressed: she does not press "Play here", she taps a different song
+   while the other screen is still playing. That tap has to win. */
+await phone.reload({ waitUntil: 'networkidle' });
+await pc.evaluate(
+  ({ queueIds: ids }) =>
+    fetch('/api/session', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        device: { id: 'pc-fixture', name: 'PC', kind: 'desktop' },
+        session: { trackId: ids[0], queueIds: ids, slot: 0, position: 4, playing: true },
+      }),
+    }),
+  { queueIds }
+);
+await until('the phone to mirror the PC again', async () => (await phone.locator('.elsewhere').count()) > 0);
+await phone.locator('.track').nth(2).click();
+const switched = await until('the phone to take the session by tapping', async () => {
+  const s = (await get('/session')).session;
+  return s?.device?.id === phoneId && s?.playing;
+});
+if (!switched) fail('tapping a song on the phone left the PC driving');
+const after = (await get('/session')).session;
+if (after && after.trackId === tracks[0].id) fail('the tap replayed the other screen’s track instead of the one she chose');
+if ((await phone.locator('.elsewhere').count()) !== 0) fail('the phone still mirrors after tapping its own song');
+
+await fetch(`${API}/me`, { method: 'DELETE', headers: { ...json, cookie: `lahn_token=${token}` } });
+
 console.log('\n================ hand-off ================');
 problems.forEach((p) => console.log(p));
-if (!problems.length) console.log(`ok — PC drove ${tracks[0].title.slice(0, 40)}, the phone took it over at ${Math.round(session.position)}s`);
+if (!problems.length) console.log(`ok — PC drove ${tracks[0].title.slice(0, 40)}, the phone took it over at ${Math.round(session.position)}s, then took it again by tapping a different song`);
 await browser.close();
 process.exit(problems.length ? 1 : 0);

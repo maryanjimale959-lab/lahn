@@ -116,6 +116,9 @@ export function PlayerProvider({ children }) {
       if (!tracks?.length) return;
       const list = tracks.filter(Boolean);
       const o = shuffle ? shuffled(list.length, startIndex) : list.map((_, i) => i);
+      /* A tap on this screen is an order: it takes the session from whatever else is
+         playing, rather than starting a second copy the house then mutes. */
+      takingOver.current = true;
       pendingSeek.current = 0;
       setQueue(list);
       setOrder(o);
@@ -206,7 +209,6 @@ export function PlayerProvider({ children }) {
     (tracks, startIndex = 0, position = 0) => {
       if (!tracks?.length) return;
       const from = Math.max(0, Math.min(startIndex, tracks.length - 1));
-      takingOver.current = true;
       playList([...tracks.slice(from), ...tracks.slice(0, from)], 0);
       pendingSeek.current = position;
     },
