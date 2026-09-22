@@ -128,7 +128,7 @@ const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Mat
 const HEAD = (process.env.POSTER_HEAD || 'Own Your Sound').split(/\s+/).slice(0, 4);
 const LEDE =
   process.env.POSTER_LEDE ||
-  'Paste a link and <b>keep the song</b>. Lahn plays your library on your PC and your phone — <b>offline, ad‑free, no subscription</b>.';
+  'Browse the Somali shelves and <b>keep the audio</b> — songs, rap, podcasts, stories and lessons, offline on your PC and your phone.';
 
 /* LGTM is the studio; Lahn is the first thing it ships. The teaser says who made it. */
 const COMPANY = process.env.POSTER_COMPANY || 'LGTM';
@@ -265,18 +265,17 @@ h1 em{font-style:normal;color:#e0523f}
 .foot{position:absolute;left:80px;right:80px;bottom:76px;display:flex;align-items:center;justify-content:space-between;
   padding-top:30px;border-top:1px solid ${t.line};font-size:26px;font-weight:700;letter-spacing:.06em;color:${t.mute}}
 .foot b{color:${t.ink}}
-.foot .ar{font-family:'Noto Kufi Arabic',sans-serif}
 </style></head>
 <body><div class="poster">
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="disc">${bigDisc(t)}</div>
   <div class="brand">${logoMark(84)}<span class="word"><b>Lahn</b></span></div>
-  <div class="nav"><i>Songs</i><span>Artists</span><span>Albums</span><span>Playlists</span></div>
+  <div class="nav"><i>Songs</i><span>Podcasts</span><span>Channels</span><span>Playlists</span></div>
   <h1>${head}</h1>
   <p class="lede">${LEDE}</p>
   ${phone(shots.deck, t)}
   ${playerCard(hero, t)}
-  <div class="foot"><span><b>${hero.count} songs</b> · no ads · no subscription · yours offline</span><span>made with Lahn</span></div>
+  <div class="foot"><span><b>${hero.count} tracks</b> · no ads · no subscription · yours offline</span><span>made with Lahn</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
@@ -329,7 +328,7 @@ body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialias
   <p class="tag">One app, <b>your whole library</b> — on the PC and on the phone, over your own Wi-Fi</p>
   <div class="row">${ids.map((id) => phone(shots[id], t)).join('')}</div>
   <div class="labels"><span>Home</span><span>Songs</span><span>Turntable</span><span>Search</span></div>
-  <div class="foot"><span><b>${hero.count} songs</b> · offline on PC and phone · nothing in the cloud</span><span>made with Lahn</span></div>
+  <div class="foot"><span><b>${hero.count} tracks</b> · offline on PC and phone · nothing in the cloud</span><span>made with Lahn</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
