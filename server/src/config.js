@@ -14,6 +14,8 @@ export const LIBRARY_DIR = path.resolve(ENV('LAHN_LIBRARY', path.join(REPO_ROOT,
 export const COVERS_DIR = path.join(LIBRARY_DIR, 'covers');
 export const DATA_DIR = path.resolve(ENV('LAHN_DATA', path.join(SERVER_ROOT, 'data')));
 export const DB_FILE = path.join(DATA_DIR, 'lahn.db');
+/* Audio for things you only listened to, kept out of the library and pruned on its own. */
+export const CACHE_DIR = path.join(DATA_DIR, 'stream');
 export const WEB_DIST = path.join(REPO_ROOT, 'web', 'dist');
 
 export const AUDIO_EXTENSIONS = new Set(['.m4a', '.mp3', '.opus', '.ogg', '.wav', '.flac', '.mka', '.aac']);

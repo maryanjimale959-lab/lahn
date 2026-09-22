@@ -35,7 +35,7 @@ async function main() {
 
   const placeholder = (_req, res) =>
     res.type('html').send(`<body style="font:16px/1.6 system-ui;background:#f6f5f3;color:#1a1a1a;padding:40px;max-width:560px">
-        <h1>Lahn server is running ♫</h1>
+        <h1>Laxan server is running ♫</h1>
         <p>The interface hasn't been built yet. Run <code>npm run dev</code> for the dev UI, or <code>npm start</code> to build it.</p>
         <p>API health: <a href="/api/health">/api/health</a></p></body>`);
 
@@ -50,7 +50,7 @@ async function main() {
 
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(BANNER);
-    log.ok(`Lahn v${APP_VERSION} is up`);
+    log.ok(`Laxan v${APP_VERSION} is up`);
     log.info('library ', LIBRARY_DIR);
     log.info('database', DB_FILE);
     log.info('this PC ', `http://localhost:${PORT}`);
@@ -65,7 +65,7 @@ async function main() {
   });
 
   server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') log.error(`port ${PORT} is already in use — is Lahn already open in another window?`);
+    if (err.code === 'EADDRINUSE') log.error(`port ${PORT} is already in use — is Laxan already open in another window?`);
     else log.error(err.message);
     process.exitCode = 1;
   });
@@ -81,7 +81,7 @@ async function main() {
   if (seeded) log.info(`${seeded} starter channel(s) added — open Channels to pull their lists`);
 
   const shutdown = () => {
-    log.info('closing Lahn…');
+    log.info('closing Laxan…');
     server.close(() => {
       closeDb();
       process.exit(0);

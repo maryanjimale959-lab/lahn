@@ -6,8 +6,10 @@ import { all, get, isKind, newId, now, run, sortKey, stats, tx } from './db.js';
 import { lanAddresses } from './net.js';
 import { absolutePath, pruneMissing, pruneOrphans, scanLibrary, TRACK_SELECT, trackById } from './library.js';
 import { cancel, createJob, getJob, isDuplicateUrl, listJobs, subscribe, unsubscribe } from './jobs.js';
-import { addChannel, catalog, channelUploads, deleteChannel, listChannels, refreshAll, refreshChannel, shelves } from './channels.js';
+import { addChannel, artistBySlug, artistsWithSaved, catalog, channelUploads, deleteChannel, INTERESTS, itemByKey, listChannels, liveSearch, refreshAll, refreshChannel, shelves } from './channels.js';
 import * as playback from './session.js';
+import { accountCount, dropAccount, endSession, interestsOf, isLocked, listHistory, listLikes, notePlayed, publicUser, renameUser, setInterests, signIn, signUp, startSession, toggleLike, userFromRequest } from './auth.js';
+import { cachedFile, ensurePlayable, mimeFor } from './stream.js';
 import { log } from './log.js';
 
 const MIME = {
@@ -26,12 +28,121 @@ export function createApi() {
   const router = express.Router();
   router.use(express.json({ limit: '256kb' }));
 
+  const setAuthCookie = (res, { token, maxAge }) => {
+    /* Plain http on the home Wi-Fi, so Secure would break the cookie outright. */
+    res.setHeader('set-cookie', `lahn_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`);
+  };
+
+  const authStatus = { 'bad-email': 400, 'short-password': 400, 'bad-name': 400, 'email-taken': 409, 'no-match': 401, 'try-later': 429 };
+
+  /* Laxan is open to whoever is on this Wi-Fi until the first account exists. After that,
+     every shelf, playlist and play belongs to somebody. */
+  const PUBLIC = new Set(['/health', '/signup', '/login', '/logout', '/me', '/interests']);
+  router.use((req, res, next) => {
+    req.user = userFromRequest(req);
+    if (!isLocked() || PUBLIC.has(req.path) || req.path.startsWith('/covers/')) return next();
+    if (req.user) return next();
+    return res.status(401).json({ error: 'signed-out' });
+  });
+
+  router.post('/signup', (req, res) => {
+    try {
+      const user = signUp(req.body);
+      setAuthCookie(res, startSession(user.id));
+      res.status(201).json({ user: publicUser(user) });
+    } catch (err) {
+      res.status(authStatus[err.code] ?? 400).json({ error: err.code ?? 'signup-failed' });
+    }
+  });
+
+  router.post('/login', (req, res) => {
+    try {
+      const user = signIn(req.body);
+      setAuthCookie(res, startSession(user.id));
+      res.json({ user: publicUser(user) });
+    } catch (err) {
+      res.status(authStatus[err.code] ?? 401).json({ error: err.code ?? 'login-failed' });
+    }
+  });
+
+  router.post('/logout', (req, res) => {
+    endSession(req);
+    res.setHeader('set-cookie', 'lahn_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+    res.json({ ok: true });
+  });
+
+  router.get('/me', (req, res) => {
+    res.json({ user: req.user ? publicUser(req.user) : null, accounts: accountCount() });
+  });
+
+  router.get('/interests', (_req, res) => res.json({ interests: INTERESTS }));
+
+  router.patch('/me', (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'signed-out' });
+    if (req.body?.interests) setInterests(req.user.id, req.body.interests);
+    if (req.body?.name) renameUser(req.user.id, req.body.name);
+    res.json({ user: publicUser(get('SELECT * FROM users WHERE id = ?', req.user.id)) });
+  });
+
+  /* Her own machine, her own account: deleting it takes the listener's likes, history
+     and sessions with it, and leaves the library files alone. */
+  router.delete('/me', (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'signed-out' });
+    dropAccount(req.user.id);
+    res.setHeader('set-cookie', 'lahn_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+    res.json({ ok: true });
+  });
+
+  /* What this listener kept and what they were last hearing, for Home and Your Library. */
+  router.get('/mine', (req, res) => {
+    if (!req.user) return res.json({ likes: [], history: [] });
+    res.json({ likes: listLikes(req.user.id), history: listHistory(req.user.id) });
+  });
+
+  router.post('/mine/like', (req, res) => {
+    if (!req.user) return res.status(401).json({ error: 'signed-out' });
+    const key = String(req.body?.key ?? '');
+    if (!itemByKey(key)) return res.status(404).json({ error: 'Not on a shelf' });
+    toggleLike(req.user.id, key, Boolean(req.body?.on));
+    res.json({ likes: listLikes(req.user.id) });
+  });
+
+  router.post('/mine/played', (req, res) => {
+    if (!req.user) return res.json({ ok: false });
+    const key = String(req.body?.key ?? '');
+    const item = itemByKey(key);
+    if (item) notePlayed(req.user.id, item, Number(req.body?.position) || 0);
+    res.json({ ok: Boolean(item) });
+  });
+
+  /* Play a shelf item without saving it anywhere in the library. */
+  router.get('/play/:key/audio', async (req, res, next) => {
+    const item = itemByKey(req.params.key);
+    if (!item) return res.status(404).json({ error: 'Not on a shelf' });
+    try {
+      const file = await ensurePlayable(item);
+      notePlayed(req.user?.id, item, 0);
+      streamFile(req, res, file, mimeFor(file));
+    } catch (err) {
+      log.warn('stream failed:', err.message);
+      /* A bare 502 left the player saying "this one would not play" with no reason in it, so
+         the engine's own line rides along — it is what tells her to tap something else. */
+      res.status(502).json({ error: 'stream-failed', detail: String(err.message ?? '').slice(0, 220) });
+    }
+  });
+
+  router.get('/play/:key', async (req, res) => {
+    const item = itemByKey(req.params.key);
+    if (!item) return res.status(404).json({ error: 'Not on a shelf' });
+    res.json({ item, ready: Boolean(cachedFile(item.id)) });
+  });
+
   router.get('/health', (_req, res) => {
     const t = tools();
     res.json({
       ok: true,
       version: APP_VERSION,
-      name: 'Lahn',
+      name: 'Laxan',
       port: PORT,
       lan: lanAddresses(),
       libraryDir: LIBRARY_DIR,
@@ -118,15 +229,19 @@ export function createApi() {
 
   router.get('/artists', (_req, res) => {
     res.json({
-      artists: all(
-        `SELECT a.*, COUNT(t.id) AS track_count, COALESCE(SUM(t.duration), 0) AS seconds
-         FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song'
-         GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) ASC`
+      artists: artistsWithSaved(
+        all(
+          `SELECT a.*, COUNT(t.id) AS track_count, COALESCE(SUM(t.duration), 0) AS seconds
+           FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song'
+           GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) ASC`
+        )
       ),
     });
   });
 
   router.get('/artists/:id', (req, res) => {
+    const curated = artistBySlug(req.params.id);
+    if (curated) return res.json({ artist: curated.artist, items: curated.items });
     const artist = get('SELECT * FROM artists WHERE id = ?', req.params.id);
     if (!artist) return res.status(404).json({ error: 'Artist not found' });
     res.json({ artist, tracks: listTracks(`WHERE t.artist_id = ? AND t.kind = 'song'`, [artist.id], 'LOWER(t.title) ASC') });
@@ -225,17 +340,25 @@ export function createApi() {
     res.json({ ok: true });
   });
 
-  router.get('/search', (req, res) => {
+  router.get('/search', async (req, res) => {
     const q = String(req.query.q ?? '').trim();
-    if (q.length < 2) return res.json({ query: q, tracks: [], artists: [], albums: [], playlists: [] });
+    if (q.length < 2) return res.json({ query: q, tracks: [], artists: [], albums: [], playlists: [], catalog: [] });
     const like = `%${q}%`;
+    const needle = q.toLowerCase();
+    const onShelf = catalog({ q });
+    /* A title nobody has on a shelf is still a song she can hear, so the shelf list falls
+       back to one live search. It is the only slow path in this route, hence the await. */
+    const live = onShelf.length < 10 ? await liveSearch(q).catch(() => []) : [];
+    const seen = new Set();
     res.json({
       query: q,
       tracks: listTracks('WHERE t.title LIKE ? OR a.name LIKE ? OR al.title LIKE ?', [like, like, like], 't.plays DESC, t.added_at DESC').slice(0, 30),
-      artists: all('SELECT * FROM artists WHERE name LIKE ? ORDER BY LOWER(name) LIMIT 10', like),
+      artists: artistsWithSaved(
+        all(`SELECT a.*, COUNT(t.id) AS track_count FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song' WHERE a.name LIKE ? GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) LIMIT 10`, like)
+      ).filter((ar) => ar.name.toLowerCase().includes(needle)),
       albums: all('SELECT * FROM albums WHERE title LIKE ? ORDER BY LOWER(title) LIMIT 10', like),
       playlists: all('SELECT * FROM playlists WHERE name LIKE ? ORDER BY LOWER(name) LIMIT 10', like),
-      catalog: catalog({ q }).slice(0, 40),
+      catalog: [...onShelf, ...live].filter((item) => !seen.has(item.id) && seen.add(item.id)).slice(0, 40),
     });
   });
 
@@ -244,7 +367,7 @@ export function createApi() {
       stats: stats(),
       recent: listTracks('', [], 't.added_at DESC').slice(0, 12),
       popular: listTracks('WHERE t.plays > 0', [], 't.plays DESC, t.last_played_at DESC').slice(0, 12),
-      artists: all(`SELECT a.*, COUNT(t.id) AS track_count FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song' GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) LIMIT 12`),
+      artists: artistsWithSaved(all(`SELECT a.*, COUNT(t.id) AS track_count FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song' GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) LIMIT 12`)).slice(0, 18),
       albums: all(`SELECT al.*, a.name AS artist, COUNT(t.id) AS track_count FROM albums al LEFT JOIN artists a ON a.id = al.artist_id LEFT JOIN tracks t ON t.album_id = al.id AND t.kind = 'song' GROUP BY al.id HAVING track_count > 0 ORDER BY al.created_at DESC LIMIT 12`),
       podcasts: listTracks(`WHERE t.kind = 'podcast'`, [], 't.added_at DESC').slice(0, 12),
       lessons: listTracks(`WHERE t.kind = 'lesson'`, [], 't.added_at DESC').slice(0, 12),
@@ -259,7 +382,7 @@ export function createApi() {
     const url = String(req.body?.url ?? '').trim();
     const kind = isKind(req.body?.kind) ?? 'song';
     const channel = typeof req.body?.channel === 'string' ? req.body.channel : null;
-    if (!/^https?:\/\/\S+$/i.test(url)) return res.status(400).json({ error: 'Lahn could not read that source. Try saving it again.' });
+    if (!/^https?:\/\/\S+$/i.test(url)) return res.status(400).json({ error: 'Laxan could not read that source. Try saving it again.' });
     if (isDuplicateUrl(url)) return res.status(409).json({ error: 'That one is already being downloaded.' });
     const job = createJob(url, { kind, channelId: channel });
     res.status(202).json({ jobId: job.id });
@@ -296,8 +419,8 @@ export function createApi() {
     res.json({ ok: true, keptOnDisk: true });
   });
 
-  router.get('/shelves', (_req, res) => {
-    const data = shelves();
+  router.get('/shelves', (req, res) => {
+    const data = shelves(interestsOf(req.user));
     if (!data.ready) refreshAll().catch(() => {});
     res.json(data);
   });
@@ -347,7 +470,7 @@ export function createApi() {
 
   router.put('/session', (req, res) => {
     const claimed = playback.claim(req.body?.session, req.body?.device);
-    if (!claimed) return res.status(400).json({ error: 'Lahn did not recognise that device.' });
+    if (!claimed) return res.status(400).json({ error: 'Laxan did not recognise that device.' });
     res.json({ session: claimed });
   });
 

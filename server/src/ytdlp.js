@@ -4,7 +4,7 @@ import { tools } from './config.js';
 
 export class ToolMissing extends Error {
   constructor(name) {
-    super(`Lahn couldn't find ${name} on this computer.`);
+    super(`Laxan couldn't find ${name} on this computer.`);
     this.code = 'TOOL_MISSING';
     this.tool = name;
   }
@@ -218,7 +218,7 @@ export function download(url, target, onProgress, signal) {
 }
 
 export async function fetchBinary(url, signal) {
-  const res = await fetch(url, { signal, redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 (Lahn)' } });
+  const res = await fetch(url, { signal, redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 (Laxan)' } });
   if (!res.ok) throw new Error(`Artwork download failed (${res.status})`);
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length < 512) throw new Error('Artwork response was too small to be an image');

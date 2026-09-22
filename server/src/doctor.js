@@ -10,7 +10,7 @@ const rows = stats();
 const line = (label, value) => log.info(label.padEnd(11), value);
 
 console.log('');
-log.brand('Lahn doctor');
+log.brand('Laxan doctor');
 console.log('');
 line('yt-dlp', t.ytDlp ?? 'MISSING — winget install yt-dlp.yt-dlp');
 line('ffmpeg', t.ffmpeg ?? 'MISSING — winget install Gyan.FFmpeg');

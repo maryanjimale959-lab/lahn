@@ -121,7 +121,7 @@ export function getJob(id) {
 export function failInterruptedJobs() {
   const rows = all("SELECT id FROM jobs WHERE status IN ('queued','running')");
   for (const row of rows) {
-    run('UPDATE jobs SET status = ?, stage = ?, message = ?, updated_at = ? WHERE id = ?', 'error', 'failed', 'Lahn was closed while this was downloading. Paste the link again.', now(), row.id);
+    run('UPDATE jobs SET status = ?, stage = ?, message = ?, updated_at = ? WHERE id = ?', 'error', 'failed', 'Laxan was closed while this was downloading. Paste the link again.', now(), row.id);
   }
   return rows.length;
 }

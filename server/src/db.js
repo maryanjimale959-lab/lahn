@@ -111,7 +111,7 @@ if (!hasColumn('channels', 'shelf')) {
 }
 db.exec('CREATE INDEX IF NOT EXISTS tracks_kind_idx ON tracks (kind)');
 
-export const KINDS = ['song', 'podcast', 'book', 'lesson', 'story'];
+export const KINDS = ['song', 'podcast', 'book', 'lesson', 'story', 'quran'];
 export const isKind = (value) => (KINDS.includes(value) ? value : null);
 
 export const newId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12);
