@@ -125,10 +125,10 @@ function heroTrack(id) {
 
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 
-const HEAD = (process.env.POSTER_HEAD || 'Own Your Sound').split(/\s+/).slice(0, 4);
+const HEAD = (process.env.POSTER_HEAD || 'Heeso. Sheeko. Quraan.').split(/\s+/).slice(0, 4);
 const LEDE =
   process.env.POSTER_LEDE ||
-  'Browse the Somali shelves and <b>keep the audio</b> — songs, rap, podcasts, stories and lessons, offline on your PC and your phone.';
+  'Sign in, choose what you like and <b>tap to play</b> — Somali songs, podcasts, Quran and stories, plus Arabic music, on your PC and your phone.';
 
 /* LGTM is the studio; Laxan is the first thing it ships. The teaser says who made it. */
 const COMPANY = process.env.POSTER_COMPANY || 'LGTM';
@@ -136,21 +136,38 @@ const COMPANY_TAG = process.env.POSTER_COMPANY_TAG || 'looks good to me';
 const SOON = (process.env.POSTER_SOON || 'Coming Soon').split(/\s+/).slice(0, 3);
 const SOON_LEDE =
   process.env.POSTER_SOON_LEDE ||
-  'Music, podcasts and lessons from the channels you follow — saved to your own library, offline on every screen you own.';
+  'Somali and Arabic music, podcasts, Quran and stories — a shelf for each, and you just press play.';
 const CREDIT = process.env.POSTER_CREDIT || 'created by Maryam J.';
 
 /* -------------------------------------------------------------- capture */
 
 const SCREENS = [
-  { id: 'home', route: '#/home', wait: '.tile' },
+  { id: 'home', route: '#/home', wait: '.quick-tile' },
   { id: 'songs', route: '#/songs', wait: '.track' },
   { id: 'deck', route: '#/songs', wait: '.now .deck', play: true },
   { id: 'search', route: '#/search', wait: '.topbar', close: true },
 ];
 
-async function capture(browser, theme) {
+/* Accounts are the door to the whole app now, so a shoot needs one — and has to take it
+   back out when the pictures are done, or she cannot sign in on her own machine. */
+const SHOOT = { email: 'promo@lahn.test', password: 'promo1234', name: 'Maryam' };
+
+async function openShootAccount() {
+  const cookie = (res) => (res.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
+  const headers = { 'content-type': 'application/json' };
+  let token = cookie(
+    await fetch(`${BASE}/api/signup`, { method: 'POST', headers, body: JSON.stringify({ ...SHOOT, interests: ['music', 'rap', 'love', 'podcasts', 'quran'] }) })
+  );
+  if (!token) token = cookie(await fetch(`${BASE}/api/login`, { method: 'POST', headers, body: JSON.stringify(SHOOT) }));
+  if (!token) throw new Error('Laxan would not open a shoot account — is the server running?');
+  return token;
+}
+
+async function capture(browser, theme, token) {
   mkdirSync(SHOTS, { recursive: true });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  const host = new URL(BASE).host;
+  await page.context().addCookies([{ name: 'lahn_token', value: token, domain: host.startsWith('localhost') ? 'localhost' : host, path: '/' }]);
   /* Her play counts are hers — the /play ping is dropped so a poster shoot never inflates them. */
   await page.route('**/api/tracks/*/play', (route) => route.abort());
   await page.addInitScript((name) => localStorage.setItem('lahn.theme', name), theme);
@@ -275,7 +292,7 @@ h1 em{font-style:normal;color:#e0523f}
   <p class="lede">${LEDE}</p>
   ${phone(shots.deck, t)}
   ${playerCard(hero, t)}
-  <div class="foot"><span><b>${hero.count} tracks</b> · no ads · no subscription · yours offline</span><span>made with Laxan</span></div>
+  <div class="foot"><span><b>${hero.count} tracks</b> · no ads · no subscription · just press play</span><span>made with Laxan</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
@@ -328,7 +345,7 @@ body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialias
   <p class="tag">One app, <b>your whole library</b> — on the PC and on the phone, over your own Wi-Fi</p>
   <div class="row">${ids.map((id) => phone(shots[id], t)).join('')}</div>
   <div class="labels"><span>Home</span><span>Songs</span><span>Turntable</span><span>Search</span></div>
-  <div class="foot"><span><b>${hero.count} tracks</b> · offline on PC and phone · nothing in the cloud</span><span>made with Laxan</span></div>
+  <div class="foot"><span><b>${hero.count} tracks</b> · on your PC and your phone · nothing in the cloud</span><span>made with Laxan</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
@@ -436,6 +453,7 @@ const POSTERS = [
 
 async function main() {
   mkdirSync(TMP, { recursive: true });
+  const token = await openShootAccount();
   const browser = await chromium.launch({
     channel: 'chrome',
     headless: true,
@@ -454,7 +472,7 @@ async function main() {
       now ??= saved[theme].playing;
       continue;
     }
-    const captured = await capture(browser, theme);
+    const captured = await capture(browser, theme, token);
     shots[theme] = captured.files;
     saved[theme] = { playing: captured.playing };
     writeFileSync(stateFile, JSON.stringify(saved, null, 2));
@@ -485,6 +503,8 @@ async function main() {
   }
 
   await browser.close();
+  const gone = await fetch(`${BASE}/api/me`, { method: 'DELETE', headers: { cookie: `lahn_token=${token}` } });
+  console.log('shoot account removed:', gone.status);
   rmSync(TMP, { recursive: true, force: true });
 }
 

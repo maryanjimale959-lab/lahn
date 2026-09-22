@@ -15,7 +15,7 @@ const res = await fetch(`${BASE}/api/signup`, {
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({
     email: EMAIL,
-    name: 'Preview',
+    name: 'Maryam',
     password: PASSWORD,
     interests: ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books', 'amusic', 'apodcast'],
   }),
