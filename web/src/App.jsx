@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAmbientGlow } from './components/Art.jsx';
 import { MiniPlayer } from './components/MiniPlayer.jsx';
+import { Elsewhere } from './components/Elsewhere.jsx';
 import { NowPlaying } from './components/NowPlaying.jsx';
 import { Sidebar, Tabbar } from './components/Shell.jsx';
 import { Albums, Artists, Songs } from './pages/Browse.jsx';
@@ -13,6 +14,7 @@ import { Search } from './pages/Search.jsx';
 import { Settings } from './pages/Settings.jsx';
 import { useLibrary } from './state/library.jsx';
 import { usePlayer } from './state/player.jsx';
+import { useSession } from './state/session.jsx';
 import { parseRoute, useUi } from './state/ui.jsx';
 
 function CurrentPage({ section, id }) {
@@ -49,6 +51,7 @@ export function App() {
   const { route, t, navigate } = useUi();
   const { offline } = useLibrary();
   const { current } = usePlayer();
+  const { remote } = useSession();
   const [playerOpen, setPlayerOpen] = useState(false);
   const { section, id } = parseRoute(route);
 
@@ -76,7 +79,8 @@ export function App() {
 
       <Tabbar />
 
-      {current && !playerOpen && <MiniPlayer onOpen={() => setPlayerOpen(true)} />}
+      {remote && !playerOpen && <Elsewhere onTakeOver={() => setPlayerOpen(true)} />}
+      {!remote && current && !playerOpen && <MiniPlayer onOpen={() => setPlayerOpen(true)} />}
       {playerOpen && <NowPlaying onClose={() => setPlayerOpen(false)} />}
     </div>
   );

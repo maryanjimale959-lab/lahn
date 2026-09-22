@@ -71,6 +71,15 @@ const dict = {
     'player.noTrack': 'Pick a song to start the record',
     'player.from': 'from',
 
+    'session.playingOn': 'Playing on {device}',
+    'session.playHere': 'Play here',
+    'session.takeOver': 'Take over playback on this device',
+    'session.notInLibrary': 'That one is not in this library yet',
+    'session.pc': 'the PC',
+    'session.phone': 'your phone',
+    'session.mini': '{device} is driving — tap to move it here',
+    'session.you': 'This device',
+
     'songs.title': 'Songs',
     'songs.sort.recent': 'Recently added',
     'songs.sort.title': 'Title',
@@ -244,6 +253,15 @@ const dict = {
     'player.addToPlaylist': 'Liiska ku dar',
     'player.noTrack': 'Dooro hees si diskigu u wareego',
     'player.from': 'ka',
+
+    'session.playingOn': 'Hadda {device} bay ka socotaa',
+    'session.playHere': 'Halkan ka dhageyso',
+    'session.takeOver': 'Keen qalabkan',
+    'session.notInLibrary': 'Taas kuma jirto maktabaddada weli',
+    'session.pc': 'PC-ga',
+    'session.phone': 'telefoonkaaga',
+    'session.mini': '{device} ayaa wada — taabo si aad u keento',
+    'session.you': 'Qalabkan',
 
     'songs.title': 'Heesaha',
     'songs.sort.recent': 'Kuwa cusub',

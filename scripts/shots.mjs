@@ -15,6 +15,13 @@ function report(err) {
   if (!err && !problems.length) console.log('none');
 }
 
+/* Windows suspends the Wi-Fi adapter mid-run now and then; the long-lived session
+   stream is the first thing to show it, and it says nothing about Lahn. */
+const transient = /ERR_NETWORK_IO_SUSPENDED|ERR_INTERNET_DISCONNECTED/i;
+const note = (text) => {
+  if (!transient.test(text)) problems.push(text);
+};
+
 process.on('uncaughtException', (err) => {
   report(err);
   process.exit(1);
@@ -27,19 +34,26 @@ const browser = await chromium.launch({
 });
 
 async function pageFor(name, viewport, locale = 'en-US') {
+  /* Each context is a different device, so a screen that is still mirroring the last
+     one to play would cover the mini player these shots are about. */
+  await fetch(`${BASE}/api/session`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ device: { id: 'shots-reset', name: 'Shots', kind: 'desktop' }, session: { trackId: null, queueIds: [] } }),
+  }).catch(() => {});
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, locale });
   /* Chromium probes /favicon.ico even with an SVG icon declared; the 404 it logs
      would otherwise sit in the report as a permanent false alarm. */
   await ctx.route('**/favicon.ico', (route) => route.fulfill({ status: 204 }));
   const page = await ctx.newPage();
   page.on('console', (msg) => {
-    if (msg.type() === 'error') problems.push(`[${name}] console: ${msg.text().slice(0, 300)}`);
+    if (msg.type() === 'error') note(`[${name}] console: ${msg.text().slice(0, 300)}`);
   });
   page.on('pageerror', (err) => problems.push(`[${name}] pageerror: ${err.message.slice(0, 300)}`));
   page.on('response', (res) => {
     if (res.status() >= 400) problems.push(`[${name}] http ${res.status()}: ${res.url().slice(0, 160)}`);
   });
-  page.on('requestfailed', (req) => problems.push(`[${name}] requestfailed: ${req.url().slice(0, 160)} ${req.failure()?.errorText}`));
+  page.on('requestfailed', (req) => note(`[${name}] requestfailed: ${req.url().slice(0, 160)} ${req.failure()?.errorText}`));
   return { ctx, page };
 }
 

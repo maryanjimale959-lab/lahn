@@ -706,8 +706,136 @@
   transition: width 0.25s linear;
 }
 
+/* ---------- playing on another screen ---------- */
+
+.elsewhere {
+  position: fixed;
+  inset-inline: 12px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 44;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 12px;
+  border-radius: 22px;
+  background: var(--surface-glass);
+  border: 1px solid var(--line-strong);
+  backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  overflow: hidden;
+  animation: mini-in 0.36s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+/* A thin band of the remote cover's palette says "this one belongs to another screen". */
+.elsewhere::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--glow), var(--glow-2));
+}
+
+.elsewhere:hover .elsewhere-take {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.elsewhere .art {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.elsewhere-blank {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px dashed var(--line-strong);
+  color: var(--ink-3);
+}
+
+.elsewhere-blank svg {
+  width: 24px;
+  height: 24px;
+}
+
+.elsewhere-meta {
+  min-width: 0;
+}
+
+.elsewhere-meta b {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.elsewhere-meta b + span {
+  display: block;
+  margin-top: 2px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.elsewhere-glyph {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+}
+
+.elsewhere-glyph svg {
+  width: 16px;
+  height: 16px;
+}
+
+.elsewhere-glyph.on {
+  color: var(--ink);
+  animation: live 2.4s ease-in-out infinite;
+}
+
+@keyframes live {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.elsewhere-take {
+  min-height: 42px;
+  padding: 0 16px;
+  font-size: 14px;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.elsewhere-take svg {
+  width: 15px;
+  height: 15px;
+}
+
 @media (min-width: 901px) {
-  .mini {
+  .mini,
+  .elsewhere {
     inset-inline: auto;
     right: 26px;
     bottom: 26px;
@@ -715,6 +843,18 @@
   }
 }
 
-[data-theme='dark'] .mini {
+@media (max-width: 900px) {
+  .elsewhere {
+    grid-template-columns: 50px minmax(0, 1fr) auto;
+    gap: 11px;
+  }
+  .elsewhere-take {
+    padding: 0 13px;
+    font-size: 13px;
+  }
+}
+
+[data-theme='dark'] .mini,
+[data-theme='dark'] .elsewhere {
   background: color-mix(in oklab, var(--surface) 88%, transparent);
 }

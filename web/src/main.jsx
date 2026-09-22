@@ -8,14 +8,17 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App.jsx';
 import { LibraryProvider } from './state/library.jsx';
 import { PlayerProvider } from './state/player.jsx';
+import { SessionProvider } from './state/session.jsx';
 import { UiProvider } from './state/ui.jsx';
 
 createRoot(document.getElementById('root')).render(
   <UiProvider>
-    <PlayerProvider>
-      <LibraryProvider>
-        <App />
-      </LibraryProvider>
-    </PlayerProvider>
+    <SessionProvider>
+      <PlayerProvider>
+        <LibraryProvider>
+          <App />
+        </LibraryProvider>
+      </PlayerProvider>
+    </SessionProvider>
   </UiProvider>
 );

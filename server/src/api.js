@@ -7,6 +7,7 @@ import { lanAddresses } from './net.js';
 import { absolutePath, pruneMissing, pruneOrphans, scanLibrary, TRACK_SELECT, trackById } from './library.js';
 import { cancel, createJob, getJob, isDuplicateUrl, listJobs, subscribe, unsubscribe } from './jobs.js';
 import { addChannel, catalog, channelUploads, deleteChannel, listChannels, refreshAll, refreshChannel, shelves } from './channels.js';
+import * as playback from './session.js';
 import { log } from './log.js';
 
 const MIME = {
@@ -339,6 +340,25 @@ export function createApi() {
 
   router.post('/jobs/:id/cancel', (req, res) => {
     res.json({ ok: cancel(req.params.id) });
+  });
+
+  /* One shared now-playing session so the PC and the phone feel like one app. */
+  router.get('/session', (_req, res) => res.json({ session: playback.current() }));
+
+  router.put('/session', (req, res) => {
+    const claimed = playback.claim(req.body?.session, req.body?.device);
+    if (!claimed) return res.status(400).json({ error: 'Lahn did not recognise that device.' });
+    res.json({ session: claimed });
+  });
+
+  router.get('/session/events', (req, res) => {
+    res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive', 'x-accel-buffering': 'no' });
+    playback.subscribe(res);
+    const ping = setInterval(() => res.write(': ping\n\n'), 15000);
+    req.on('close', () => {
+      clearInterval(ping);
+      playback.unsubscribe(res);
+    });
   });
 
   router.post('/scan', async (_req, res) => {

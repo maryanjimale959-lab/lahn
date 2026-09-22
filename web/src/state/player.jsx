@@ -1,7 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api, audioUrl, coverFor } from '../lib/api.js';
+import { useSession } from './session.jsx';
 
 export const PlayerContext = createContext(null);
+
+/* How often the driver tells the other screens where it got to. */
+const BEAT_MS = 5000;
 
 const shuffled = (length, keepFirst) => {
   const rest = Array.from({ length }, (_, i) => i).filter((i) => i !== keepFirst);
@@ -33,9 +37,42 @@ export function PlayerProvider({ children }) {
   const stateRef = useRef({});
   stateRef.current = { queue, order, slot, repeat, shuffle };
 
+  const { remote, publish } = useSession();
+  const remoteRef = useRef(null);
+  remoteRef.current = remote;
+
+  /* "Play here" flips this so the hand-off can publish while the remote snapshot it is
+     still mirroring has not cleared yet. It also holds off the pause-the-mirror effect. */
+  const takingOver = useRef(false);
+  const pendingSeek = useRef(0);
+
   const current = queue[order[slot] ?? slot] ?? queue[slot] ?? null;
   const currentRef = useRef(null);
   currentRef.current = current;
+
+  /** What the other screens need to mirror this one. */
+  const snapshot = useCallback(() => {
+    const { queue: q2, order: o2, slot: s, repeat: r, shuffle: sh } = stateRef.current;
+    const list = o2.length ? o2.map((i) => q2[i]) : q2;
+    return {
+      trackId: list[s]?.id ?? null,
+      queueIds: list.map((t) => t.id),
+      slot: s,
+      position: audio.currentTime || 0,
+      playing: !audio.paused,
+      shuffle: sh,
+      repeat: r,
+    };
+  }, [audio]);
+
+  /* Only the device that owns the session may write it, or a mirrored screen
+     pausing itself would immediately steal playback back. */
+  const beat = useCallback(() => {
+    if (!currentRef.current) return;
+    if (remoteRef.current && !takingOver.current) return;
+    takingOver.current = false;
+    publish(snapshot());
+  }, [publish, snapshot]);
 
   /* React state is still the previous render's inside an event handler, so the loader
      takes the resolved list instead of reading stateRef — playList() would otherwise
@@ -74,6 +111,7 @@ export function PlayerProvider({ children }) {
       if (!tracks?.length) return;
       const list = tracks.filter(Boolean);
       const o = shuffle ? shuffled(list.length, startIndex) : list.map((_, i) => i);
+      pendingSeek.current = 0;
       setQueue(list);
       setOrder(o);
       loadAt(o.map((i) => list[i]), 0, true);
@@ -123,10 +161,14 @@ export function PlayerProvider({ children }) {
     goTo(s - 1);
   }, [audio, goTo]);
 
-  const seek = useCallback((seconds) => {
-    audio.currentTime = seconds;
-    setTime(seconds);
-  }, [audio]);
+  const seek = useCallback(
+    (seconds) => {
+      audio.currentTime = seconds;
+      setTime(seconds);
+      beat();
+    },
+    [audio, beat]
+  );
 
   const setShuffle = useCallback((on) => {
     const { queue: q2, order: o2, slot: s } = stateRef.current;
@@ -144,17 +186,48 @@ export function PlayerProvider({ children }) {
   const stop = useCallback(() => {
     audio.pause();
     audio.removeAttribute('src');
+    pendingSeek.current = 0;
+    takingOver.current = false;
     setQueue([]);
     setOrder([]);
     setSlot(0);
     setPlaying(false);
-  }, [audio]);
+    /* Say so out loud, or the other screens keep mirroring a track that is gone. */
+    if (!remoteRef.current) publish({ trackId: null, queueIds: [], slot: 0, position: 0, playing: false });
+  }, [audio, publish]);
+
+  /** Claim the shared session and carry on with the other screen's queue here. */
+  const takeover = useCallback(
+    (tracks, startIndex = 0, position = 0) => {
+      if (!tracks?.length) return;
+      const from = Math.max(0, Math.min(startIndex, tracks.length - 1));
+      takingOver.current = true;
+      playList([...tracks.slice(from), ...tracks.slice(0, from)], 0);
+      pendingSeek.current = position;
+    },
+    [playList]
+  );
 
   useEffect(() => {
-    const onTime = () => setTime(audio.currentTime);
+    /* A hand-off resumes where the other screen left off, but the element will not take
+       a seek until the stream says that far is reachable — so keep trying until it is. */
+    const applySeek = () => {
+      const target = pendingSeek.current;
+      if (!target || audio.readyState < 1) return;
+      const seekable = audio.seekable;
+      if (!seekable.length || target > seekable.end(seekable.length - 1) - 0.25) return;
+      audio.currentTime = target;
+      setTime(target);
+      pendingSeek.current = 0;
+    };
+    const onTime = () => {
+      setTime(audio.currentTime);
+      applySeek();
+    };
     const onMeta = () => {
       setDuration(audio.duration || 0);
       setLoading(false);
+      applySeek();
     };
     const onPlay = () => {
       setPlaying(true);
@@ -176,6 +249,7 @@ export function PlayerProvider({ children }) {
     };
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('loadedmetadata', onMeta);
+    audio.addEventListener('canplay', applySeek);
     audio.addEventListener('play', onPlay);
     audio.addEventListener('pause', onPause);
     audio.addEventListener('error', onError);
@@ -183,12 +257,31 @@ export function PlayerProvider({ children }) {
     return () => {
       audio.removeEventListener('timeupdate', onTime);
       audio.removeEventListener('loadedmetadata', onMeta);
+      audio.removeEventListener('canplay', applySeek);
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('error', onError);
       audio.removeEventListener('ended', onEnded);
     };
   }, [audio, next]);
+
+  /* The driver announces every transport change, and keeps beating while a track is
+     loaded — a screen that stops beating has been closed, and the house drops it. */
+  useEffect(() => {
+    beat();
+  }, [beat, current, playing, shuffle, repeat]);
+
+  useEffect(() => {
+    if (!current) return undefined;
+    const timer = setInterval(beat, BEAT_MS);
+    return () => clearInterval(timer);
+  }, [beat, current]);
+
+  /* Playback moving to another screen means this one has to go quiet rather than run a
+     second copy of the same track. */
+  useEffect(() => {
+    if (remote && !takingOver.current && !audio.paused) audio.pause();
+  }, [audio, remote]);
 
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
@@ -246,6 +339,7 @@ export function PlayerProvider({ children }) {
       upNext,
       playList,
       playTrack,
+      takeover,
       toggle,
       next,
       prev,
@@ -255,7 +349,7 @@ export function PlayerProvider({ children }) {
       goTo,
       stop,
     }),
-    [current, queue, slot, order, playing, loading, time, duration, shuffle, repeat, error, upNext, playList, playTrack, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo, stop]
+    [current, queue, slot, order, playing, loading, time, duration, shuffle, repeat, error, upNext, playList, playTrack, takeover, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo, stop]
   );
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;

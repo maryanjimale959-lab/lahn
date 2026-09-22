@@ -61,10 +61,13 @@ export const api = {
 
   shelves: () => request('GET', '/shelves'),
   catalog: (params = {}) => request('GET', `/catalog${q(params)}`),
+
+  session: () => request('GET', '/session'),
+  saveSession: (device, session) => request('PUT', '/session', { device, session }),
 };
 
-export function watchJob(id, onMessage) {
-  const source = new EventSource(`${BASE}/jobs/${id}/events`);
+function openStream(route, onMessage) {
+  const source = new EventSource(`${BASE}${route}`);
   source.onmessage = (event) => {
     try {
       onMessage(JSON.parse(event.data));
@@ -74,6 +77,9 @@ export function watchJob(id, onMessage) {
   };
   return () => source.close();
 }
+
+export const watchJob = (id, onMessage) => openStream(`/jobs/${id}/events`, onMessage);
+export const watchSession = (onMessage) => openStream('/session/events', onMessage);
 
 export const audioUrl = (id) => `${BASE}/tracks/${id}/audio`;
 
