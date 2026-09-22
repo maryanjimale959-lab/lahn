@@ -9,6 +9,18 @@ import { download, fetchBinary, probe, tidyTitle } from './ytdlp.js';
 
 const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
 
+/**
+ * Podcasts and lessons get their own top-level folders so the library folder stays
+ * readable by hand, and a re-scan can tell a talk from a song by where it sits.
+ */
+export const KIND_DIR = { podcast: 'Podcasts', book: 'Books', lesson: 'Lessons', story: 'Stories' };
+const KIND_WORD = { song: 'song', podcast: 'podcast', book: 'book', lesson: 'lesson', story: 'story' };
+const DIR_KIND = Object.fromEntries(Object.entries(KIND_DIR).map(([kind, dir]) => [dir.toLowerCase(), kind]));
+
+export function kindOfPath(stored) {
+  return DIR_KIND[String(stored).split('/')[0]?.toLowerCase()] ?? 'song';
+}
+
 export function safeName(input, fallback = 'Untitled') {
   let out = String(input ?? '')
     .replace(/[<>:"/\\|?*\x00-\x1f]/g, ' ')
@@ -80,13 +92,13 @@ function extractCover(file, stored) {
   return storedCover;
 }
 
-export function insertTrack({ title, artistName, albumTitle, duration, storedPath, size, cover, sourceUrl, sourceId, year }) {
+export function insertTrack({ title, artistName, albumTitle, duration, storedPath, size, cover, sourceUrl, sourceId, year, kind, channelId }) {
   const artist = findOrCreateArtist(artistName);
   const album = findOrCreateAlbum(albumTitle || 'Singles', artist.id, year);
   const id = newId();
   run(
-    `INSERT INTO tracks (id, title, artist_id, album_id, duration, path, size, cover, source_url, source_id, added_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO tracks (id, title, artist_id, album_id, duration, path, size, cover, source_url, source_id, added_at, kind, channel_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     safeName(title),
     artist.id,
@@ -97,7 +109,9 @@ export function insertTrack({ title, artistName, albumTitle, duration, storedPat
     cover,
     sourceUrl ?? null,
     sourceId ?? null,
-    now()
+    now(),
+    kind ?? kindOfPath(storedPath),
+    channelId ?? null
   );
   if (!album.image) {
     run('UPDATE albums SET image = ? WHERE id = ?', cover, album.id);
@@ -119,34 +133,36 @@ export function trackById(id) {
   return get(`${TRACK_SELECT} WHERE t.id = ?`, id);
 }
 
-export async function ingest(url, { onStage } = {}, signal) {
+export async function ingest(url, { kind = 'song', channelId = null, onStage } = {}, signal) {
   ensureLibraryDirs();
   onStage?.({ stage: 'probing', message: 'Reading the link…' });
-  const meta = await probe(url);
-  if (meta.isLive) throw new Error('That is a live stream, not a song. Pick a normal video.');
+  const meta = await probe(url, kind);
+  const word = KIND_WORD[kind] ?? 'song';
+  if (meta.isLive) throw new Error(`That is a live stream, not a ${word}. Pick a finished video.`);
   if (!meta.duration) throw new Error('That video has no playable audio length.');
 
   const artistFolder = safeName(meta.artist, 'Unknown artist');
   const base = safeName(meta.title);
+  const subdir = KIND_DIR[kind] ? `${KIND_DIR[kind]}/${artistFolder}` : artistFolder;
   const id = newId();
 
   onStage?.({ stage: 'downloading', message: `Downloading ${meta.title}`, meta });
   const ext = await download(
     url,
-    { root: LIBRARY_DIR, subdir: artistFolder, filename: base },
+    { root: LIBRARY_DIR, subdir, filename: base },
     (p) => onStage?.({ stage: 'downloading', percent: p.percent, bytes: p.bytes, total: p.total, speed: p.speed, eta: p.eta, meta }),
     signal
   );
 
-  const stored = relPath(path.resolve(LIBRARY_DIR, `${artistFolder}/${base}.${ext}`));
+  const stored = relPath(path.resolve(LIBRARY_DIR, `${subdir}/${base}.${ext}`));
 
   for (const orphan of ['.webp', '.jpg', '.jpeg', '.png']) {
-    const leftover = path.resolve(LIBRARY_DIR, `${artistFolder}/${base}${orphan}`);
+    const leftover = path.resolve(LIBRARY_DIR, `${subdir}/${base}${orphan}`);
     if (existsSync(leftover)) rmSync(leftover, { force: true });
   }
 
   if (get('SELECT id FROM tracks WHERE path = ?', stored)) {
-    throw Object.assign(new Error('That song is already in your library.'), { code: 'DUPLICATE' });
+    throw Object.assign(new Error(`That ${word} is already in your library.`), { code: 'DUPLICATE' });
   }
 
   let cover = null;
@@ -175,6 +191,8 @@ export async function ingest(url, { onStage } = {}, signal) {
     sourceUrl: meta.webpageUrl || url,
     sourceId: meta.sourceId,
     year: meta.year,
+    kind,
+    channelId,
   });
 
   return track;
@@ -196,11 +214,14 @@ export async function scanLibrary() {
         if (known.has(stored)) continue;
         const size = statSync(full).size;
         const tags = (await readTags(full)) ?? {};
-        const artistName = tags.artist || (dir === LIBRARY_DIR ? 'Unknown artist' : path.basename(dir));
+        const kind = kindOfPath(stored);
+        const here = path.resolve(dir);
+        const shelf = here === path.resolve(LIBRARY_DIR) || Object.values(KIND_DIR).some((d) => here === path.resolve(LIBRARY_DIR, d));
+        const artistName = tags.artist || (shelf ? 'Unknown artist' : path.basename(dir));
         insertTrack({
           /* A tag copied straight off YouTube reads "Bôa - Duvet (Official Video)"; the shelf
-             should show the song, not the upload. */
-          title: tidyTitle(tags.title || path.basename(stored, path.extname(stored)), artistName),
+             should show the song, not the upload. Episode titles are kept whole. */
+          title: kind === 'song' ? tidyTitle(tags.title || path.basename(stored, path.extname(stored)), artistName) : tags.title || path.basename(stored, path.extname(stored)),
           artistName,
           albumTitle: tags.album,
           duration: tags.duration || 0,
@@ -210,6 +231,7 @@ export async function scanLibrary() {
           sourceUrl: null,
           sourceId: null,
           year: tags.year,
+          kind,
         });
         added += 1;
       }

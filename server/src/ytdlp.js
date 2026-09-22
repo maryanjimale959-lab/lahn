@@ -23,18 +23,22 @@ function runTool(bin, args, opts = {}) {
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    let stdout = '';
-    let stderr = '';
+    const out = [];
+    const errs = [];
+    /* Chunks are stitched as bytes: a UTF-8 sequence split across two reads would
+       otherwise land as a replacement character in the middle of a title. */
     child.stdout.on('data', (chunk) => {
-      stdout += chunk;
+      out.push(chunk);
       opts.onStdout?.(chunk.toString());
     });
     child.stderr.on('data', (chunk) => {
-      stderr += chunk;
+      errs.push(chunk);
       opts.onStderr?.(chunk.toString());
     });
     child.on('error', reject);
     child.on('close', (code) => {
+      const stdout = Buffer.concat(out).toString('utf8');
+      const stderr = Buffer.concat(errs).toString('utf8');
       if (code === 0) resolve({ stdout, stderr });
       else reject(Object.assign(new Error(stderr.trim().split('\n').pop() || `${bin} exited with code ${code}`), { stdout, stderr, code }));
     });
@@ -44,11 +48,11 @@ function runTool(bin, args, opts = {}) {
 
 const BASE_ARGS = ['--no-playlist', '--no-warnings', '--socket-timeout', '20', '--retries', '3'];
 
-export async function probe(url) {
+export async function probe(url, kind = 'song') {
   const yt = need(tools().ytDlp, 'yt-dlp');
   const { stdout } = await runTool(yt, [...BASE_ARGS, '--dump-single-json', '--skip-download', url]);
   const info = JSON.parse(stdout);
-  return normalizeInfo(info);
+  return normalizeInfo(info, kind);
 }
 
 function first(...values) {
@@ -94,13 +98,20 @@ function creditTitle(rawTitle, credited, channel) {
   return { artist: split[1].trim(), title: split[2].trim() };
 }
 
-function normalizeInfo(info) {
+function normalizeInfo(info, kind = 'song') {
   const credited = first(info.artist);
   const channel = first(info.uploader, info.channel, info.creator);
-  const { artist, title } = creditTitle(first(info.title), credited, channel);
+  const raw = first(info.title);
+  /* The "Artist - Track" split and the "(Official Video) [4K]" cleanup exist because song
+     uploads are titled after the recording. A lesson or episode *is* its title — stripping
+     "Lesson 3 -" or "(Part 2)" would hide what she just saved it for. */
+  const spoken = kind && kind !== 'song';
+  const { artist, title } = spoken
+    ? { artist: credited ?? channel ?? 'Unknown artist', title: raw }
+    : creditTitle(raw, credited, channel);
   return {
     sourceId: first(info.id) ?? '',
-    title: tidyTitle(title, artist),
+    title: spoken ? title || 'Untitled' : tidyTitle(title, artist),
     artist,
     album: first(info.album, info.release_album) ?? null,
     duration: Number(info.duration ?? 0) || 0,
@@ -212,4 +223,49 @@ export async function fetchBinary(url, signal) {
   const buf = Buffer.from(await res.arrayBuffer());
   if (buf.length < 512) throw new Error('Artwork response was too small to be an image');
   return buf;
+}
+
+/* A channel list is read with --flat-playlist: no audio, no ffmpeg, just the titles YouTube
+   already indexes. approximate_date gives each row a publish timestamp so the newest lands on top. */
+export async function listUploads(url, { limit = 40 } = {}) {
+  const yt = need(tools().ytDlp, 'yt-dlp');
+  const { stdout } = await runTool(
+    yt,
+    [
+      '--flat-playlist',
+      '--extractor-args',
+      'youtubetab:approximate_date',
+      '--playlist-end',
+      String(limit),
+      '--no-warnings',
+      '--socket-timeout',
+      '25',
+      '--retries',
+      '2',
+      '--dump-single-json',
+      '--skip-download',
+      url,
+    ]
+  );
+  const info = JSON.parse(stdout);
+  const rows = Array.isArray(info.entries) ? info.entries : [info];
+  const entries = rows
+    .map((e) => ({
+      id: first(e.id) ?? '',
+      title: (first(e.title) ?? 'Untitled').trim(),
+      url: first(e.url, e.webpage_url) ?? (e.id ? `https://www.youtube.com/watch?v=${e.id}` : null),
+      duration: Number(e.duration ?? 0) || 0,
+      thumbnail: first(e.thumbnail, infothumbnailsFallback(e)) ?? null,
+      /* Flat rows carry "timestamp"; only the full extractor calls it "release_timestamp". */
+      uploadedAt: Number(e.timestamp ?? e.release_timestamp ?? 0) || null,
+      isLive: Boolean(e.is_live) || e.live_status === 'is_live',
+    }))
+    .filter((e) => e.url)
+    .sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
+
+  return {
+    name: first(info.channel, info.uploader, info.title) ?? null,
+    image: first(info.thumbnail, infothumbnailsFallback(info)) ?? null,
+    entries,
+  };
 }

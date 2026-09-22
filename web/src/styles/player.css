@@ -713,10 +713,6 @@
     bottom: 26px;
     width: 380px;
   }
-  [dir='rtl'] .mini {
-    right: auto;
-    left: 26px;
-  }
 }
 
 [data-theme='dark'] .mini {

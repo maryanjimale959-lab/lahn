@@ -5,12 +5,14 @@ import { useLibrary } from '../state/library.jsx';
 import { useUi } from '../state/ui.jsx';
 
 export const NAV = [
-  { to: '/home', key: 'nav.home', icon: 'library' },
-  { to: '/songs', key: 'nav.songs', icon: 'song' },
+  { to: '/home', key: 'nav.home', icon: 'library', mobile: 'nav.home' },
+  { to: '/songs', key: 'nav.songs', icon: 'song', mobile: 'nav.songs' },
+  { to: '/talks', key: 'nav.talks', icon: 'mic', mobile: 'nav.tab.talks' },
+  { to: '/channels', key: 'nav.channels', icon: 'channel', mobile: 'nav.tab.channels' },
   { to: '/artists', key: 'nav.artists', icon: 'artist' },
   { to: '/albums', key: 'nav.albums', icon: 'disc' },
   { to: '/playlists', key: 'nav.playlists', tab: 'nav.tab.playlists', icon: 'playlist' },
-  { to: '/search', key: 'nav.search', icon: 'search' },
+  { to: '/search', key: 'nav.search', icon: 'search', mobile: 'nav.tab.search' },
 ];
 
 function useActive() {
@@ -22,7 +24,7 @@ export function Sidebar() {
   const { t, lang, count } = useUi();
   const active = useActive();
   const { health } = useLibrary();
-  const songs = health?.stats?.tracks ?? 0;
+  const songs = health?.stats?.songs ?? 0;
 
   return (
     <aside className="sidebar">
@@ -47,7 +49,7 @@ export function Sidebar() {
           <>
             <br />
             <br />
-            {t('home.stats', { songs: count(songs, 'song'), time: longDuration(health.stats.seconds ?? 0, lang), size: bytes(health.stats.bytes ?? 0, lang) })}
+            {t('home.stats', { songs: count(songs, 'song'), time: longDuration(health.stats.music_seconds ?? 0, lang), size: bytes(health.stats.bytes ?? 0) })}
           </>
         )}
       </div>
@@ -58,7 +60,7 @@ export function Sidebar() {
 export function Tabbar() {
   const { t } = useUi();
   const active = useActive();
-  const items = NAV.filter((n) => n.to !== '/albums');
+  const items = NAV.filter((n) => n.mobile);
 
   return (
     <nav className="tabbar">
@@ -67,7 +69,7 @@ export function Tabbar() {
         return (
           <a key={item.to} href={`#${item.to}`} className={active === item.to.slice(1) ? 'active' : ''}>
             <Glyph />
-            {t(item.tab ?? item.key)}
+            {t(item.mobile)}
           </a>
         );
       })}
@@ -77,7 +79,6 @@ export function Tabbar() {
 
 export function PageHeader({ title, children }) {
   const { t, lang, setLang, theme, setTheme } = useUi();
-  const { setAddOpen } = useLibrary();
 
   const nextTheme = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark';
   const ThemeIcon = theme === 'dark' ? Icon.moon : theme === 'light' ? Icon.sun : Icon.spark;
@@ -90,12 +91,8 @@ export function PageHeader({ title, children }) {
       <button type="button" className="icon-btn theme-btn" onClick={() => setTheme(nextTheme)} title={`${t('settings.theme')}: ${t(`settings.theme.${theme}`)}`} aria-label={t('settings.theme')}>
         <ThemeIcon />
       </button>
-      <button type="button" className="icon-btn" onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} aria-label={t('settings.language')} title={t('settings.language')}>
-        <span style={{ fontSize: lang === 'ar' ? 13 : 12, fontWeight: 800, letterSpacing: '-0.01em' }}>{lang === 'ar' ? 'EN' : 'عربي'}</span>
-      </button>
-      <button type="button" className="pill-btn" onClick={() => setAddOpen(true)}>
-        <Icon.plus />
-        <span className="add-label">{t('add.title')}</span>
+      <button type="button" className="icon-btn" onClick={() => setLang(lang === 'so' ? 'en' : 'so')} aria-label={t('settings.language')} title={t('settings.language')}>
+        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '-0.01em' }}>{lang === 'so' ? 'EN' : 'SO'}</span>
       </button>
       <a className="icon-btn" href="#/settings" aria-label={t('nav.settings')}>
         <Icon.settings />

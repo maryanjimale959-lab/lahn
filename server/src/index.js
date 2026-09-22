@@ -6,13 +6,14 @@ import { closeDb, stats } from './db.js';
 import { ensureLibraryDirs, pruneMissing, scanLibrary } from './library.js';
 import { createApi } from './api.js';
 import { failInterruptedJobs } from './jobs.js';
+import { seedChannels } from './channels.js';
 import { lanAddresses } from './net.js';
 import { log } from './log.js';
 
 const BANNER = `
-  ${'▄▄'.repeat(2)}   L A H N  ·  لحن
-  ████  ██        your own music library
-  ██    ██        paste a link, keep the song
+  ${'▄▄'.repeat(2)}   L A H N
+  ████  ██        Somali songs, podcasts & lessons
+  ██    ██        browse the shelves, keep the audio
   ▀▀▀▀  ▀▀
   Created by Maryam J.
 `;
@@ -75,6 +76,9 @@ async function main() {
     })
     .catch((err) => log.warn('library scan skipped:', err.message));
   pruneMissing();
+
+  const seeded = seedChannels();
+  if (seeded) log.info(`${seeded} starter channel(s) added — open Channels to pull their lists`);
 
   const shutdown = () => {
     log.info('closing Lahn…');

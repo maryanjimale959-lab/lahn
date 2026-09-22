@@ -63,6 +63,19 @@ CREATE TABLE IF NOT EXISTS playlist_items (
   PRIMARY KEY (playlist_id, track_id)
 );
 
+CREATE TABLE IF NOT EXISTS channels (
+  id TEXT PRIMARY KEY,
+  url TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  sort_key TEXT NOT NULL UNIQUE,
+  kind TEXT NOT NULL DEFAULT 'podcast',
+  image TEXT,
+  added_at INTEGER NOT NULL,
+  uploads TEXT,
+  fetched_at INTEGER,
+  shelf TEXT
+);
+
 CREATE TABLE IF NOT EXISTS jobs (
   id TEXT PRIMARY KEY,
   url TEXT NOT NULL,
@@ -81,6 +94,25 @@ CREATE INDEX IF NOT EXISTS tracks_artist_idx ON tracks (artist_id);
 CREATE INDEX IF NOT EXISTS tracks_album_idx ON tracks (album_id);
 CREATE INDEX IF NOT EXISTS items_order_idx ON playlist_items (playlist_id, position);
 `);
+
+/* Old libraries hold nothing but songs, so the column backfills itself to 'song'. */
+const hasColumn = (table, name) => all(`PRAGMA table_info(${table})`).some((c) => c.name === name);
+if (!hasColumn('tracks', 'kind')) {
+  db.exec("ALTER TABLE tracks ADD COLUMN kind TEXT NOT NULL DEFAULT 'song'");
+  log.info('library schema updated: tracks.kind');
+}
+if (!hasColumn('tracks', 'channel_id')) {
+  db.exec('ALTER TABLE tracks ADD COLUMN channel_id TEXT');
+  log.info('library schema updated: tracks.channel_id');
+}
+if (!hasColumn('channels', 'shelf')) {
+  db.exec('ALTER TABLE channels ADD COLUMN shelf TEXT');
+  log.info('library schema updated: channels.shelf');
+}
+db.exec('CREATE INDEX IF NOT EXISTS tracks_kind_idx ON tracks (kind)');
+
+export const KINDS = ['song', 'podcast', 'book', 'lesson', 'story'];
+export const isKind = (value) => (KINDS.includes(value) ? value : null);
 
 export const newId = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12);
 export const now = () => Date.now();
@@ -141,15 +173,19 @@ export function findOrCreateAlbum(title, artistId, year) {
 }
 
 export function stats() {
-  const counts = get(
+  return get(
     `SELECT (SELECT COUNT(*) FROM tracks) AS tracks,
+            (SELECT COUNT(*) FROM tracks WHERE kind = 'song') AS songs,
+            (SELECT COUNT(*) FROM tracks WHERE kind = 'podcast') AS podcasts,
+            (SELECT COUNT(*) FROM tracks WHERE kind = 'lesson') AS lessons,
             (SELECT COUNT(*) FROM artists) AS artists,
             (SELECT COUNT(*) FROM albums) AS albums,
             (SELECT COUNT(*) FROM playlists) AS playlists,
+            (SELECT COUNT(*) FROM channels) AS channels,
             (SELECT COALESCE(SUM(duration), 0) FROM tracks) AS seconds,
+            (SELECT COALESCE(SUM(duration), 0) FROM tracks WHERE kind = 'song') AS music_seconds,
             (SELECT COALESCE(SUM(size), 0) FROM tracks) AS bytes`
   );
-  return counts;
 }
 
 export function closeDb() {

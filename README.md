@@ -1,30 +1,32 @@
-# Lahn · لحن
+# Lahn
 
-Your own music library on your own machine. Paste a link, keep the song, play it on the
-PC and on the phone over the home Wi-Fi — no subscription, no cloud, nothing uploaded
-anywhere.
+Somali songs, podcasts, books, true stories and lessons — on your own machine. Browse the
+shelves, tap save, keep the audio, and play it on the PC and on the phone over the home
+Wi-Fi — no subscription, no cloud, nothing uploaded anywhere.
 
 **Created by Maryam J.**
 
 ![Home](docs/01-desktop-home.png)
 ![Turntable player](docs/06-desktop-vinyl.png)
 ![Phone](docs/13-mobile-vinyl.png)
-![Arabic, right-to-left](docs/20-rtl-home.png)
 
 ## What it does
 
-- **Paste a YouTube link** → Lahn downloads the audio, cleans the title of upload noise
-  (`Artist - Track (Official Video) [4K Remaster]` → `Track`), grabs the cover art and files
-  it under the right artist.
+- **Somali shelves** — curated sources (heeso, rap, hees jaceyl, podcast-yada, buugaag,
+  kiisaska dhabta ah, casharro) are listed inside the app. No links to copy: tap an item
+  and Lahn pulls the audio, grabs the cover art and files it under the right artist.
 - **Turntable player** — a vinyl deck as the main screen: the platter spins while playing,
   the tonearm drops on the record, and it stops when you pause.
+- **Clean titles** — upload noise (`Artist - Track (Official Video) [4K Remaster]` →
+  `Track`) is stripped for songs and kept intact for episodes, so a podcast still reads
+  the way the channel named it.
 - **Songs, Artists, Albums, Playlists, Search** — plus queue, shuffle, repeat, sleep-free
   plain-file support.
 - **Works on the phone** — the server is also the web app, so opening
   `http://<your-pc>:4780` on any device on the LAN gives you the same library. It is a
   installable PWA (Add to Home Screen) with Media Session, so the phone's lock screen gets
   play/pause and track info.
-- **English and Arabic** — full RTL layout, Arabic-Indic numerals, one tap to switch.
+- **English and Somali** — one tap to switch; the app opens in Somali on a Somali device.
 - **Plain folders are the source of truth** — everything lives as ordinary audio files in
   `library/`; delete the database and rescan and nothing is lost.
 
@@ -67,7 +69,7 @@ Everything has a sensible default; set these only if you want to move something.
 ```
 server/src/   Express API, SQLite library, yt-dlp download jobs, Range streaming
 web/src/      React 19 app: pages, player state, i18n, hand-written CSS
-scripts/      shots.mjs — headless visual regression across desktop/mobile/RTL/dark
+scripts/      shots.mjs — headless visual regression across desktop/mobile/dark
 library/      your music (gitignored)
 server/data/  the database (gitignored)
 ```
@@ -80,7 +82,7 @@ node scripts/shots.mjs             # 22 screenshots + a real playback assertion
 node scripts/poster.mjs            # share/ — posters of the library for social media
 ```
 
-The shot suite walks every screen in light, dark, mobile and Arabic, and fails loudly if
+The shot suite walks every screen in light, dark and mobile, and fails loudly if
 audio stalls — it is the fastest way to see a regression before it reaches the app.
 
 `poster.mjs` renders the turntable as a printable card in story (1080×1920), square

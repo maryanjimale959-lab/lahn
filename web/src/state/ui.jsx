@@ -60,7 +60,7 @@ export function UiProvider({ children }) {
   const count = useCallback((n, key) => plural(lang, n, key), [lang]);
 
   const value = useMemo(
-    () => ({ lang, setLang, t, count, theme, setTheme, dark: theme === 'system' ? systemDark : theme === 'dark', route, navigate, dir: lang === 'ar' ? 'rtl' : 'ltr' }),
+    () => ({ lang, setLang, t, count, theme, setTheme, dark: theme === 'system' ? systemDark : theme === 'dark', route, navigate }),
     [lang, setLang, t, count, theme, setTheme, systemDark, route, navigate]
   );
 

@@ -113,8 +113,6 @@ const FONTS = [
   ['Manrope', 'manrope', 'manrope-latin'],
   ['Manrope', 'manrope', 'manrope-latin-ext'],
   ['Manrope', 'manrope', 'manrope-vietnamese'],
-  ['Noto Kufi Arabic', 'noto-kufi-arabic', 'noto-kufi-arabic-arabic'],
-  ['Noto Kufi Arabic', 'noto-kufi-arabic', 'noto-kufi-arabic-latin'],
 ]
   .map(([family, pkg, subset]) => {
     const file = path.join(ROOT, 'node_modules', '@fontsource-variable', pkg, 'files', `${subset}-wght-normal.woff2`);
@@ -191,7 +189,7 @@ function html(f, tracks) {
 ${FONTS}
 *{margin:0;box-sizing:border-box}
 html,body{width:${w}px;height:${h}px;overflow:hidden}
-body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .poster{position:relative;width:${w}px;height:${h}px;background:${t.bg};color:${t.ink};
   --fit:1;--dfit:1;
   display:flex;flex-direction:column;overflow:hidden;font-size:${px(27)};padding:${px(60)} ${px(62)} ${px(48)}}
@@ -205,7 +203,7 @@ header{display:flex;align-items:center;justify-content:space-between}
 .mark{border-radius:${px(15)};box-shadow:0 ${px(8)} ${px(22)} rgba(0,0,0,.20)}
 .word{display:flex;align-items:baseline;gap:${px(10)}}
 .word b{font-size:${px(42)};font-weight:800;letter-spacing:-.045em}
-.word span{font-family:'Noto Kufi Arabic',sans-serif;font-size:${px(24)};font-weight:600;color:${t.mute}}
+.word span{font-size:${px(24)};font-weight:600;color:${t.mute}}
 .stats{font-size:${px(21)};font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:${t.mute}}
 
 .head{display:flex;align-items:flex-end;justify-content:space-between;gap:${px(24)};margin-top:${px(42)}}
@@ -237,7 +235,7 @@ footer{margin-top:${px(22)};padding-top:${px(22)};border-top:1px solid ${t.line}
 </style></head>
 <body><div class="poster">
   <header>
-    <span class="brand">${logoMark(Math.round(60 * s))}<span class="word"><b>Lahn</b><span dir="rtl">لحن</span></span></span>
+    <span class="brand">${logoMark(Math.round(60 * s))}<span class="word"><b>Lahn</b></span></span>
     <span class="stats">${tracks.length} songs · ${total} min</span>
   </header>
   <div class="head">
@@ -249,8 +247,8 @@ footer{margin-top:${px(22)};padding-top:${px(22)};border-top:1px solid ${t.line}
     <ol class="tracks">${tracks.map((track, i) => row(track, i, cols === 2 ? 24 : 30)).join('')}</ol>
   </main>
   <footer>
-    <span class="tag">${logoMark(Math.round(34 * s))} made with Lahn — your own music library</span>
-    <span>lahn · لحن</span>
+    <span class="tag">${logoMark(Math.round(34 * s))} made with Lahn — Somali songs, podcasts &amp; lessons</span>
+    <span>created by Maryam J.</span>
   </footer>
 </div>
 <script>

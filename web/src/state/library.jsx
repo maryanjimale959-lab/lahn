@@ -8,7 +8,6 @@ export function LibraryProvider({ children }) {
   const [health, setHealth] = useState(null);
   const [jobs, setJobs] = useState({});
   const [offline, setOffline] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
   const watchers = useRef(new Map());
 
   const refresh = useCallback(async () => {
@@ -41,11 +40,12 @@ export function LibraryProvider({ children }) {
     [track]
   );
 
-  const addLink = useCallback(
-    async (url) => {
-      const { jobId } = await api.add(url.trim());
+  const save = useCallback(
+    async (url, options = {}) => {
+      const link = url.trim();
+      const { jobId } = await api.add(link, options);
       follow(jobId);
-      setJobs((prev) => ({ ...prev, [jobId]: { id: jobId, url, status: 'queued', stage: 'queued', percent: 0, message: 'Waiting…' } }));
+      setJobs((prev) => ({ ...prev, [jobId]: { id: jobId, url: link, kind: options.kind ?? 'song', status: 'queued', stage: 'queued', percent: 0, message: 'Waiting…' } }));
       return jobId;
     },
     [follow]
@@ -78,20 +78,21 @@ export function LibraryProvider({ children }) {
     return () => clearInterval(timer);
   }, [refresh]);
 
+  const cancel = useCallback(async (id) => {
+    await api.cancelJob(id);
+  }, []);
+
   const value = useMemo(
     () => ({
       ...data,
       health,
       offline,
       jobs,
-      jobList: Object.values(jobs).sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)),
-      activeJob: Object.values(jobs).find((j) => j.status === 'queued' || j.status === 'running') ?? null,
-      addOpen,
-      setAddOpen,
       refresh,
-      addLink,
+      save,
+      cancel,
     }),
-    [data, health, offline, jobs, addOpen, refresh, addLink]
+    [data, health, offline, jobs, refresh, save, cancel]
   );
 
   return <LibraryContext.Provider value={value}>{children}</LibraryContext.Provider>;

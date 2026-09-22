@@ -47,10 +47,20 @@ export const api = {
   favourite: (id, value) => request('POST', `/tracks/${id}/favourite`, { favourite: value }),
   played: (id) => request('POST', `/tracks/${id}/play`),
 
-  add: (url) => request('POST', '/add', { url }),
+  add: (url, options = {}) => request('POST', '/add', { url, ...options }),
   jobs: () => request('GET', '/jobs'),
   cancelJob: (id) => request('POST', `/jobs/${id}/cancel`),
   scan: () => request('POST', '/scan'),
+
+  channels: () => request('GET', '/channels'),
+  channel: (id) => request('GET', `/channels/${id}`),
+  addChannel: (url, kind) => request('POST', '/channels', { url, kind }),
+  refreshChannel: (id) => request('POST', `/channels/${id}/refresh`),
+  deleteChannel: (id) => request('DELETE', `/channels/${id}`),
+  refreshChannels: () => request('POST', '/channels/refresh-all'),
+
+  shelves: () => request('GET', '/shelves'),
+  catalog: (params = {}) => request('GET', `/catalog${q(params)}`),
 };
 
 export function watchJob(id, onMessage) {
@@ -66,4 +76,12 @@ export function watchJob(id, onMessage) {
 }
 
 export const audioUrl = (id) => `${BASE}/tracks/${id}/audio`;
-export const coverFor = (stored) => (stored ? `${BASE}/covers/${String(stored).split('/').pop()}` : null);
+
+/* Covers are stored as "covers/<id>.jpg" in the library, but a channel or shelf can
+   hand back a remote poster. Only the stored form needs the API prefix. */
+export const coverFor = (stored) => {
+  const value = String(stored ?? '').trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${BASE}/covers/${value.split('/').pop()}`;
+};

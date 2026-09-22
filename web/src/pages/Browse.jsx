@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
+import { CatalogRow } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { Tile } from '../components/Tile.jsx';
 import { TrackRow } from '../components/TrackRow.jsx';
+import { shelfTitle } from '../lib/shelves.js';
+import { useShelves } from '../lib/useShelves.js';
 import { useLibrary } from '../state/library.jsx';
 import { useUi } from '../state/ui.jsx';
 
@@ -13,19 +16,25 @@ const SORTS = [
   ['plays', 'songs.sort.plays'],
 ];
 
+const MUSIC_SHELVES = ['music', 'rap', 'love'];
+
 export function Songs() {
   const { t, count } = useUi();
-  const { tracks = [], setAddOpen } = useLibrary();
+  const { tracks = [] } = useLibrary();
+  const { shelves } = useShelves();
   const [sort, setSort] = useState('recent');
+  /* Talks have their own shelf now; this page is the music. */
+  const music = useMemo(() => tracks.filter((track) => !track.kind || track.kind === 'song'), [tracks]);
+  const toSave = shelves.filter((shelf) => MUSIC_SHELVES.includes(shelf.id));
 
   const list = useMemo(() => {
-    const copy = [...tracks];
+    const copy = [...music];
     if (sort === 'title') copy.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
     else if (sort === 'artist') copy.sort((a, b) => (a.artist ?? '').localeCompare(b.artist ?? '', undefined, { sensitivity: 'base' }) || a.title.localeCompare(b.title));
     else if (sort === 'plays') copy.sort((a, b) => (b.plays ?? 0) - (a.plays ?? 0) || b.added_at - a.added_at);
     else copy.sort((a, b) => b.added_at - a.added_at);
     return copy;
-  }, [tracks, sort]);
+  }, [music, sort]);
 
   return (
     <>
@@ -34,10 +43,10 @@ export function Songs() {
         <div className="onboard">
           <h2>{t('home.emptyTitle')}</h2>
           <p>{t('home.emptyBody')}</p>
-          <button type="button" className="pill-btn" onClick={() => setAddOpen(true)}>
-            <Icon.plus />
-            {t('add.title')}
-          </button>
+          <a className="pill-btn" href="#/shelf/music">
+            <Icon.channel />
+            {t('home.addFirst')}
+          </a>
         </div>
       ) : (
         <>
@@ -56,6 +65,10 @@ export function Songs() {
           </div>
         </>
       )}
+
+      {toSave.map((shelf) => (
+        <CatalogRow key={shelf.id} title={t(shelfTitle(shelf.id))} more={`#/shelf/${shelf.id}`} items={shelf.items.slice(0, 12)} />
+      ))}
     </>
   );
 }

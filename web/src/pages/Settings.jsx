@@ -75,8 +75,8 @@ export function Settings() {
             <button type="button" className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>
               English
             </button>
-            <button type="button" className={lang === 'ar' ? 'on' : ''} onClick={() => setLang('ar')}>
-              العربية
+            <button type="button" className={lang === 'so' ? 'on' : ''} onClick={() => setLang('so')}>
+              Soomaali
             </button>
           </div>
         </Row>
@@ -84,7 +84,7 @@ export function Settings() {
 
       <Group title={t('settings.group.library')}>
         <Row label={t('settings.libraryFolder')} hint={<bdi dir="ltr">{health?.libraryDir}</bdi>}>
-          <span className="mono-value">{count(stats?.tracks ?? 0, 'song')} · {longDuration(stats?.seconds ?? 0, lang)} · {bytes(stats?.bytes ?? 0, lang)}</span>
+          <span className="mono-value">{count(stats?.songs ?? 0, 'song')} · {longDuration(stats?.music_seconds ?? 0, lang)} · {bytes(stats?.bytes ?? 0)}</span>
         </Row>
         <Row label={t('settings.scan')}>
           <button type="button" className="pill-btn ghost" onClick={scan} disabled={scanning}>
@@ -139,7 +139,7 @@ export function Settings() {
         <div className="about">
           <LogoMark size={64} spin />
           <div>
-            <b>Lahn · لحن</b>
+            <b>Lahn</b>
             <span>
               {t('app.tagline')} — {t('settings.version')} {health?.version ?? '—'}
             </span>

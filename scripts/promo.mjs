@@ -26,8 +26,6 @@ const FONTS = [
   ['Manrope', 'manrope', 'manrope-latin'],
   ['Manrope', 'manrope', 'manrope-latin-ext'],
   ['Manrope', 'manrope', 'manrope-vietnamese'],
-  ['Noto Kufi Arabic', 'noto-kufi-arabic', 'noto-kufi-arabic-arabic'],
-  ['Noto Kufi Arabic', 'noto-kufi-arabic', 'noto-kufi-arabic-latin'],
 ]
   .map(([family, pkg, subset]) => {
     const file = path.join(ROOT, 'node_modules', '@fontsource-variable', pkg, 'files', `${subset}-wght-normal.woff2`);
@@ -225,7 +223,7 @@ function story(f, shots, hero) {
 ${FONTS}
 *{margin:0;box-sizing:border-box}
 html,body{width:1080px;height:1920px;overflow:hidden}
-body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .poster{position:relative;width:1080px;height:1920px;background:${t.bg};color:${t.ink};overflow:hidden}
 .glow{position:absolute;border-radius:50%;filter:blur(120px)}
 .g1{width:900px;height:900px;left:-300px;top:-260px;background:${t.glowA}}
@@ -237,7 +235,7 @@ body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-
 .brand .mark{border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.28)}
 .word{display:flex;align-items:baseline;gap:12px}
 .word b{font-size:54px;font-weight:800;letter-spacing:-.045em}
-.word span{font-family:'Noto Kufi Arabic',sans-serif;font-size:30px;font-weight:600;color:${t.mute}}
+.word span{font-size:30px;font-weight:600;color:${t.mute}}
 .nav{position:absolute;left:80px;top:206px;display:flex;gap:38px;font-size:26px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:${t.mute}}
 .nav i{font-style:normal;color:${t.ink}}
 h1{position:absolute;right:74px;top:300px;width:600px;text-align:right;font-size:${headFont}px;font-weight:800;line-height:.86;letter-spacing:-.055em}
@@ -272,13 +270,13 @@ h1 em{font-style:normal;color:#e0523f}
 <body><div class="poster">
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="disc">${bigDisc(t)}</div>
-  <div class="brand">${logoMark(84)}<span class="word"><b>Lahn</b><span dir="rtl">لحن</span></span></div>
+  <div class="brand">${logoMark(84)}<span class="word"><b>Lahn</b></span></div>
   <div class="nav"><i>Songs</i><span>Artists</span><span>Albums</span><span>Playlists</span></div>
   <h1>${head}</h1>
   <p class="lede">${LEDE}</p>
   ${phone(shots.deck, t)}
   ${playerCard(hero, t)}
-  <div class="foot"><span><b>${hero.count} songs</b> · no ads · no subscription · yours offline</span><span class="ar">lahn · <bdi dir="rtl">لحن</bdi></span></div>
+  <div class="foot"><span><b>${hero.count} songs</b> · no ads · no subscription · yours offline</span><span>made with Lahn</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
@@ -290,7 +288,7 @@ function showcase(f, shots, hero) {
 ${FONTS}
 *{margin:0;box-sizing:border-box}
 html,body{width:1080px;height:1080px;overflow:hidden}
-body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .poster{position:relative;width:1080px;height:1080px;background:${t.bg};color:${t.ink};overflow:hidden}
 .glow{position:absolute;border-radius:50%;filter:blur(110px)}
 .g1{width:820px;height:820px;left:-260px;top:-300px;background:${t.glowA}}
@@ -304,7 +302,7 @@ body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-
 .brand .mark{border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.26)}
 .word{display:flex;align-items:baseline;gap:10px}
 .word b{font-size:40px;font-weight:800;letter-spacing:-.045em}
-.word span{font-family:'Noto Kufi Arabic',sans-serif;font-size:23px;font-weight:600;color:${t.mute}}
+.word span{font-size:23px;font-weight:600;color:${t.mute}}
 .tag{position:absolute;right:64px;top:70px;max-width:430px;text-align:right;font-size:25px;line-height:1.45;font-weight:600;color:${t.mute}}
 .tag b{color:${t.ink}}
 .row{position:absolute;left:0;right:0;top:252px;display:flex;justify-content:center;align-items:flex-start;gap:22px}
@@ -327,11 +325,11 @@ body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="watermark">LAHN</div>
   <div class="disc">${bigDisc(t)}</div>
-  <div class="brand">${logoMark(58)}<span class="word"><b>Lahn</b><span dir="rtl">لحن</span></span></div>
+  <div class="brand">${logoMark(58)}<span class="word"><b>Lahn</b></span></div>
   <p class="tag">One app, <b>your whole library</b> — on the PC and on the phone, over your own Wi-Fi</p>
   <div class="row">${ids.map((id) => phone(shots[id], t)).join('')}</div>
   <div class="labels"><span>Home</span><span>Songs</span><span>Turntable</span><span>Search</span></div>
-  <div class="foot"><span><b>${hero.count} songs</b> · offline on PC and phone · nothing in the cloud</span><span>made with Lahn · <bdi dir="rtl">لحن</bdi></span></div>
+  <div class="foot"><span><b>${hero.count} songs</b> · offline on PC and phone · nothing in the cloud</span><span>made with Lahn</span></div>
   <svg class="grain"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
 </div></body></html>`;
 }
@@ -352,7 +350,7 @@ function coming(f, shots, hero) {
 ${FONTS}
 *{margin:0;box-sizing:border-box}
 html,body{width:${f.w}px;height:${f.h}px;overflow:hidden}
-body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{font-family:'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 .poster{position:relative;width:${f.w}px;height:${f.h}px;background:${t.bg};color:${t.ink};overflow:hidden}
 .glow{position:absolute;border-radius:50%;filter:blur(120px)}
 .g1{width:900px;height:900px;left:-300px;top:${sq ? '-360px' : '-260px'};background:${t.glowA}}
@@ -364,7 +362,7 @@ body{font-family:'Manrope','Noto Kufi Arabic',system-ui,sans-serif;-webkit-font-
 .brand .mark{border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.28)}
 .word{display:flex;align-items:baseline;gap:12px}
 .word b{font-size:${sq ? 40 : 54}px;font-weight:800;letter-spacing:-.045em}
-.word span{font-family:'Noto Kufi Arabic',sans-serif;font-size:${sq ? 23 : 30}px;font-weight:600;color:${t.mute}}
+.word span{font-size:${sq ? 23 : 30}px;font-weight:600;color:${t.mute}}
 .co{position:absolute;right:${sq ? 60 : 76}px;top:${sq ? 56 : 96}px;display:flex;align-items:baseline;gap:12px;
   padding:14px 24px;border:1px solid ${t.line};border-radius:99px}
 .co b{font-size:1.55em;font-weight:800;letter-spacing:.02em}
@@ -411,7 +409,7 @@ h1 em{font-style:normal;color:#e0523f}
 <body><div class="poster">
   <div class="glow g1"></div><div class="glow g2"></div>
   <div class="disc">${bigDisc(t)}</div>
-  <div class="brand">${logoMark(sq ? 56 : 84)}<span class="word"><b>Lahn</b><span dir="rtl">لحن</span></span></div>
+  <div class="brand">${logoMark(sq ? 56 : 84)}<span class="word"><b>Lahn</b></span></div>
   ${companyChip(sq ? 19 : 24)}
   <div class="kicker">${sq ? 'Lahn on every screen' : 'Music · Podcasts · Lessons'}</div>
   <h1>${soon}</h1>

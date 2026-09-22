@@ -9,6 +9,7 @@ function snapshot(job) {
   return {
     id: job.id,
     url: job.url,
+    kind: job.kind,
     status: job.status,
     stage: job.stage,
     percent: job.percent,
@@ -66,10 +67,12 @@ function update(job, patch) {
   push(job);
 }
 
-export function createJob(url) {
+export function createJob(url, { kind = 'song', channelId = null } = {}) {
   const job = {
     id: newId(),
     url,
+    kind,
+    channelId,
     status: 'queued',
     stage: 'queued',
     percent: 0,
@@ -87,7 +90,7 @@ export function createJob(url) {
   (async () => {
     try {
       update(job, { status: 'running' });
-      const track = await ingest(url, { onStage: (patch) => update(job, patch) }, job.controller.signal);
+      const track = await ingest(url, { kind: job.kind, channelId: job.channelId, onStage: (patch) => update(job, patch) }, job.controller.signal);
       update(job, { status: 'done', stage: 'done', percent: 100, track, message: 'Added to your library' });
       log.ok(`added “${track.title}” — ${track.artist}`);
     } catch (err) {

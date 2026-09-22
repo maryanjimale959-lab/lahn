@@ -1,4 +1,7 @@
-import { arabicDigits } from './i18n.js';
+const UNITS = {
+  en: { sec: 'sec', min: 'min', hr: 'hr' },
+  so: { sec: 'ilbiriqsi', min: 'daqiiqo', hr: 'saac' },
+};
 
 export function clock(seconds) {
   const s = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -8,29 +11,23 @@ export function clock(seconds) {
 }
 
 export function longDuration(seconds, lang = 'en') {
+  const u = UNITS[lang] ?? UNITS.en;
   const total = Math.floor(Number(seconds) || 0);
-  const num = (v) => (lang === 'en' ? String(v) : arabicDigits(String(v)).replace('.', '٫'));
-  if (total < 60) return lang === 'ar' ? `${num(total)} ثانية` : `${num(total)} sec`;
+  if (total < 60) return `${total} ${u.sec}`;
   const mins = Math.round(total / 60);
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  if (lang === 'ar') {
-    if (h && m) return `${num(h)} س ${num(m)} د`;
-    if (h) return `${num(h)} س`;
-    return `${num(m)} د`;
-  }
-  if (h && m) return `${num(h)} hr ${num(m)} min`;
-  if (h) return `${num(h)} hr`;
-  return `${num(m)} min`;
+  if (h && m) return `${h} ${u.hr} ${m} ${u.min}`;
+  if (h) return `${h} ${u.hr}`;
+  return `${m} ${u.min}`;
 }
 
-export function bytes(size, lang = 'en') {
+export function bytes(size) {
   const n = Number(size) || 0;
-  const num = (v) => (lang === 'en' ? String(v) : arabicDigits(String(v)).replace('.', '٫'));
-  if (n > 1024 ** 3) return `${num((n / 1024 ** 3).toFixed(1))} GB`;
-  if (n > 1024 ** 2) return `${num(Math.round(n / 1024 ** 2))} MB`;
-  if (n > 1024) return `${num(Math.round(n / 1024))} KB`;
-  return `${num(0)} MB`;
+  if (n > 1024 ** 3) return `${(n / 1024 ** 3).toFixed(1)} GB`;
+  if (n > 1024 ** 2) return `${Math.round(n / 1024 ** 2)} MB`;
+  if (n > 1024) return `${Math.round(n / 1024)} KB`;
+  return '0 MB';
 }
 
 export const initials = (name) =>

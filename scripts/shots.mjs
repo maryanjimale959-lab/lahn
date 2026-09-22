@@ -28,16 +28,47 @@ const browser = await chromium.launch({
 
 async function pageFor(name, viewport, locale = 'en-US') {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, locale });
+  /* Chromium probes /favicon.ico even with an SVG icon declared; the 404 it logs
+     would otherwise sit in the report as a permanent false alarm. */
+  await ctx.route('**/favicon.ico', (route) => route.fulfill({ status: 204 }));
   const page = await ctx.newPage();
   page.on('console', (msg) => {
     if (msg.type() === 'error') problems.push(`[${name}] console: ${msg.text().slice(0, 300)}`);
   });
   page.on('pageerror', (err) => problems.push(`[${name}] pageerror: ${err.message.slice(0, 300)}`));
+  page.on('response', (res) => {
+    if (res.status() >= 400) problems.push(`[${name}] http ${res.status()}: ${res.url().slice(0, 160)}`);
+  });
   page.on('requestfailed', (req) => problems.push(`[${name}] requestfailed: ${req.url().slice(0, 160)} ${req.failure()?.errorText}`));
   return { ctx, page };
 }
 
+/* Card art is lazy-loaded, and a fullPage capture never scrolls, so walk every
+   scroll container first and wait for the images to actually arrive. */
+const loadArt = async (page) => {
+  await page.evaluate(async () => {
+    const hosts = [
+      document.scrollingElement ?? document.documentElement,
+      ...[...document.querySelectorAll('*')].filter(
+        (el) => el.scrollHeight > el.clientHeight + 40 && /(auto|scroll)/.test(getComputedStyle(el).overflowY)
+      ),
+    ];
+    for (const el of new Set(hosts)) {
+      const top = el.scrollTop;
+      for (let y = 0; y <= el.scrollHeight; y += Math.max(200, el.clientHeight * 0.7)) {
+        el.scrollTop = y;
+        await new Promise((r) => setTimeout(r, 90));
+      }
+      el.scrollTop = top;
+    }
+    await Promise.all(
+      [...document.images].map((img) => (img.complete ? null : new Promise((r) => ((img.onload = img.onerror = r), setTimeout(r, 3000)))))
+    );
+  });
+};
+
 const shot = async (page, name, full = false) => {
+  await loadArt(page);
   await page.screenshot({ path: path.join(OUT, `${name}.png`), fullPage: full });
   console.log('shot', name);
 };
@@ -61,6 +92,18 @@ const settleHealth = async (page) =>
   await page.click('.nav a[href="#/songs"]');
   await settle(page);
   await shot(page, '02-desktop-songs');
+
+  await page.click('.nav a[href="#/talks"]');
+  await settle(page, 1200);
+  await shot(page, '23-desktop-talks');
+
+  await page.click('.nav a[href="#/channels"]');
+  await settle(page);
+  await shot(page, '24-desktop-channels');
+
+  await page.goto(`${BASE}/#/shelf/podcasts`, { waitUntil: 'networkidle' });
+  await settle(page, 1200);
+  await shot(page, '25-desktop-shelf');
 
   await page.click('.nav a[href="#/artists"]');
   await settle(page);
@@ -154,11 +197,11 @@ const settleHealth = async (page) =>
   await settle(page);
   await shot(page, '10-mobile-home');
 
-  await page.click('.topbar .pill-btn');
-  await settle(page, 700);
-  await shot(page, '11-mobile-add');
-  await page.keyboard.press('Escape');
-  await settle(page, 400);
+  await page.goto(`${BASE}/#/shelf/music`, { waitUntil: 'networkidle' });
+  await settle(page, 1200);
+  /* A fullPage capture paints the fixed top bar and tab bar in the middle of the
+     image, so the phone shots stay one screen tall — what she actually sees. */
+  await shot(page, '11-mobile-shelf');
 
   await page.click('.tabbar a[href="#/songs"]');
   await settle(page);
@@ -179,14 +222,14 @@ const settleHealth = async (page) =>
   await ctx.close();
 }
 
-/* ---------- arabic / RTL ---------- */
+/* ---------- somali ---------- */
 {
-  const { page, ctx } = await pageFor('rtl', { width: 390, height: 844 }, 'ar');
+  const { page, ctx } = await pageFor('somali', { width: 390, height: 844 }, 'so');
   await page.goto(`${BASE}/#/home`, { waitUntil: 'networkidle' });
-  await page.evaluate(() => localStorage.setItem('lahn.lang', 'ar'));
+  await page.evaluate(() => localStorage.setItem('lahn.lang', 'so'));
   await page.reload({ waitUntil: 'networkidle' });
   await settle(page);
-  await shot(page, '20-rtl-home');
+  await shot(page, '20-somali-home');
 
   await page.click('.tabbar a[href="#/songs"]');
   await settle(page);
@@ -194,14 +237,14 @@ const settleHealth = async (page) =>
   await settle(page, 1600);
   await page.click('.mini');
   await settle(page, 1400);
-  await shot(page, '21-rtl-vinyl');
+  await shot(page, '21-somali-vinyl');
 
   await page.keyboard.press('Escape');
   await settle(page, 500);
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'networkidle' });
   await settleHealth(page);
   await settle(page, 400);
-  await shot(page, '22-rtl-settings', true);
+  await shot(page, '22-somali-settings', true);
 
   await page.evaluate(() => localStorage.setItem('lahn.lang', 'en'));
   await ctx.close();

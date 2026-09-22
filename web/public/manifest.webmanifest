@@ -1,7 +1,7 @@
 {
-  "name": "Lahn — لحن",
+  "name": "Lahn",
   "short_name": "Lahn",
-  "description": "Your own music library. Paste a link, keep the song.",
+  "description": "Somali songs, podcasts and lessons — saved on your own devices.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -17,6 +17,6 @@
     { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Add a song", "url": "/?add=1", "description": "Paste a link and pull it into your library" }
+    { "name": "Search", "url": "/#/search", "description": "Find songs, podcasts and channels" }
   ]
 }

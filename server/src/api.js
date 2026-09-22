@@ -2,10 +2,11 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 import { APP_VERSION, LIBRARY_DIR, PORT, tools } from './config.js';
-import { all, get, newId, now, run, sortKey, stats, tx } from './db.js';
+import { all, get, isKind, newId, now, run, sortKey, stats, tx } from './db.js';
 import { lanAddresses } from './net.js';
 import { absolutePath, pruneMissing, pruneOrphans, scanLibrary, TRACK_SELECT, trackById } from './library.js';
 import { cancel, createJob, getJob, isDuplicateUrl, listJobs, subscribe, unsubscribe } from './jobs.js';
+import { addChannel, catalog, channelUploads, deleteChannel, listChannels, refreshAll, refreshChannel, shelves } from './channels.js';
 import { log } from './log.js';
 
 const MIME = {
@@ -52,6 +53,10 @@ export function createApi() {
     if (req.query.album) {
       clauses.push('t.album_id = ?');
       params.push(req.query.album);
+    }
+    if (isKind(req.query.kind)) {
+      clauses.push('t.kind = ?');
+      params.push(req.query.kind);
     }
     if (req.query.favourites) {
       clauses.push('t.favourite = 1');
@@ -114,7 +119,7 @@ export function createApi() {
     res.json({
       artists: all(
         `SELECT a.*, COUNT(t.id) AS track_count, COALESCE(SUM(t.duration), 0) AS seconds
-         FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id
+         FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song'
          GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) ASC`
       ),
     });
@@ -123,7 +128,7 @@ export function createApi() {
   router.get('/artists/:id', (req, res) => {
     const artist = get('SELECT * FROM artists WHERE id = ?', req.params.id);
     if (!artist) return res.status(404).json({ error: 'Artist not found' });
-    res.json({ artist, tracks: listTracks('WHERE t.artist_id = ?', [artist.id], 'LOWER(t.title) ASC') });
+    res.json({ artist, tracks: listTracks(`WHERE t.artist_id = ? AND t.kind = 'song'`, [artist.id], 'LOWER(t.title) ASC') });
   });
 
   router.get('/albums', (_req, res) => {
@@ -132,7 +137,7 @@ export function createApi() {
         `SELECT al.*, a.name AS artist, COUNT(t.id) AS track_count, COALESCE(SUM(t.duration), 0) AS seconds
          FROM albums al
          LEFT JOIN artists a ON a.id = al.artist_id
-         LEFT JOIN tracks t ON t.album_id = al.id
+         LEFT JOIN tracks t ON t.album_id = al.id AND t.kind = 'song'
          GROUP BY al.id HAVING track_count > 0
          ORDER BY LOWER(a.name) ASC, LOWER(al.title) ASC`
       ),
@@ -145,7 +150,7 @@ export function createApi() {
       req.params.id
     );
     if (!album) return res.status(404).json({ error: 'Album not found' });
-    res.json({ album, tracks: listTracks('WHERE t.album_id = ?', [album.id], 'LOWER(t.title) ASC') });
+    res.json({ album, tracks: listTracks(`WHERE t.album_id = ? AND t.kind = 'song'`, [album.id], 'LOWER(t.title) ASC') });
   });
 
   const playlistRows = () =>
@@ -229,6 +234,7 @@ export function createApi() {
       artists: all('SELECT * FROM artists WHERE name LIKE ? ORDER BY LOWER(name) LIMIT 10', like),
       albums: all('SELECT * FROM albums WHERE title LIKE ? ORDER BY LOWER(title) LIMIT 10', like),
       playlists: all('SELECT * FROM playlists WHERE name LIKE ? ORDER BY LOWER(name) LIMIT 10', like),
+      catalog: catalog({ q }).slice(0, 40),
     });
   });
 
@@ -237,19 +243,76 @@ export function createApi() {
       stats: stats(),
       recent: listTracks('', [], 't.added_at DESC').slice(0, 12),
       popular: listTracks('WHERE t.plays > 0', [], 't.plays DESC, t.last_played_at DESC').slice(0, 12),
-      artists: all('SELECT a.*, COUNT(t.id) AS track_count FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) LIMIT 12'),
-      albums: all('SELECT al.*, a.name AS artist, COUNT(t.id) AS track_count FROM albums al LEFT JOIN artists a ON a.id = al.artist_id LEFT JOIN tracks t ON t.album_id = al.id GROUP BY al.id HAVING track_count > 0 ORDER BY al.created_at DESC LIMIT 12'),
+      artists: all(`SELECT a.*, COUNT(t.id) AS track_count FROM artists a LEFT JOIN tracks t ON t.artist_id = a.id AND t.kind = 'song' GROUP BY a.id HAVING track_count > 0 ORDER BY LOWER(a.name) LIMIT 12`),
+      albums: all(`SELECT al.*, a.name AS artist, COUNT(t.id) AS track_count FROM albums al LEFT JOIN artists a ON a.id = al.artist_id LEFT JOIN tracks t ON t.album_id = al.id AND t.kind = 'song' GROUP BY al.id HAVING track_count > 0 ORDER BY al.created_at DESC LIMIT 12`),
+      podcasts: listTracks(`WHERE t.kind = 'podcast'`, [], 't.added_at DESC').slice(0, 12),
+      lessons: listTracks(`WHERE t.kind = 'lesson'`, [], 't.added_at DESC').slice(0, 12),
+      spoken: listTracks(`WHERE t.kind != 'song'`, [], 't.added_at DESC').slice(0, 18),
       playlists: playlistRows(),
       tracks: listTracks('', [], 'LOWER(a.name) ASC, LOWER(t.title) ASC'),
+      channels: listChannels(),
     });
   });
 
   router.post('/add', (req, res) => {
     const url = String(req.body?.url ?? '').trim();
-    if (!/^https?:\/\/\S+$/i.test(url)) return res.status(400).json({ error: 'That does not look like a link. Paste a full https:// address.' });
-    if (isDuplicateUrl(url)) return res.status(409).json({ error: 'That link is already being downloaded.' });
-    const job = createJob(url);
+    const kind = isKind(req.body?.kind) ?? 'song';
+    const channel = typeof req.body?.channel === 'string' ? req.body.channel : null;
+    if (!/^https?:\/\/\S+$/i.test(url)) return res.status(400).json({ error: 'Lahn could not read that source. Try saving it again.' });
+    if (isDuplicateUrl(url)) return res.status(409).json({ error: 'That one is already being downloaded.' });
+    const job = createJob(url, { kind, channelId: channel });
     res.status(202).json({ jobId: job.id });
+  });
+
+  router.get('/channels', (_req, res) => res.json({ channels: listChannels() }));
+
+  router.post('/channels', async (req, res, next) => {
+    try {
+      const channel = await addChannel(req.body?.url, isKind(req.body?.kind) ?? 'podcast');
+      res.status(201).json({ channel });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get('/channels/:id', (req, res) => {
+    const data = channelUploads(req.params.id);
+    if (!data) return res.status(404).json({ error: 'Channel not found' });
+    res.json(data);
+  });
+
+  router.post('/channels/:id/refresh', async (req, res, next) => {
+    try {
+      res.json(await refreshChannel(req.params.id));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.delete('/channels/:id', (req, res) => {
+    if (!channelUploads(req.params.id)) return res.status(404).json({ error: 'Channel not found' });
+    deleteChannel(req.params.id);
+    res.json({ ok: true, keptOnDisk: true });
+  });
+
+  router.get('/shelves', (_req, res) => {
+    const data = shelves();
+    if (!data.ready) refreshAll().catch(() => {});
+    res.json(data);
+  });
+
+  router.get('/catalog', (req, res) => {
+    const items = catalog({ kind: isKind(req.query.kind), shelf: String(req.query.shelf ?? '').trim() || null, q: req.query.q });
+    res.json({ items, ready: shelves().ready });
+  });
+
+  router.post('/channels/refresh-all', async (_req, res, next) => {
+    try {
+      await refreshAll();
+      res.json(shelves());
+    } catch (err) {
+      next(err);
+    }
   });
 
   router.get('/jobs', (_req, res) => res.json({ jobs: listJobs() }));

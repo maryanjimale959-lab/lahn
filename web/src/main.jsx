@@ -1,8 +1,8 @@
 import '@fontsource-variable/manrope';
-import '@fontsource-variable/noto-kufi-arabic';
 import './styles/base.css';
 import './styles/player.css';
 import './styles/ui.css';
+import './styles/shelf.css';
 
 import { createRoot } from 'react-dom/client';
 import { App } from './App.jsx';

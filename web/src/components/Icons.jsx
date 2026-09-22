@@ -50,4 +50,8 @@ export const Icon = {
   laptop: wrap(<><rect x="4" y="5" width="16" height="11" rx="1.8" {...S} /><path d="M2.6 19h18.8" {...S} /></>),
   phone: wrap(<><rect x="7.5" y="3" width="9" height="18" rx="2.4" {...S} /><path d="M11 18h2" {...S} /></>),
   wifi: wrap(<><path d="M4 9a12 12 0 0 1 16 0M7 12.4a8 8 0 0 1 10 0M10 15.8a4 4 0 0 1 4 0" {...S} /><circle cx="12" cy="19" r="1.2" {...F} /></>),
+  mic: wrap(<><rect x="9.2" y="3" width="5.6" height="11" rx="2.8" {...S} /><path d="M5.6 11.4a6.4 6.4 0 0 0 12.8 0M12 17.8V21M9 21h6" {...S} /></>),
+  lesson: wrap(<><path d="M12 6.6C10.4 5.3 8.4 4.8 4.8 4.8v12.6c3.6 0 5.6.5 7.2 1.8 1.6-1.3 3.6-1.8 7.2-1.8V4.8c-3.6 0-5.6.5-7.2 1.8z" {...S} /><path d="M12 6.6v12.6" {...S} /></>),
+  channel: wrap(<><rect x="2.6" y="5.4" width="18.8" height="13.2" rx="3.4" {...S} /><path d="M10.2 9.4l5 2.6-5 2.6z" {...F} /></>),
+  story: wrap(<><path d="M4.8 5.4h14.4c1 0 1.8.8 1.8 1.8v7.6c0 1-.8 1.8-1.8 1.8H9.4L4.8 20.4z" {...S} /><path d="M8.4 9.6h7.2M8.4 12.8h4.6" {...S} /></>),
 };

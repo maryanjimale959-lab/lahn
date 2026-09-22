@@ -90,7 +90,7 @@ export function NowPlaying({ onClose }) {
             />
             <div className="times">
               <span>{clock(shown)}</span>
-              <span>{lang === 'ar' ? `-${clock(Math.max(0, duration - shown))}` : clock(duration)}</span>
+              <span>-{clock(Math.max(0, duration - shown))}</span>
             </div>
           </div>
 
