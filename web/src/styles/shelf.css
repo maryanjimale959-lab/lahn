@@ -309,6 +309,30 @@
   letter-spacing: -0.03em;
 }
 
+.src-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 62ch;
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.src-note .dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--warn);
+}
+
+.src-note.new .dot {
+  background: var(--ink-3);
+}
+
 .add-channel {
   display: flex;
   align-items: center;

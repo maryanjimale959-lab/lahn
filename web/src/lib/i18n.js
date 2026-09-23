@@ -197,6 +197,10 @@ const dict = {
     'channels.unfollow': 'Unfollow',
     'channels.unfollowConfirm': 'Unfollow {name}? Anything you already saved stays in your library.',
     'channels.noneYet': 'Nothing came back from this channel yet.',
+    'channels.state.failing': 'Not answering',
+    'channels.state.dead': 'Never answered',
+    'channels.state.new': 'Not checked yet',
+    'channels.failingNote': 'Nothing has come back from this link for {tries} checks in a row, so Laxan waits a day before asking again. What it already listed still plays.',
 
     'settings.title': 'Settings',
     'settings.account': 'Account',
@@ -435,6 +439,10 @@ const dict = {
     'channels.unfollow': 'Ha raacin',
     'channels.unfollowConfirm': 'Ha raacin {name}? Waxa aad hore u kaydsatay way sii joogayaan maktabadda.',
     'channels.noneYet': 'Wali waxba kama imaan kanaalkan.',
+    'channels.state.failing': 'Kama jawaabin',
+    'channels.state.dead': 'Waligiin jawaabin',
+    'channels.state.new': 'Weli lama hubin',
+    'channels.failingNote': 'Waxba kama imaan linkigan {tries} jeer oo isku xigta, Laxanna waxay sugaysaa maal intaysan mar kale weydiin. Waxa ay hore u soo akhrisay way shaqaynayaan.',
 
     'settings.title': 'Dejinta',
     'settings.account': 'Akoonka',

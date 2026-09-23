@@ -6,7 +6,7 @@ import { all, get, isKind, newId, now, run, sortKey, stats, tx } from './db.js';
 import { lanAddresses } from './net.js';
 import { absolutePath, pruneMissing, pruneOrphans, scanLibrary, TRACK_SELECT, trackById } from './library.js';
 import { cancel, createJob, getJob, isDuplicateUrl, listJobs, subscribe, unsubscribe } from './jobs.js';
-import { addChannel, artistBySlug, artistsWithSaved, catalog, channelUploads, deleteChannel, INTERESTS, itemByKey, listChannels, liveSearch, refreshAll, refreshChannel, shelves, shelfPage } from './channels.js';
+import { addChannel, artistBySlug, artistsWithSaved, catalog, channelUploads, deleteChannel, INTERESTS, itemByKey, listChannels, liveSearch, refreshAll, refreshChannel, shelves, shelfPage, sourceHealth } from './channels.js';
 import * as playback from './session.js';
 import { accountCount, createResetCode, dropAccount, endSession, interestsOf, isLocked, listHistory, listLikes, notePlayed, publicUser, renameUser, resetPassword, setInterests, signIn, signUp, startSession, toggleLike, userFromRequest } from './auth.js';
 import { allow, clientIp } from './gate.js';
@@ -225,6 +225,9 @@ export function createApi() {
       /* What this instance was started to be: her whole shelf, or only what may be published. */
       licensedOnly: LICENSED_ONLY,
       mail: mailReady(),
+      /* How the catalogue is holding up: how many sources answer, how many have stopped, and how
+         many the next sweep still intends to ask. */
+      sources: sourceHealth(),
       /* A build meant for strangers does not announce the address behind it, the folder its audio
          sits in, or which binaries it shells out to. On the LAN that is how `npm run doctor`
          finds things. */

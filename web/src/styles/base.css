@@ -20,6 +20,9 @@
   --shadow-sm: 0 6px 20px -10px rgba(0, 0, 0, 0.7);
   --glow: #ff9d5c;
   --glow-2: #e0523f;
+  /* The one alarm Laxan raises: a source that stopped answering. */
+  --warn: #e8a24a;
+  --warn-soft: rgba(232, 162, 74, 0.16);
   /* Laxan's own amber, straight off the logo: play buttons, active nav, anything live. */
   --accent: #f97a3d;
   --on-accent: #2b1405;
@@ -51,6 +54,8 @@
   --shadow-sm: 0 6px 18px -10px rgba(46, 38, 26, 0.35);
   --glow: #f0a271;
   --glow-2: #e0523f;
+  --warn: #9a5b12;
+  --warn-soft: rgba(154, 91, 18, 0.13);
   --accent: #c8452a;
   --on-accent: #fff3ea;
   color-scheme: light;
@@ -458,6 +463,18 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* A source that stopped answering says so on its own card; the healthy ones stay quiet. */
+.tile p .src-state {
+  display: inline-block;
+  margin-inline-start: 7px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .tile .play-fab {

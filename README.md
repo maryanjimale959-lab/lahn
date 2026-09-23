@@ -115,6 +115,32 @@ publishable build leaves them out.
 node scripts/licensed.mjs   # boots a licensed-only copy on :4791, plays one item per shelf, deletes itself
 ```
 
+## How the catalog stays filled
+
+A source is only as good as the last time it answered, so Laxan keeps score:
+
+- The first open sweeps the whole catalogue in the background — twelve feeds and recitation
+  servers at a time, running beside the four scraped channels that take longer to answer. The
+  shelves come back with `ready: false` until it finishes, so the app opens instead of spinning.
+- Every source records whether it answered, how many times it has refused in a row, and the
+  error it gave. A fresh install fills its licensed half in about seven seconds.
+- A source that refuses is asked again on a widening gap — ten minutes, then twenty, then forty,
+  up to once a day — so a dead feed cannot keep the refresh cycle busy. The count lives in the
+  database, so a restart does not start hammering it again.
+- What it already listed keeps playing while it is quiet. Only a successful refresh replaces the
+  list.
+- The Channels page says it out loud: a source that stopped answering wears an amber tag, and its
+  page explains how long it has been quiet and that its listings still play. A licensed build
+  does not list the scraped sources at all.
+- The recitation servers publish no artwork and no track lengths, so a reciter's cover is the
+  generated gradient and the player reads each surah's length off the audio as it starts. Podcast
+  feeds do publish lengths, and those show in the list.
+- `/api/health` carries the counts (`total`, `failing`, `dead`, `due`) for anything watching.
+
+```bash
+node scripts/reliability.mjs  # times the sweep, breaks a source on purpose, watches it recover
+```
+
 ## If other people are going to sign up
 
 The doors are counted, not just locked:
@@ -149,6 +175,7 @@ node scripts/streamtest.mjs           # every shelf, one item each, with the fai
 node scripts/catalogcheck.mjs         # search, the artist grid, one artist page
 node scripts/licensed.mjs             # the publishable half, on its own port, played end to end
 node scripts/gatecheck.mjs            # what a stranger tries against sign-up, log-in and reset codes
+node scripts/reliability.mjs          # the sweep's speed, a source broken on purpose, and its recovery
 node scripts/preview.mjs              # 11 screenshots of the real app, desktop + phone
 node scripts/users.mjs                # list accounts, clean up test ones
 node scripts/shots.mjs                # the older full-screen walk with a playback assertion

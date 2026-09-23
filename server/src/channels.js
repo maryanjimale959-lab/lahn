@@ -260,10 +260,13 @@ export function seedChannels() {
 const pending = new Map();
 let warming = null;
 
-/* A source that will not answer is asked again in ten minutes, not on every shelf read —
-   otherwise a broken channel keeps the whole sweep running and the app never looks ready. */
-const FAILED_MS = 10 * 60 * 1000;
-const failed = new Map();
+/* A source that will not answer is asked again after a widening gap, not on every shelf read —
+   otherwise a broken channel keeps the whole sweep running and the app never looks ready. The
+   count lives in the database rather than in memory so a restart does not start hammering a
+   dead feed all over again. */
+const RETRY_MS = 10 * 60 * 1000;
+const MAX_RETRY_MS = 24 * 60 * 60 * 1000;
+const backoffMs = (fails) => Math.min(RETRY_MS * 2 ** Math.max(0, (fails ?? 0) - 1), MAX_RETRY_MS);
 
 export function channelUrl(input) {
   const raw = String(input ?? '').trim().replace(/\s+/g, '');
@@ -302,8 +305,14 @@ function parse(uploads) {
 /* YouTube hands back names like "DADWEYNAHA ," — trailing punctuation reads as a bug. */
 const niceName = (name) => String(name ?? '').replace(/\s+/g, ' ').replace(/[\s,.;:!|·]+$/, '').trim();
 
+/* One word for how a source is doing, so the Channels page can say it out loud. */
+const healthOf = (channel) => {
+  if (!channel.fetched_at) return channel.failed_at ? 'dead' : 'new';
+  return channel.fails > 0 ? 'failing' : 'ok';
+};
+
 function row(channel) {
-  const { uploads, ...rest } = channel;
+  const { uploads, fails, failed_at: failedAt, last_error: lastError, ok_at: okAt, ...rest } = channel;
   const list = parse(uploads);
   return {
     ...rest,
@@ -312,6 +321,11 @@ function row(channel) {
     preview: list[0]?.thumbnail ?? null,
     isSearch: String(channel.url).startsWith('ytsearch'),
     licensed: isLicensed(channel.driver),
+    health: healthOf(channel),
+    fails: fails ?? 0,
+    lastError: lastError ?? null,
+    failedAt: failedAt ?? null,
+    okAt: okAt ?? null,
   };
 }
 
@@ -320,7 +334,22 @@ function savedIds() {
 }
 
 export function listChannels() {
-  return all('SELECT * FROM channels ORDER BY LOWER(name) ASC').map(row);
+  const rows = all('SELECT * FROM channels ORDER BY LOWER(name) ASC');
+  /* A published build does not show the scraped channels, so it should not list the ones it can
+     never fill either — that is a page of sources asking after something with no room for it. */
+  return (LICENSED_ONLY ? rows.filter((c) => isLicensed(c.driver)) : rows).map(row);
+}
+
+/** Counted rather than listed: this is the one number that says whether the catalog is whole. */
+export function sourceHealth() {
+  const rows = all('SELECT fetched_at, fails, driver FROM channels');
+  const shown = LICENSED_ONLY ? rows.filter((c) => isLicensed(c.driver)) : rows;
+  return {
+    total: shown.length,
+    failing: shown.filter((c) => c.fails > 0).length,
+    dead: shown.filter((c) => !c.fetched_at && c.fails > 0).length,
+    due: staleIds().length,
+  };
 }
 
 export function channelById(id) {
@@ -344,19 +373,23 @@ export function channelUploads(id) {
 const isFresh = (channel) => Date.now() - (channel.fetched_at ?? 0) < CACHE_MS;
 
 /**
- * Sources worth asking again: not fresh, and not one that just failed. The feeds and recitation
- * servers answer in a second and the Home shelves come before the artist grids, so a first open
- * fills up with something to play as early as it can.
+ * Sources worth asking again: not fresh, and past the backoff their last failure earned them.
+ * Each one comes back with the engine behind it, because the sweep runs the two kinds at
+ * different speeds.
  */
-function staleIds() {
-  const due = all('SELECT id, shelf, fetched_at, driver FROM channels').filter((c) => {
+function dueSources() {
+  const due = all('SELECT id, shelf, fetched_at, fails, failed_at, driver FROM channels').filter((c) => {
     /* A build that will not show them has no reason to spend its refresh cycle on the scraped
        sources either. */
     if (LICENSED_ONLY && !isLicensed(c.driver)) return false;
-    return !isFresh(c) && Date.now() - (failed.get(c.id) ?? 0) > FAILED_MS;
+    return !isFresh(c) && Date.now() - (c.failed_at ?? 0) >= backoffMs(c.fails);
   });
   const rank = (c) => (isLicensed(c.driver) ? -1 : c.shelf && c.shelf.startsWith('a-') ? 1 : 0);
-  return due.sort((a, b) => rank(a) - rank(b)).map((c) => c.id);
+  return due.sort((a, b) => rank(a) - rank(b));
+}
+
+function staleIds() {
+  return dueSources().map((c) => c.id);
 }
 
 /** Everything the sources have published, newest first, with the shelf each row belongs to. */
@@ -652,13 +685,38 @@ export async function refreshChannel(id) {
     /* Recitation servers and feeds are named here because their own titles are a programme
        note, not what she looks for; a channel gets the name it publishes under. */
     const name = fetcher || channel.url.startsWith('ytsearch') ? channel.name : info.name || channel.name;
-    run('UPDATE channels SET uploads = ?, fetched_at = ?, image = COALESCE(?, image), name = ?, sort_key = ? WHERE id = ?', JSON.stringify(info.entries), now(), image, name, sortKey(name), id);
+    run('UPDATE channels SET uploads = ?, fetched_at = ?, image = COALESCE(?, image), name = ?, sort_key = ?, fails = 0, failed_at = NULL, last_error = NULL, ok_at = ? WHERE id = ?', JSON.stringify(info.entries), now(), image, name, sortKey(name), now(), id);
     return channelUploads(id);
-  })().finally(() => pending.delete(id));
+  })().catch((err) => {
+    run('UPDATE channels SET fails = fails + 1, failed_at = ?, last_error = ? WHERE id = ?', now(), String(err?.message ?? err).slice(0, 200), id);
+    throw err;
+  }).finally(() => pending.delete(id));
 
   pending.set(id, work);
   return work;
 }
+
+/**
+ * Runs `work` over `ids` with at most `size` of them in flight, so a slow source holds a lane
+ * rather than the whole sweep. Failures are logged per source and do not stop the lane.
+ */
+async function pool(ids, size, work) {
+  let at = 0;
+  const lane = async () => {
+    while (at < ids.length) {
+      const id = ids[at++];
+      await work(id).catch((err) => log.warn('source skipped:', err.message));
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(size, ids.length) }, lane));
+}
+
+/* The two engines cost different things. A feed or a recitation server is one HTTP request that
+   answers in a second, so it can run twelve at a time and fill the shelves early; a scraped
+   channel starts a Python process per source, so it waits its turn four at a time. They run
+   beside each other, so the fast half of the catalog never queues behind the slow half. */
+const FAST_LANES = 12;
+const SLOW_LANES = 4;
 
 /**
  * Opening the app should not wait on the whole catalogue, so the first call starts the sweep in
@@ -667,20 +725,12 @@ export async function refreshChannel(id) {
  */
 export function refreshAll() {
   if (warming) return warming;
-  const ids = staleIds();
-  if (!ids.length) return Promise.resolve();
+  const due = dueSources();
+  if (!due.length) return Promise.resolve();
   warming = (async () => {
-    for (let i = 0; i < ids.length; i += 5) {
-      const batch = ids.slice(i, i + 5).map((id) =>
-        refreshChannel(id)
-          .then(() => failed.delete(id))
-          .catch((err) => {
-            failed.set(id, Date.now());
-            log.warn('source skipped:', err.message);
-          })
-      );
-      await Promise.all(batch);
-    }
+    const fast = due.filter((c) => isLicensed(c.driver)).map((c) => c.id);
+    const slow = due.filter((c) => !isLicensed(c.driver)).map((c) => c.id);
+    await Promise.all([pool(fast, FAST_LANES, refreshChannel), pool(slow, SLOW_LANES, refreshChannel)]);
   })().finally(() => {
     warming = null;
   });

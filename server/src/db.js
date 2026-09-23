@@ -77,7 +77,11 @@ CREATE TABLE IF NOT EXISTS channels (
   uploads TEXT,
   fetched_at INTEGER,
   shelf TEXT,
-  driver TEXT NOT NULL DEFAULT 'youtube'
+  driver TEXT NOT NULL DEFAULT 'youtube',
+  fails INTEGER NOT NULL DEFAULT 0,
+  failed_at INTEGER,
+  last_error TEXT,
+  ok_at INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -118,6 +122,16 @@ if (!hasColumn('channels', 'shelf')) {
 if (!hasColumn('channels', 'driver')) {
   db.exec("ALTER TABLE channels ADD COLUMN driver TEXT NOT NULL DEFAULT 'youtube'");
   log.info('library schema updated: channels.driver');
+}
+/* Whether a source answered last time it was asked, and how many times it refused in a row.
+   This is what lets the Channels page say "dead" out loud, and what backs a refusing feed off
+   the refresh cycle instead of hammering it. */
+if (!hasColumn('channels', 'fails')) {
+  db.exec('ALTER TABLE channels ADD COLUMN fails INTEGER NOT NULL DEFAULT 0');
+  db.exec('ALTER TABLE channels ADD COLUMN failed_at INTEGER');
+  db.exec('ALTER TABLE channels ADD COLUMN last_error TEXT');
+  db.exec('ALTER TABLE channels ADD COLUMN ok_at INTEGER');
+  log.info('library schema updated: channels health columns');
 }
 db.exec('CREATE INDEX IF NOT EXISTS tracks_kind_idx ON tracks (kind)');
 

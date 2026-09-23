@@ -110,7 +110,15 @@ export function Channels() {
         ) : (
           <div className="grid">
             {channels.map((c) => (
-              <Tile key={c.id} to={`#/channels/${c.id}`} title={c.name} subtitle={count(c.uploadCount, c.kind)} cover={c.image ?? c.preview} round={c.kind === 'song'} />
+              <Tile
+                key={c.id}
+                to={`#/channels/${c.id}`}
+                title={c.name}
+                subtitle={count(c.uploadCount, c.kind)}
+                cover={c.image ?? c.preview}
+                round={c.kind === 'song'}
+                state={c.health === 'ok' ? null : c.health}
+              />
             ))}
           </div>
         )}
@@ -210,6 +218,15 @@ export function ChannelPage({ id }) {
           <p className="hint">
             {count(tracks.length, channel.kind)} · {uploads.length} {t('channels.latestCount')}
           </p>
+          {/* Whether the link still answers is the first thing she wants to know when a shelf is
+              short on something. It says so here instead of leaving her to guess. */}
+          {channel.health !== 'ok' && (
+            <p className={`src-note ${channel.health}`}>
+              <span className="dot" />
+              {t(`channels.state.${channel.health}`)}
+              {channel.fails > 0 ? ` — ${t('channels.failingNote', { tries: channel.fails })}` : ''}
+            </p>
+          )}
         </div>
       </div>
 

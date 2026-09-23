@@ -3,7 +3,7 @@ import { Art } from './Art.jsx';
 import { usePlayer } from '../state/player.jsx';
 import { useUi } from '../state/ui.jsx';
 
-export function Tile({ to, title, subtitle, track, tracks, cover, round }) {
+export function Tile({ to, title, subtitle, track, tracks, cover, round, state }) {
   const { playList } = usePlayer();
   const { t } = useUi();
   const label = title ?? track?.title ?? '';
@@ -13,7 +13,10 @@ export function Tile({ to, title, subtitle, track, tracks, cover, round }) {
     <a className="tile" href={to}>
       <Art track={track} cover={cover} name={label} className={round ? 'round' : ''} />
       <h3>{label}</h3>
-      <p>{subtitle ?? track?.artist ?? ''}</p>
+      <p>
+        {subtitle ?? track?.artist ?? ''}
+        {state && <span className={`src-state ${state}`}>{t(`channels.state.${state}`)}</span>}
+      </p>
       {list && (
         <span
           className="play-fab"
