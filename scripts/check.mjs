@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 const res = await fetch(`${B}/signup`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ email: EMAIL, name: 'Check', password: PASSWORD, interests: ['music', 'podcasts', 'quran'] }),
+  body: JSON.stringify({ email: EMAIL, name: 'Check', password: PASSWORD, interests: ['music', 'podcasts', 'quran'], terms: true }),
 }).catch(() => null);
 let token = (res?.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
 if (!token) {

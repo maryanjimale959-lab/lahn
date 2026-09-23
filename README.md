@@ -73,6 +73,9 @@ prefix is the internal one — the app is called Laxan.
 | `LAHN_YTDLP`         | auto-detected          | Absolute path to `yt-dlp`                |
 | `LAHN_FFMPEG`        | auto-detected          | Absolute path to `ffmpeg`                |
 | `LAHN_LICENSED_ONLY` | off                    | Hide every scraped source — see below    |
+| `LAHN_EMAIL_KEY`     | none                   | Resend or Brevo key, for reset codes     |
+| `LAHN_EMAIL_FROM`    | none                   | The address those codes come from        |
+| `LAHN_TRUST_PROXY`   | off                    | On when a hosting proxy sits in front    |
 
 ## Layout
 
@@ -112,6 +115,31 @@ publishable build leaves them out.
 node scripts/licensed.mjs   # boots a licensed-only copy on :4791, plays one item per shelf, deletes itself
 ```
 
+## If other people are going to sign up
+
+The doors are counted, not just locked:
+
+- Sign-up needs the terms box ticked, and one address may make three accounts an hour.
+- Log-in stops answering a machine after thirty wrong passwords, on top of the eight tries per
+  address that `auth.js` already keeps.
+- "Forgot your password" sends a six-digit code that is good once for twenty minutes and for
+  five guesses at most. It is stored hashed, and the answer is the same whether or not the
+  address is registered. Using it signs every other device out.
+- Codes leave through Resend or Brevo over plain HTTPS — no SMTP client, no dependency. The
+  provider is read off the key (`re_…` is Resend). Without a key the app runs, and the reset
+  screen says so.
+- Behind a hosting proxy set `LAHN_TRUST_PROXY=1`, or every listener looks like the proxy and
+  the `Secure` cookie never arrives.
+
+Forgot the password before a key is configured, or from the machine itself:
+
+```bash
+npm run reset-password you@example.com   # prints a one-time password, signs the other devices out
+```
+
+`node scripts/gatecheck.mjs` proves all of the above against a throwaway instance — its own
+database, its own port, your library never opened.
+
 ## Development
 
 ```bash
@@ -120,6 +148,7 @@ node scripts/check.mjs                # sign in, wait for the catalog, play one 
 node scripts/streamtest.mjs           # every shelf, one item each, with the failure reason
 node scripts/catalogcheck.mjs         # search, the artist grid, one artist page
 node scripts/licensed.mjs             # the publishable half, on its own port, played end to end
+node scripts/gatecheck.mjs            # what a stranger tries against sign-up, log-in and reset codes
 node scripts/preview.mjs              # 11 screenshots of the real app, desktop + phone
 node scripts/users.mjs                # list accounts, clean up test ones
 node scripts/shots.mjs                # the older full-screen walk with a playback assertion

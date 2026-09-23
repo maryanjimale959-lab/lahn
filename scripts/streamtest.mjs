@@ -6,7 +6,7 @@ const PASSWORD = 'stream1234';
 const signup = await fetch(`${B}/signup`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ email: EMAIL, name: 'Stream', password: PASSWORD, interests: ['podcasts', 'apodcast', 'quran'] }),
+  body: JSON.stringify({ email: EMAIL, name: 'Stream', password: PASSWORD, interests: ['podcasts', 'apodcast', 'quran'], terms: true }),
 });
 let token = (signup.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
 if (!token) {

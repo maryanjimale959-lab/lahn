@@ -18,6 +18,7 @@ const res = await fetch(`${BASE}/api/signup`, {
     name: 'Maryam',
     password: PASSWORD,
     interests: ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books', 'amusic', 'apodcast'],
+    terms: true,
   }),
 });
 let token = (res.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];

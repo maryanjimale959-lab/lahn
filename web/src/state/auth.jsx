@@ -81,6 +81,23 @@ export function AuthProvider({ children }) {
     [attempt]
   );
 
+  const sendCode = useCallback(
+    (email) =>
+      attempt(async () => {
+        await api.sendCode(email);
+      }),
+    [attempt]
+  );
+
+  const finishReset = useCallback(
+    (email, code, password) =>
+      attempt(async () => {
+        const res = await api.resetPassword(email, code, password);
+        setUser(res.user);
+      }),
+    [attempt]
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -93,11 +110,13 @@ export function AuthProvider({ children }) {
       signUp,
       logIn,
       logOut,
+      sendCode,
+      finishReset,
       saveInterests,
       locked: accounts > 0,
       signedIn: accounts === 0 || Boolean(user),
     }),
-    [user, accounts, checked, busy, errorCode, refresh, signUp, logIn, logOut, saveInterests]
+    [user, accounts, checked, busy, errorCode, refresh, signUp, logIn, logOut, sendCode, finishReset, saveInterests]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -14,7 +14,8 @@
     "dev:web": "npm run dev --workspace web",
     "build": "npm run build --workspace web",
     "start": "npm run build --workspace web && npm start --workspace server",
-    "doctor": "node server/src/doctor.js"
+    "doctor": "node server/src/doctor.js",
+    "reset-password": "node server/src/reset-password.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

@@ -8,6 +8,9 @@ mkdirSync(DATA_DIR, { recursive: true });
 const db = new DatabaseSync(DB_FILE);
 db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA foreign_keys = ON');
+/* The doctor and `npm run reset-password` open this same file while the server is running; a
+   waiting writer beats a thrown SQLITE_BUSY on a machine with one listener. */
+db.exec('PRAGMA busy_timeout = 5000');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS artists (

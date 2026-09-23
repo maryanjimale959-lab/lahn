@@ -8,7 +8,7 @@ const call = async (path, init) => {
   return res;
 };
 
-let signup = await call('/signup', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: EMAIL, name: 'Q', password: PASSWORD, interests: ['music'] }) });
+let signup = await call('/signup', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: EMAIL, name: 'Q', password: PASSWORD, interests: ['music'], terms: true }) });
 let token = (signup.headers?.get?.('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
 if (!token) {
   const login = await call('/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: EMAIL, password: PASSWORD }) });

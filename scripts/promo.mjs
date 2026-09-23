@@ -156,7 +156,7 @@ async function openShootAccount() {
   const cookie = (res) => (res.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
   const headers = { 'content-type': 'application/json' };
   let token = cookie(
-    await fetch(`${BASE}/api/signup`, { method: 'POST', headers, body: JSON.stringify({ ...SHOOT, interests: ['music', 'rap', 'love', 'podcasts', 'quran'] }) })
+    await fetch(`${BASE}/api/signup`, { method: 'POST', headers, body: JSON.stringify({ ...SHOOT, interests: ['music', 'rap', 'love', 'podcasts', 'quran'], terms: true }) })
   );
   if (!token) token = cookie(await fetch(`${BASE}/api/login`, { method: 'POST', headers, body: JSON.stringify(SHOOT) }));
   if (!token) throw new Error('Laxan would not open a shoot account — is the server running?');

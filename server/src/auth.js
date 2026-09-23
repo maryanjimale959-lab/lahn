@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { randomBytes, randomInt, scryptSync, timingSafeEqual } from 'node:crypto';
 import db, { all, get, newId, now, run } from './db.js';
 import { cleanInterests } from './channels.js';
 
@@ -49,6 +49,16 @@ CREATE TABLE IF NOT EXISTS user_locks (
   email TEXT PRIMARY KEY,
   tries INTEGER NOT NULL DEFAULT 0,
   until INTEGER NOT NULL DEFAULT 0
+);
+
+/* A forgotten password comes back through a code that is good once, for twenty minutes, and for
+   five guesses at most. It is stored hashed for the same reason your password is. */
+CREATE TABLE IF NOT EXISTS password_resets (
+  email TEXT PRIMARY KEY,
+  salt TEXT NOT NULL,
+  code_hash TEXT NOT NULL,
+  tries INTEGER NOT NULL DEFAULT 0,
+  expires_at INTEGER NOT NULL
 );
 `);
 
@@ -137,6 +147,68 @@ export function signIn({ email, password } = {}) {
   }
   run('DELETE FROM user_locks WHERE email = ?', clean);
   run('UPDATE users SET last_seen_at = ? WHERE id = ?', now(), user.id);
+  return user;
+}
+
+const CODE_MS = 20 * 60 * 1000;
+const CODE_TRIES = 5;
+
+/**
+ * Hands out the code a forgotten password comes back through, and returns null when no account
+ * carries that address. The caller answers the same either way — telling a stranger "that email
+ * is not registered" is how you end up with a free list of Laxan users.
+ */
+export function createResetCode(email) {
+  const clean = String(email ?? '').trim().toLowerCase();
+  if (!get('SELECT id FROM users WHERE email = ?', clean)) return null;
+  run('DELETE FROM password_resets WHERE expires_at < ?', now());
+  const code = String(randomInt(1000000)).padStart(6, '0');
+  const salt = randomBytes(8).toString('hex');
+  run(
+    `INSERT INTO password_resets (email, salt, code_hash, tries, expires_at) VALUES (?, ?, ?, 0, ?)
+     ON CONFLICT(email) DO UPDATE SET salt = excluded.salt, code_hash = excluded.code_hash, tries = 0, expires_at = excluded.expires_at`,
+    clean, salt, hashOf(code, salt), now() + CODE_MS
+  );
+  return code;
+}
+
+/** The code is spent the moment it works, and every device signed in with the old password is
+    thrown out — otherwise a stolen session would survive the theft it was used for. */
+export function resetPassword({ email, code, password } = {}) {
+  if (String(password ?? '').length < 6) fail('short-password');
+  const clean = String(email ?? '').trim().toLowerCase();
+  const row = get('SELECT * FROM password_resets WHERE email = ?', clean);
+  if (!row) fail('bad-code');
+  if (row.expires_at < now()) {
+    run('DELETE FROM password_resets WHERE email = ?', clean);
+    fail('code-expired');
+  }
+  if (row.tries >= CODE_TRIES) {
+    run('DELETE FROM password_resets WHERE email = ?', clean);
+    fail('try-later');
+  }
+  if (!sameHash(hashOf(String(code ?? '').trim(), row.salt), row.code_hash)) {
+    run('UPDATE password_resets SET tries = tries + 1 WHERE email = ?', clean);
+    fail('bad-code');
+  }
+  const user = get('SELECT * FROM users WHERE email = ?', clean);
+  if (!user) fail('bad-code');
+  const salt = randomBytes(16).toString('hex');
+  run('UPDATE users SET salt = ?, hash = ? WHERE id = ?', salt, hashOf(String(password), salt), user.id);
+  run('DELETE FROM password_resets WHERE email = ?', clean);
+  run('DELETE FROM user_sessions WHERE user_id = ?', user.id);
+  run('DELETE FROM user_locks WHERE email = ?', clean);
+  return user;
+}
+
+/** No mail key on the machine yet: `npm run reset-password you@example.com` from the PC itself. */
+export function setPassword(email, password) {
+  const clean = String(email ?? '').trim().toLowerCase();
+  const user = get('SELECT * FROM users WHERE email = ?', clean);
+  if (!user || String(password ?? '').length < 6) return null;
+  const salt = randomBytes(16).toString('hex');
+  run('UPDATE users SET salt = ?, hash = ? WHERE id = ?', salt, hashOf(String(password), salt), user.id);
+  run('DELETE FROM user_sessions WHERE user_id = ?', user.id);
   return user;
 }
 

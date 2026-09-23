@@ -25,6 +25,21 @@ export const AUDIO_EXTENSIONS = new Set(['.m4a', '.mp3', '.opus', '.ogg', '.wav'
    machine leaves this off, so nothing about the app she listens to changes. */
 export const LICENSED_ONLY = /^(1|true|yes)$/i.test(ENV('LAHN_LICENSED_ONLY', ''));
 
+/* Password-reset mail leaves through an HTTPS email API — Resend or Brevo, both a plain POST —
+   so the app needs no SMTP client and no new dependency. No key, no mail: the app runs, the
+   reset screen says it cannot send, and `npm run reset-password` stays the way back in.
+   The provider is read off the key itself (Resend keys start with `re_`) unless you say. */
+export const MAIL = {
+  key: ENV('LAHN_EMAIL_KEY', '') || null,
+  from: ENV('LAHN_EMAIL_FROM', '') || null,
+  provider: ENV('LAHN_EMAIL_PROVIDER', '') || null,
+};
+
+/* Behind a hosting proxy the client's address arrives in X-Forwarded-For, and a rate limit that
+   reads the socket would throttle the proxy instead of the stranger. Off on your own network,
+   where that header would otherwise be a free way to fake an address. */
+export const TRUST_PROXY = /^(1|true|yes)$/i.test(ENV('LAHN_TRUST_PROXY', ''));
+
 const EXE = process.platform === 'win32' ? '.exe' : '';
 
 function fromPath(name) {

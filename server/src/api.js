@@ -8,7 +8,9 @@ import { absolutePath, pruneMissing, pruneOrphans, scanLibrary, TRACK_SELECT, tr
 import { cancel, createJob, getJob, isDuplicateUrl, listJobs, subscribe, unsubscribe } from './jobs.js';
 import { addChannel, artistBySlug, artistsWithSaved, catalog, channelUploads, deleteChannel, INTERESTS, itemByKey, listChannels, liveSearch, refreshAll, refreshChannel, shelves, shelfPage } from './channels.js';
 import * as playback from './session.js';
-import { accountCount, dropAccount, endSession, interestsOf, isLocked, listHistory, listLikes, notePlayed, publicUser, renameUser, setInterests, signIn, signUp, startSession, toggleLike, userFromRequest } from './auth.js';
+import { accountCount, createResetCode, dropAccount, endSession, interestsOf, isLocked, listHistory, listLikes, notePlayed, publicUser, renameUser, resetPassword, setInterests, signIn, signUp, startSession, toggleLike, userFromRequest } from './auth.js';
+import { allow, clientIp } from './gate.js';
+import { mailReady, sendMail } from './mail.js';
 import { cachedFile, ensurePlayable, mimeFor, streamRemote } from './stream.js';
 import { log } from './log.js';
 
@@ -28,16 +30,38 @@ export function createApi() {
   const router = express.Router();
   router.use(express.json({ limit: '256kb' }));
 
-  const setAuthCookie = (res, { token, maxAge }) => {
-    /* Plain http on the home Wi-Fi, so Secure would break the cookie outright. */
-    res.setHeader('set-cookie', `lahn_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`);
+  const setAuthCookie = (req, res, { token, maxAge }) => {
+    /* Plain http on the home Wi-Fi, where `Secure` would break the cookie outright. The moment a
+       request arrives over TLS — directly or through a hosting proxy — the cookie goes with it. */
+    const secure = req.secure ? '; Secure' : '';
+    res.setHeader('set-cookie', `lahn_token=${token}; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=${maxAge}`);
   };
 
-  const authStatus = { 'bad-email': 400, 'short-password': 400, 'bad-name': 400, 'email-taken': 409, 'no-match': 401, 'try-later': 429 };
+  const clearAuthCookie = (res) => res.setHeader('set-cookie', 'lahn_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+
+  const authStatus = {
+    'bad-email': 400,
+    'short-password': 400,
+    'bad-name': 400,
+    'email-taken': 409,
+    'no-match': 401,
+    'try-later': 429,
+    'rate-limited': 429,
+    'terms-required': 400,
+    'bad-code': 400,
+    'code-expired': 400,
+    'email-off': 503,
+    'email-refused': 502,
+    'email-unreachable': 502,
+  };
+
+  const limited = (res, gate) => {
+    res.status(429).json({ error: 'try-later', retry_after: gate.retryAfter });
+  };
 
   /* Laxan is open to whoever is on this Wi-Fi until the first account exists. After that,
      every shelf, playlist and play belongs to somebody. */
-  const PUBLIC = new Set(['/health', '/signup', '/login', '/logout', '/me', '/interests']);
+  const PUBLIC = new Set(['/health', '/signup', '/login', '/logout', '/forgot', '/reset', '/me', '/interests']);
   router.use((req, res, next) => {
     req.user = userFromRequest(req);
     if (!isLocked() || PUBLIC.has(req.path) || req.path.startsWith('/covers/')) return next();
@@ -46,9 +70,15 @@ export function createApi() {
   });
 
   router.post('/signup', (req, res) => {
+    /* One address may not mint an army of listeners, and a script must not be able to skip the
+       terms your store listing is answerable for. */
+    const perIp = allow('signup', clientIp(req), { tries: 3, windowMs: 60 * 60 * 1000 });
+    const overall = allow('signup-all', 'everybody', { tries: 20, windowMs: 60 * 60 * 1000 });
+    if (!perIp.ok || !overall.ok) return limited(res, perIp.ok ? overall : perIp);
+    if (req.body?.terms !== true) return res.status(400).json({ error: 'terms-required' });
     try {
       const user = signUp(req.body);
-      setAuthCookie(res, startSession(user.id));
+      setAuthCookie(req, res, startSession(user.id));
       res.status(201).json({ user: publicUser(user) });
     } catch (err) {
       res.status(authStatus[err.code] ?? 400).json({ error: err.code ?? 'signup-failed' });
@@ -56,18 +86,59 @@ export function createApi() {
   });
 
   router.post('/login', (req, res) => {
+    /* auth.js already locks one email after eight guesses; this is the same wall against someone
+       walking down a list of addresses. */
+    const gate = allow('login', clientIp(req), { tries: 30, windowMs: 10 * 60 * 1000 });
+    if (!gate.ok) return limited(res, gate);
     try {
       const user = signIn(req.body);
-      setAuthCookie(res, startSession(user.id));
+      setAuthCookie(req, res, startSession(user.id));
       res.json({ user: publicUser(user) });
     } catch (err) {
       res.status(authStatus[err.code] ?? 401).json({ error: err.code ?? 'login-failed' });
     }
   });
 
+  /* Forgot the password: a six-digit code to the address on the account. Whether that address is
+     registered is never answered — the reply is the same and the mail simply does not go out. */
+  router.post('/forgot', async (req, res) => {
+    const ip = clientIp(req);
+    const email = String(req.body?.email ?? '').trim().toLowerCase();
+    const perIp = allow('forgot-ip', ip, { tries: 6, windowMs: 15 * 60 * 1000 });
+    const perAddress = allow('forgot-mail', email, { tries: 3, windowMs: 60 * 60 * 1000 });
+    if (!perIp.ok || !perAddress.ok) return limited(res, perIp.ok ? perAddress : perIp);
+    const code = createResetCode(email);
+    if (code && mailReady()) {
+      const line = `Your Laxan code is ${code}. It is gone in twenty minutes, and it works once.`;
+      await sendMail({
+        to: email,
+        subject: 'Your Laxan password code',
+        html: `<p>Hi,</p><p style="font-size:24px;letter-spacing:6px"><b>${code}</b></p><p>${line.replace(`Your Laxan code is ${code}. `, '')}</p>`,
+        text: line,
+      }).catch((err) => log.warn(`reset code for ${email.split('@')[0]}@… did not send: ${err.message}`));
+    } else if (code) {
+      /* No mail key on this machine: the code still exists, and the PC can hand it over directly. */
+      log.warn('password reset asked for, but no LAHN_EMAIL_KEY is set — run: npm run reset-password <email>');
+    }
+    res.json({ ok: true, posted: mailReady() });
+  });
+
+  router.post('/reset', (req, res) => {
+    const gate = allow('reset', clientIp(req), { tries: 12, windowMs: 60 * 60 * 1000 });
+    if (!gate.ok) return limited(res, gate);
+    try {
+      const user = resetPassword(req.body);
+      /* Whoever just proved they own the inbox is signed straight in. */
+      setAuthCookie(req, res, startSession(user.id));
+      res.json({ user: publicUser(user) });
+    } catch (err) {
+      res.status(authStatus[err.code] ?? 400).json({ error: err.code ?? 'reset-failed' });
+    }
+  });
+
   router.post('/logout', (req, res) => {
     endSession(req);
-    res.setHeader('set-cookie', 'lahn_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+    clearAuthCookie(res);
     res.json({ ok: true });
   });
 
@@ -89,7 +160,7 @@ export function createApi() {
   router.delete('/me', (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'signed-out' });
     dropAccount(req.user.id);
-    res.setHeader('set-cookie', 'lahn_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+    clearAuthCookie(res);
     res.json({ ok: true });
   });
 
@@ -151,12 +222,20 @@ export function createApi() {
       version: APP_VERSION,
       name: 'Laxan',
       port: PORT,
-      lan: lanAddresses(),
       /* What this instance was started to be: her whole shelf, or only what may be published. */
       licensedOnly: LICENSED_ONLY,
-      libraryDir: LIBRARY_DIR,
-      tools: { ytdlp: t.ytDlp, ffmpeg: t.ffmpeg, ffprobe: t.ffprobe },
-      missing: [!t.ytDlp && 'yt-dlp', !t.ffmpeg && 'ffmpeg'].filter(Boolean),
+      mail: mailReady(),
+      /* A build meant for strangers does not announce the address behind it, the folder its audio
+         sits in, or which binaries it shells out to. On the LAN that is how `npm run doctor`
+         finds things. */
+      ...(LICENSED_ONLY
+        ? {}
+        : {
+            lan: lanAddresses(),
+            libraryDir: LIBRARY_DIR,
+            tools: { ytdlp: t.ytDlp, ffmpeg: t.ffmpeg, ffprobe: t.ffprobe },
+            missing: [!t.ytDlp && 'yt-dlp', !t.ffmpeg && 'ffmpeg'].filter(Boolean),
+          }),
       stats: stats(),
     });
   });

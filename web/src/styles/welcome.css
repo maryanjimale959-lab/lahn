@@ -204,6 +204,30 @@
   color: var(--ink);
 }
 
+/* The terms line is a checkbox and a sentence, not another field, so it opts out of the
+   uppercase-label-and-tall-input look the form uses everywhere else. */
+.welcome-card .welcome-terms {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 11px;
+}
+
+.welcome-card .welcome-terms input {
+  width: 20px;
+  min-height: 20px;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+.welcome-card .welcome-terms > span {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
 /* the interest picker */
 
 .welcome.pick {

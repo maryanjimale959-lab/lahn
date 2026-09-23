@@ -1,12 +1,13 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import express from 'express';
-import { APP_VERSION, DB_FILE, LIBRARY_DIR, PORT, WEB_DIST, tools } from './config.js';
+import { APP_VERSION, DB_FILE, LIBRARY_DIR, LICENSED_ONLY, PORT, TRUST_PROXY, WEB_DIST, tools } from './config.js';
 import { closeDb, stats } from './db.js';
 import { ensureLibraryDirs, pruneMissing, scanLibrary } from './library.js';
 import { createApi } from './api.js';
 import { failInterruptedJobs } from './jobs.js';
 import { seedChannels } from './channels.js';
+import { mailReady } from './mail.js';
 import { lanAddresses } from './net.js';
 import { log } from './log.js';
 
@@ -25,6 +26,10 @@ async function main() {
 
   const app = express();
   app.disable('x-powered-by');
+  /* A deployment behind a hosting proxy says so, and then the listener's address and whether
+     they arrived over TLS come from the forwarded headers. Off at home, where either header
+     could be anyone's invention. */
+  if (TRUST_PROXY) app.set('trust proxy', 1);
   app.use((req, res, next) => {
     res.setHeader('access-control-allow-origin', '*');
     res.setHeader('access-control-allow-headers', 'range, content-type');
@@ -59,6 +64,8 @@ async function main() {
     const t = tools();
     if (!t.ytDlp) log.warn('yt-dlp not found — pasting links will fail. Run: winget install yt-dlp.yt-dlp');
     if (!t.ffmpeg) log.warn('ffmpeg not found — audio conversion will fail. Run: winget install Gyan.FFmpeg');
+    /* A build for strangers will be asked for password resets by people who cannot reach this PC. */
+    if (LICENSED_ONLY && !mailReady()) log.warn('no LAHN_EMAIL_KEY — a listener who forgets their password cannot be sent a code');
     const s = stats();
     log.brand(`${s.tracks ?? 0} song(s) · ${s.artists ?? 0} artist(s) · ${s.playlists ?? 0} playlist(s)`);
     if (s.tracks) log.info('tip: open the address above on your phone (same Wi-Fi) to listen');

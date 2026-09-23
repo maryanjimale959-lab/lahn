@@ -7,15 +7,18 @@ import { useUi } from '../state/ui.jsx';
 
 const FIELD = { autoComplete: 'off', spellCheck: false };
 
-/** The two ways in, the way Spotify does it: log in, or make yourself an account. */
+/** The three ways in, the way Spotify does it: log in, make yourself an account, or get back in
+    with a code when the password slipped. */
 export function Welcome() {
   const { t, lang, setLang } = useUi();
-  const { accounts, user, busy, errorCode, setErrorCode, signUp, logIn, saveInterests } = useAuth();
+  const { accounts, user, busy, errorCode, setErrorCode, signUp, logIn, sendCode, finishReset, saveInterests } = useAuth();
   const [mode, setMode] = useState(accounts === 0 ? 'signup' : 'login');
-  const [details, setDetails] = useState({ name: '', email: '', password: '' });
+  const [details, setDetails] = useState({ name: '', email: '', password: '', terms: false });
   const [known, setKnown] = useState([]);
   const [picked, setPicked] = useState([]);
   const [step, setStep] = useState('enter');
+  /* A code is asked for once and entered once; the address carries between the two halves. */
+  const [recover, setRecover] = useState({ email: '', code: '', password: '', sent: false });
 
   useEffect(() => {
     api.interests().then((res) => setKnown(res?.interests ?? [])).catch(() => {});
@@ -42,6 +45,22 @@ export function Welcome() {
     if (!picked.length) return;
     await saveInterests(picked);
     setStep('enter');
+  };
+
+  const askCode = async (event) => {
+    event.preventDefault();
+    /* The answer is the same whether or not that address has an account, so nobody can use this
+       form to find out who listens to Laxan. */
+    if (await sendCode(recover.email)) setRecover((prev) => ({ ...prev, sent: true }));
+  };
+
+  const setNewPassword = async (event) => {
+    event.preventDefault();
+    if (await finishReset(recover.email, recover.code, recover.password)) {
+      setRecover({ email: '', code: '', password: '', sent: false });
+      setStep('enter');
+      setMode('login');
+    }
   };
 
   const toggle = (id) =>
@@ -78,6 +97,93 @@ export function Welcome() {
             <Icon.next />
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (step === 'recover') {
+    return (
+      <div className="welcome">
+        <form className="welcome-card" onSubmit={recover.sent ? setNewPassword : askCode}>
+          <span className="welcome-mark">Laxan</span>
+          <h1>{t('auth.recoverTitle')}</h1>
+          <p>{recover.sent ? t('auth.codeSent') : t('auth.recoverHint')}</p>
+
+          <label>
+            <span>{t('auth.email')}</span>
+            <input
+              {...FIELD}
+              type="email"
+              required
+              readOnly={recover.sent}
+              value={recover.email}
+              onChange={(event) => {
+                setErrorCode(null);
+                setRecover((prev) => ({ ...prev, email: event.target.value }));
+              }}
+              placeholder="you@example.com"
+            />
+          </label>
+
+          {recover.sent && (
+            <>
+              <label>
+                <span>{t('auth.code')}</span>
+                <input
+                  {...FIELD}
+                  required
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={recover.code}
+                  onChange={(event) => {
+                    setErrorCode(null);
+                    setRecover((prev) => ({ ...prev, code: event.target.value.replace(/\D/g, '') }));
+                  }}
+                  placeholder="000000"
+                />
+              </label>
+              <label>
+                <span>{t('auth.newPassword')}</span>
+                <input
+                  {...FIELD}
+                  type="password"
+                  required
+                  minLength={6}
+                  value={recover.password}
+                  onChange={(event) => {
+                    setErrorCode(null);
+                    setRecover((prev) => ({ ...prev, password: event.target.value }));
+                  }}
+                  placeholder="••••••"
+                />
+              </label>
+            </>
+          )}
+
+          {errorText && (
+            <p className="welcome-error" role="alert">
+              {errorText}
+            </p>
+          )}
+
+          <button type="submit" className="pill-btn big-cta" disabled={busy}>
+            {busy ? <Icon.disc /> : <Icon.next />}
+            {recover.sent ? t('auth.setNew') : t('auth.sendCode')}
+          </button>
+
+          <button
+            type="button"
+            className="welcome-switch"
+            onClick={() => {
+              setErrorCode(null);
+              setRecover({ email: '', code: '', password: '', sent: false });
+              setStep('enter');
+            }}
+          >
+            {t('auth.backToLogin')}
+          </button>
+        </form>
       </div>
     );
   }
@@ -119,13 +225,27 @@ export function Welcome() {
           <input {...FIELD} type="password" required minLength={6} value={details.password} onChange={fill('password')} placeholder="••••••" />
         </label>
 
+        {mode === 'signup' && (
+          <label className="welcome-terms">
+            <input
+              type="checkbox"
+              checked={details.terms}
+              onChange={(event) => {
+                setErrorCode(null);
+                setDetails((prev) => ({ ...prev, terms: event.target.checked }));
+              }}
+            />
+            <span>{t('auth.terms')}</span>
+          </label>
+        )}
+
         {errorText && (
           <p className="welcome-error" role="alert">
             {errorText}
           </p>
         )}
 
-        <button type="submit" className="pill-btn big-cta" disabled={busy}>
+        <button type="submit" className="pill-btn big-cta" disabled={busy || (mode === 'signup' && !details.terms)}>
           {busy ? <Icon.disc /> : <Icon.play />}
           {mode === 'signup' ? t('auth.start') : t('auth.enter')}
         </button>
@@ -133,6 +253,20 @@ export function Welcome() {
         <button type="button" className="welcome-switch" onClick={() => setMode(other)}>
           {other === 'signup' ? t('auth.noAccount') : t('auth.haveAccount')}
         </button>
+
+        {mode === 'login' && (
+          <button
+            type="button"
+            className="welcome-switch"
+            onClick={() => {
+              setErrorCode(null);
+              setRecover((prev) => ({ ...prev, email: details.email }));
+              setStep('recover');
+            }}
+          >
+            {t('auth.forgot')}
+          </button>
+        )}
       </form>
     </div>
   );

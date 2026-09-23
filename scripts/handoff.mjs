@@ -20,7 +20,7 @@ const PHONE_UA =
 const RIG = { email: 'handoff@lahn.test', password: 'handoff123', name: 'Rig' };
 const tokenOf = (res) => (res.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
 const json = { 'content-type': 'application/json' };
-let token = tokenOf(await fetch(`${API}/signup`, { method: 'POST', headers: json, body: JSON.stringify({ ...RIG, interests: ['music'] }) }));
+let token = tokenOf(await fetch(`${API}/signup`, { method: 'POST', headers: json, body: JSON.stringify({ ...RIG, interests: ['music'], terms: true }) }));
 if (!token) token = tokenOf(await fetch(`${API}/login`, { method: 'POST', headers: json, body: JSON.stringify(RIG) }));
 if (!token) {
   console.log('the hand-off rig could not sign in — is the server up?');
