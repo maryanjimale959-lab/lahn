@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="so" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Laxan — dhageyso wax walba oo Soomaali leedahay</title>
+    <meta
+      name="description"
+      content="Laxan waa abka codadka Soomaaliyeed: Quraan akhriyayaal badan, podcast-yo, sheekooyin, casharro, buugaag iyo muusig Carabi ah. Taabo oo dhageyso — bilaash, xayeysiis la'aan."
+    />
+    <meta name="theme-color" content="#0b0a09" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta property="og:title" content="Laxan — codadka Soomaaliyeed, hal meel" />
+    <meta
+      property="og:description"
+      content="Quraan, podcast-yo Soomaaliyeed, sheekooyin, casharro, buugaag cod ah iyo muusig Carabi ah. Taabo oo dhageyso."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="./apple-touch-icon.png" />
+    <link rel="preload" as="font" href="./fonts/manrope-latin-wght.woff2" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Ka bood bogga</a>
+
+    <header class="top" id="top">
+      <div class="wrap top-in">
+        <a class="brand" href="./">
+          <!-- Our mark: the turntable with its arm, on the cream tile — the same drawing the app
+               uses, so the site and the product wear one face. -->
+          <svg viewBox="0 0 512 512" width="38" height="38" aria-label="Laxan" role="img">
+            <defs>
+              <radialGradient id="d1" cx="42%" cy="34%" r="72%">
+                <stop offset="0%" stop-color="#3a3740" />
+                <stop offset="55%" stop-color="#141317" />
+                <stop offset="100%" stop-color="#08080a" />
+              </radialGradient>
+              <linearGradient id="b1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#fdf6ee" />
+                <stop offset="100%" stop-color="#f0d9c7" />
+              </linearGradient>
+              <linearGradient id="l1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ff9d5c" />
+                <stop offset="100%" stop-color="#e0523f" />
+              </linearGradient>
+            </defs>
+            <rect width="512" height="512" rx="118" fill="url(#b1)" />
+            <circle cx="238" cy="272" r="176" fill="url(#d1)" />
+            <g fill="none" stroke="#ffffff" stroke-opacity=".07">
+              <circle cx="238" cy="272" r="158" stroke-width="4" />
+              <circle cx="238" cy="272" r="140" stroke-width="4" />
+              <circle cx="238" cy="272" r="122" stroke-width="4" />
+              <circle cx="238" cy="272" r="104" stroke-width="4" />
+            </g>
+            <path d="M110 168a176 176 0 0 1 200-40l-14 30a138 138 0 0 0-158 32z" fill="#ffffff" fill-opacity=".10" />
+            <circle cx="238" cy="272" r="74" fill="url(#l1)" />
+            <circle cx="238" cy="272" r="13" fill="#f2f1ee" />
+            <circle cx="238" cy="272" r="6" fill="#141317" />
+            <g transform="rotate(24 404 132)">
+              <circle cx="404" cy="132" r="30" fill="#cfc9c2" />
+              <circle cx="404" cy="132" r="15" fill="#8b857d" />
+              <rect x="396" y="146" width="15" height="176" rx="7" fill="#ded9d3" />
+              <rect x="392" y="312" width="24" height="34" rx="7" fill="#f4f1ec" />
+            </g>
+          </svg>
+          <span>Laxan</span>
+        </a>
+
+        <nav class="links" aria-label="Laxan">
+          <a href="#features" data-i18n="nav.features">Astaamaha</a>
+          <a href="#arabic" data-i18n="nav.arabic">Carabi</a>
+          <a href="#how" data-i18n="nav.how">Sida uu u shaqeeyo</a>
+          <a href="#faq" data-i18n="nav.faq">Su'aalaha</a>
+        </nav>
+
+        <div class="top-cta">
+          <div class="langs" role="group" aria-label="Luqadda">
+            <button type="button" data-lang="so" aria-pressed="true">SO</button>
+            <button type="button" data-lang="ar" aria-pressed="false">ع</button>
+            <button type="button" data-lang="en" aria-pressed="false">EN</button>
+          </div>
+          <a class="btn btn-primary" href="./app/index.html#/home" data-i18n="nav.open">Fur Laxan</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- ---------------- hero ---------------- -->
+      <section class="hero">
+        <div class="glow glow-a" aria-hidden="true"></div>
+        <div class="glow glow-b" aria-hidden="true"></div>
+        <div class="grain" aria-hidden="true"></div>
+
+        <div class="wrap hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">
+              <span class="pulse" aria-hidden="true"></span>
+              <span data-i18n="hero.eyebrow">Quraan · Heeso · Podcast · Sheeko · Cashar</span>
+            </p>
+            <h1>
+              <span data-i18n-html="hero.t1">Dhageyso wax walba</span><br />
+              <span data-i18n-html="hero.t2">oo</span>
+              <em data-i18n-html="hero.t3">Soomaali</em>
+              <span data-i18n-html="hero.t4">leedahay.</span>
+            </h1>
+            <p class="lede" data-i18n="hero.lede">
+              Laxan waa abka codadka Soomaaliyeed. Quraan akhriyayaal badan, heeso Soomaaliyeed, podcast-yo,
+              sheekooyin, casharro iyo buugaag cod ah — hal meel. Taabo oo dhageyso: waxba ma soo dejisato,
+              xogtaaduna meel kale ma tagto.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary btn-lg" href="./app/index.html#/home">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+                <span data-i18n="hero.cta1">Bilow dhageysiga</span>
+              </a>
+              <button type="button" class="btn btn-ghost btn-lg" data-install>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3v11m0 0 4.2-4.2M12 14l-4.2-4.2M4 19h16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg>
+                <span data-i18n="hero.cta2">Ku rakib telefoonka</span>
+              </button>
+            </div>
+            <p class="fineprint" data-i18n="hero.fine">Bilaash · Xayeysiis la'aan · Diiwaangelin la'aan</p>
+          </div>
+
+          <div class="hero-stage">
+            <div class="disc" aria-hidden="true">
+              <span class="disc-ring"></span>
+              <span class="disc-ring"></span>
+              <span class="disc-ring"></span>
+              <span class="disc-label"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M9 6.5v11l8.5-5.5z" fill="currentColor" /></svg></span>
+            </div>
+            <div class="now-chip">
+              <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <span data-i18n="hero.now">Hadda oo socota · Mishary Alafasy, Suuradda Al-Faatixah</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="wrap stats-in">
+            <p><b data-count="2773">2773</b><span data-i18n="stat.items">dhageysi diyaar ah</span></p>
+            <p><b data-count="141">141</b><span data-i18n="stat.sources">il cod</span></p>
+            <p><b data-count="1045">1045</b><span data-i18n="stat.songs">heeso fannaaniintooda leh</span></p>
+            <p><b data-count="114">114</b><span data-i18n="stat.surahs">suuruuc buuxa</span></p>
+          </div>
+        </div>
+
+        <!-- The names written here by `npm run site` come from the same catalogue the app carries,
+             so every source she added appears — singers on the top row, everything else below. -->
+        <div class="marquee" aria-hidden="true">
+          <div class="marquee-row"><span>Aar Maanta</span><span>Abdel Halim Hafez - عبد الحليم حافظ</span><span>Abdi Aweys</span><span>Abdirashiid Qaraare</span><span>Abwaan Qorane somalia</span><span>Ahlam | أحلام</span><span>amin yare</span><span>Axmed Mooge Liibaan</span><span>Balanbaalis Studio</span><span>DHAAD MEDIA</span><span>DHUGMAAL LYRICS</span><span>Digaale Music</span><span>Faiza Amir</span><span>Fankii Hore</span><span>Gacanqabat Digital Studios 8K</span><span>Gallad Studio</span><span>Hanad Bandz</span><span>Heesaha Hirgalay</span><span>Heeso Jaceyl</span><span>HEESO QARAAMI</span><span>Heeso Soomaali</span><span>HIMILO SOMALI TV</span><span>Hobollada Waaberi</span><span>Hodan Abdirahman Artist</span><span>Ilkacase Qays</span><span>Jirday</span><span>K'naan</span><span>Kaafi Studío</span><span>Kiin Jamac</span><span>Ladan Maria</span><span>Liibaan Jama</span><span>lil_olee</span><span>MAADEYS</span><span>MAAHIR MEDIA PRO</span><span>Magool</span><span>Mattan Pro</span><span>Mazzika - مزيكا</span><span>MinnesotaColdTv</span><span>MOSTAFE KANTE</span><span>Mursal Muuse</span><span>National Arab Orchestra</span><span>NomadicStatus</span><span>Qamar Suugaani</span><span>Rap Soomaali</span><span>Rotana</span><span>Saado Cali Warsame</span><span>Sahra Halgan</span><span>Samiir Zaam</span><span>SERABTAA MUSIC🎶</span><span>Shareeco studio</span><span>Sharma Boy</span><span>Somali world Hip hop</span><span>SomaliSwiss</span><span>Suldaan Seeraar</span><span>Tusmo Films</span><span>Waqal WStudío</span><span>Wardi Pro</span><span>WareerMusic</span><span>Xaawo Taabo</span><span>Yaaska Pro</span><span>YasinTheDon</span><span>zakariyow</span><span>Zanka Prod</span><span>أم كلثوم</span><span>طرب</span><span>Aar Maanta</span><span>Abdel Halim Hafez - عبد الحليم حافظ</span><span>Abdi Aweys</span><span>Abdirashiid Qaraare</span><span>Abwaan Qorane somalia</span><span>Ahlam | أحلام</span><span>amin yare</span><span>Axmed Mooge Liibaan</span><span>Balanbaalis Studio</span><span>DHAAD MEDIA</span><span>DHUGMAAL LYRICS</span><span>Digaale Music</span><span>Faiza Amir</span><span>Fankii Hore</span><span>Gacanqabat Digital Studios 8K</span><span>Gallad Studio</span><span>Hanad Bandz</span><span>Heesaha Hirgalay</span><span>Heeso Jaceyl</span><span>HEESO QARAAMI</span><span>Heeso Soomaali</span><span>HIMILO SOMALI TV</span><span>Hobollada Waaberi</span><span>Hodan Abdirahman Artist</span><span>Ilkacase Qays</span><span>Jirday</span><span>K'naan</span><span>Kaafi Studío</span><span>Kiin Jamac</span><span>Ladan Maria</span><span>Liibaan Jama</span><span>lil_olee</span><span>MAADEYS</span><span>MAAHIR MEDIA PRO</span><span>Magool</span><span>Mattan Pro</span><span>Mazzika - مزيكا</span><span>MinnesotaColdTv</span><span>MOSTAFE KANTE</span><span>Mursal Muuse</span><span>National Arab Orchestra</span><span>NomadicStatus</span><span>Qamar Suugaani</span><span>Rap Soomaali</span><span>Rotana</span><span>Saado Cali Warsame</span><span>Sahra Halgan</span><span>Samiir Zaam</span><span>SERABTAA MUSIC🎶</span><span>Shareeco studio</span><span>Sharma Boy</span><span>Somali world Hip hop</span><span>SomaliSwiss</span><span>Suldaan Seeraar</span><span>Tusmo Films</span><span>Waqal WStudío</span><span>Wardi Pro</span><span>WareerMusic</span><span>Xaawo Taabo</span><span>Yaaska Pro</span><span>YasinTheDon</span><span>zakariyow</span><span>Zanka Prod</span><span>أم كلثوم</span><span>طرب</span></div>
+          <div class="marquee-row row-back"><span>Abdijaliil Show</span><span>Abdul Basit</span><span>ABDULAH HAFS</span><span>Abdullahi Qorshe</span><span>Abu Bakr Al-Shatri</span><span>Adeeg Wanaag</span><span>afikra</span><span>Al Hikma Somali Media</span><span>al Ikhlaas - Beneficial Lectures</span><span>Al Sheikh Maher Bin Hamad Al Muaiqly | الشيخ ماهر بن حمد المعيقلي</span><span>Al-Minshawi</span><span>Amiira sheeko xariiro</span><span>Arabi Post</span><span>Ardaa Media</span><span>Atheer - أثير</span><span>Ayaan Sheeko xariiro</span><span>Business Connect tv</span><span>Buugaag Codka Ubax</span><span>Buugaag Soomaali</span><span>Caweyska Dalmar</span><span>Codka Ubax Podcast</span><span>Daacad Production</span><span>DADWEYNAHA</span><span>Diiwaanka Mahad</span><span>Dugsiiye</span><span>Duruus Manhaj</span><span>English with Mima</span><span>Garasho-wadaag</span><span>GEEDKA NABADA</span><span>Guntiino Podcast</span><span>Hab Fikirka</span><span>Halkaraan</span><span>HIGSI NO.1</span><span>Hiil Press</span><span>Hiloow</span><span>Hoyga Luqadaha</span><span>IFIYE - Somali Audiobooks</span><span>IFIYE TALKS</span><span>Jannah Productions</span><span>Maamul Wanaag</span><span>Madari Podcast</span><span>Maher Al Meaqli</span><span>Maher Shakhashero</span><span>Miizaan</span><span>Mishary Alafasy</span><span>Moon Media</span><span>Nawafed - نوافذ</span><span>OGAANSHO</span><span>Qiso Central</span><span>Qulasada Filimada</span><span>Quraan Soomaali</span><span>Ridhwan Issack</span><span>Sahan Podcast</span><span>Sawda Bilan</span><span>Sawda Qaalib</span><span>SHEEKH AHMED SHEEKH شيخ أحمد شيخ</span><span>Sheeko Hub</span><span>Sheeko iyo Shaahid</span><span>Somali Sheeko Caruureed</span><span>Somali Voice</span><span>SULDAAN</span><span>SULTAN FILMS</span><span>Tadabbur Daily</span><span>Tarjumaadda Quraanka</span><span>Tilaawod Carabi</span><span>TusmoWeeklyShow</span><span>WAAYO WAAYIHII WACNAA</span><span>XOGGOOB</span><span>إذاعة ثمانية</span><span>الأسبوع</span><span>القارىء إسلام صبحي Islam Sobhi</span><span>بودكاست عربي</span><span>تنوين بودكاست | Tanween Podcasts</span><span>عبدالرحمن مسعد - Abdulrhman Mosad</span><span>عربي بوست - Arabic Post</span><span>عَلاقات</span><span>Abdijaliil Show</span><span>Abdul Basit</span><span>ABDULAH HAFS</span><span>Abdullahi Qorshe</span><span>Abu Bakr Al-Shatri</span><span>Adeeg Wanaag</span><span>afikra</span><span>Al Hikma Somali Media</span><span>al Ikhlaas - Beneficial Lectures</span><span>Al Sheikh Maher Bin Hamad Al Muaiqly | الشيخ ماهر بن حمد المعيقلي</span><span>Al-Minshawi</span><span>Amiira sheeko xariiro</span><span>Arabi Post</span><span>Ardaa Media</span><span>Atheer - أثير</span><span>Ayaan Sheeko xariiro</span><span>Business Connect tv</span><span>Buugaag Codka Ubax</span><span>Buugaag Soomaali</span><span>Caweyska Dalmar</span><span>Codka Ubax Podcast</span><span>Daacad Production</span><span>DADWEYNAHA</span><span>Diiwaanka Mahad</span><span>Dugsiiye</span><span>Duruus Manhaj</span><span>English with Mima</span><span>Garasho-wadaag</span><span>GEEDKA NABADA</span><span>Guntiino Podcast</span><span>Hab Fikirka</span><span>Halkaraan</span><span>HIGSI NO.1</span><span>Hiil Press</span><span>Hiloow</span><span>Hoyga Luqadaha</span><span>IFIYE - Somali Audiobooks</span><span>IFIYE TALKS</span><span>Jannah Productions</span><span>Maamul Wanaag</span><span>Madari Podcast</span><span>Maher Al Meaqli</span><span>Maher Shakhashero</span><span>Miizaan</span><span>Mishary Alafasy</span><span>Moon Media</span><span>Nawafed - نوافذ</span><span>OGAANSHO</span><span>Qiso Central</span><span>Qulasada Filimada</span><span>Quraan Soomaali</span><span>Ridhwan Issack</span><span>Sahan Podcast</span><span>Sawda Bilan</span><span>Sawda Qaalib</span><span>SHEEKH AHMED SHEEKH شيخ أحمد شيخ</span><span>Sheeko Hub</span><span>Sheeko iyo Shaahid</span><span>Somali Sheeko Caruureed</span><span>Somali Voice</span><span>SULDAAN</span><span>SULTAN FILMS</span><span>Tadabbur Daily</span><span>Tarjumaadda Quraanka</span><span>Tilaawod Carabi</span><span>TusmoWeeklyShow</span><span>WAAYO WAAYIHII WACNAA</span><span>XOGGOOB</span><span>إذاعة ثمانية</span><span>الأسبوع</span><span>القارىء إسلام صبحي Islam Sobhi</span><span>بودكاست عربي</span><span>تنوين بودكاست | Tanween Podcasts</span><span>عبدالرحمن مسعد - Abdulrhman Mosad</span><span>عربي بوست - Arabic Post</span><span>عَلاقات</span></div>
+        </div>
+      </section>
+
+      <!-- ---------------- features ---------------- -->
+      <section class="section" id="features">
+        <div class="wrap">
+          <p class="kicker" data-i18n="features.kicker">Wuxuu kuu diyaar yahay</p>
+          <h2 data-i18n="features.title">Hal ab. Codad badan.</h2>
+
+          <div class="grid-features">
+            <article class="card reveal">
+              <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15.5H6.5A2.5 2.5 0 0 0 4 21z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg></span>
+              <h3 data-i18n="f1.h">Quraan buuxa</h3>
+              <p data-i18n="f1.p">114 suuruuc, lix akhriye oo caan ah — Mishary Alafasy, Abdul Basit, Al-Minshawi, Abu Bakr Al-Shatri iyo Maher. Taabo suuraad, oo bilow.</p>
+            </article>
+            <article class="card reveal">
+              <span class="ico"><svg viewBox="0 0 24 24"><rect x="9" y="2.5" width="6.5" height="11" rx="3.25" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg></span>
+              <h3 data-i18n="f2.h">Podcast-yo Soomaaliyeed</h3>
+              <p data-i18n="f2.p">Maamul Wanaag, Miizaan, Hiloow, Garasho-wadaag, Adeeg Wanaag iyo Diiwaanka Mahad — in ka badan 140 qaybood oo Soomaali ah.</p>
+            </article>
+            <article class="card reveal">
+              <span class="ico"><svg viewBox="0 0 24 24"><path d="M3.5 18.5 12 3l8.5 15.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M8.5 18.5V12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg></span>
+              <h3 data-i18n="f3.h">Sheeko iyo kiisas dhab ah</h3>
+              <p data-i18n="f3.p">Sheeko iyo Shaahid iyo sheekooyin kale oo la dhageysto habeenkii — galkaaga madow ee sheekooyinka Soomaaliyeed.</p>
+            </article>
+            <article class="card reveal">
+              <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3.5l9 4-9 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="M7 10.5v4.2c0 1.8 2.2 3.3 5 3.3s5-1.5 5-3.3v-4.2" fill="none" stroke="currentColor" stroke-width="1.7" /></svg></span>
+              <h3 data-i18n="f4.h">Casharro iyo buugaag cod ah</h3>
+              <p data-i18n="f4.p">Duruus Manhaj iyo Buugaag Codka Ubax — cashar iyo buug aad dhageysan karo adiga oo socda, aan shaashad eegin.</p>
+            </article>
+            <article class="card reveal">
+              <span class="ico"><svg viewBox="0 0 24 24"><path d="M9 18V5.5l11-2V16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><circle cx="6.5" cy="18" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7" /><circle cx="17.5" cy="16" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7" /></svg></span>
+              <h3 data-i18n="f5.h">Heeso Soomaaliyeed iyo Carabi</h3>
+              <p data-i18n="f5.p">Shelf-yada Heeso, Rap, Jaceyl iyo Muusiga Carabiga: 1,045 heesood. Heesta markii taabo, bogga fannaanka ayaa la tagayaa — daawashadu waxay u tagtaa qofkii sameeyay.</p>
+            </article>
+            <article class="card reveal">
+              <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 3v5c0 4.6-3 7.9-7.5 9-4.5-1.1-7.5-4.4-7.5-9v-5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="m9 12 2.2 2.2L15.5 10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
+              <h3 data-i18n="f6.h">Waa adiga, ma aha xayeysiis</h3>
+              <p data-i18n="f6.p">Xayeysiis ma jiro. La socod (tracking) ma jiro. Akoonno ma iibiso. Laxan wuxuu ka shaqeeyaa qalabkaaga, waana adiga ninka kaliya ee arka waxa aad dhageysatay.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- the Arabic band, always in Arabic ---------------- -->
+      <section class="arabic" id="arabic">
+        <div class="wrap arabic-in">
+          <div class="arabic-copy" dir="rtl" lang="ar">
+            <p class="kicker">بالعربية أيضاً</p>
+            <h2>صوتك، بلغتك.</h2>
+            <p>
+              لَخان ليس صومالياً فقط. رفّ القرآن بستة قرّاء، وبودكاست عربي، وقصص ودروس — كلها بلا إعلانات
+              ولا تتبّع. افتح التطبيق وابدأ الاستماع، ولا تحتاج إلى تسجيل.
+            </p>
+            <ul class="arabic-list" dir="rtl">
+              <li>القرآن الكريم — سورة البقرة، آل عمران، والناس بصوت Mishary Alafasy وAbdul Basit</li>
+              <li>أفكار وعلاقات والأسبوع — بودكاست عربي كامل</li>
+              <li>الواجهة بالصومالية والعربية والإنجليزية</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- how it works ---------------- -->
+      <section class="section" id="how">
+        <div class="wrap">
+          <p class="kicker" data-i18n="how.kicker">Sida uu u shaqeeyo</p>
+          <h2 data-i18n="how.title">Saddex tallaabo.</h2>
+          <ol class="steps">
+            <li class="reveal">
+              <span class="num">1</span>
+              <h3 data-i18n="s1.h">Fur linkiga</h3>
+              <p data-i18n="s1.p">Fur Laxan kombiyuutarkaaga ama telefoonkaaga — barnaamij la soo dejisanayo ma jiro, akoon la sameynayo ma jiro.</p>
+            </li>
+            <li class="reveal">
+              <span class="num">2</span>
+              <h3 data-i18n="s2.h">Ku dar shaashadda koowaad</h3>
+              <p data-i18n="s2.p">Android-ka: riix "Ku rakib". iPhone-ka: riix Share, dabadeed "Add to Home Screen". Wuxuu noqonayaa ab leh astaantiisa.</p>
+            </li>
+            <li class="reveal">
+              <span class="num">3</span>
+              <h3 data-i18n="s3.h">Dooro, taabo, dhageyso</h3>
+              <p data-i18n="s3.p">Sheeg waxa aad jeceshahay — Quraan, podcast, sheeko, cashar, buug — Gurigu wuxuu kuu keenayaa halkaas, oo taabasho keliya ayuu codku bilaabayaa.</p>
+            </li>
+          </ol>
+
+          <div class="private reveal">
+            <div class="private-copy">
+              <h3 data-i18n="priv.h">Laxan buuxa — kan gurigaaga</h3>
+              <p data-i18n="priv.p">
+                Linkigan dadweynuhu wuxuu muujinayaa shelf-yada milkiilayaashoodu qof walba u daadiyeen iyo
+                heeso lagu dhageysto bogagga fannaaniinta. Nuqulka kombiyuutarkaaga ka shaqeeya wuxuu sidoo
+                kale leeyahay akoonno email ah iyo qalab isku xiran — kombiyuutarka oo server noqda,
+                telefoonka oo markaas gurigaaga ku xiran.
+              </p>
+              <ul class="ticks">
+                <li data-i18n="priv.1">Heeso kale oo adiga kuu gaar ah — ku dar kombiyuutarkaaga</li>
+                <li data-i18n="priv.2">Akoon email + eray-goor, qof kastaa liiskaashiisa</li>
+                <li data-i18n="priv.3">Kombiyuutar iyo telefoon isku xiran: meel ka bilow, meel kale ka sii wad</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- install ---------------- -->
+      <section class="section install" id="install">
+        <div class="wrap install-in">
+          <p class="kicker" data-i18n="install.kicker">Ku rakib</p>
+          <h2 data-i18n="install.title">Qaado Laxan boorsadaada.</h2>
+          <p class="lede" data-i18n="install.lede">
+            Laxan wuxuu ku rakirmanayaa shaashaddaada koowaad sidii ab caadi ah — dukaan la'aan, akoon la'aan.
+          </p>
+          <div class="badges">
+            <button type="button" class="badge" data-install="android">
+              <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7 9.5h10v7.5a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2zM6.5 9.5a1.6 1.6 0 0 0-1.6 1.6v3.6a1.6 1.6 0 0 0 3.2 0v-3.6a1.6 1.6 0 0 0-1.6-1.6m11 0a1.6 1.6 0 0 0-1.6 1.6v3.6a1.6 1.6 0 0 0 3.2 0v-3.6a1.6 1.6 0 0 0-1.6-1.6M8.4 6.2 7.5 4.6m8.1 1.6.9-1.6M9.3 4.4a2.9 2.9 0 0 1 5.4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+              <span class="badge-txt"><small data-i18n="badge.and.small">Ku rakib</small><b data-i18n="badge.and.big">Android</b></span>
+            </button>
+            <button type="button" class="badge" data-install="ios">
+              <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 3.5v11m0-11L8 7.5m4-4 4 4M5 13.5v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              <span class="badge-txt"><small data-i18n="badge.ios.small">Ku rakib</small><b>iPhone · iPad</b></span>
+            </button>
+          </div>
+          <p class="fineprint" data-i18n="install.note">
+            Laxan kuma jiro App Store ama Play Store — waa ab furan oo boggaaga ka soo dhaca, waana sababta uu
+            bilaash u yahay.
+          </p>
+        </div>
+      </section>
+
+      <!-- ---------------- faq ---------------- -->
+      <section class="section faq" id="faq">
+        <div class="wrap narrow">
+          <p class="kicker" data-i18n="faq.kicker">Su'aalaha</p>
+          <h2 data-i18n="faq.title">Waxa dadku weydiiyaan.</h2>
+          <div class="qa">
+            <details open>
+              <summary data-i18n="q1">Ma bilaash baa?</summary>
+              <p data-i18n="a1">Haa, dhammaan. Xayeysiis ma jiro, xad ma jiro, eray-gorna ma iibso. Laxan wuxuu ka shaqeeyaa qalabkaaga, ma aha adeeg lacag lagu raadsanayo.</p>
+            </details>
+            <details>
+              <summary data-i18n="q2">Ma inaan diiwaangeliyaa ayaan u baahanahay?</summary>
+              <p data-i18n="a2">Linkigan dadweynaha: maya. Fur oo dhageyso. Akoonnada email-ka iyo eray-gorka waxay ku jiraan nuqulka kombiyuutarkaaga ka shaqeeya, halkaas oo qoyska oo dhan uu akoon gaar ah leeyahay.</p>
+            </details>
+            <details>
+              <summary data-i18n="q3">Heesaha Soomaaliyeed ma halkan bay ku jiraan?</summary>
+              <p data-i18n="a3">Haa. Shelf-yada Heeso, Rap iyo Jaceyl way ku jiraan, waana 1,045 heesood. Heestuba waxay leedahay boggeeda — markii taabo, bogga fannaanka ayaa la furayaa, daawashaduna waxay u tagtaa isagii sameeyay. Quraanka, podcast-yada iyo sheekooyinkuna waxay ka yimaadaan ilaha iyagu codkooda daadiyay.</p>
+            </details>
+            <details>
+              <summary data-i18n="q4">Ma shaqeynayaa internet la'aan?</summary>
+              <p data-i18n="a4">Maya. Laxan waa dhageysi toos ah (streaming) — waxba lama keydiyo qalabkaaga, sidaas darteed internet ayaa loo baahan yahay. Taasi waa sababta uu meel walba kaaga furan yahay, booskuna kugu bixinayo.</p>
+            </details>
+            <details>
+              <summary data-i18n="q5">Telefoonkayga iyo kombiyuutarkayga labadaba ma shaqeynayaa?</summary>
+              <p data-i18n="a5">Haa. Android iyo iPhone, Chrome, Edge, Safari iyo Firefox. Nidaamku wuxuu taageeraa Soomaali, Carabi (RTL) iyo Ingiriis, iftiin iyo mugdi.</p>
+            </details>
+            <details>
+              <summary data-i18n="q6">Yaa sameeyay Laxan?</summary>
+              <p data-i18n="a6">Maryam J. — hal qof, si uu u helo ab Soomaali ku hadla oo aan xayeysiis lahayn. Marka uu qof kale u baahday, linkigan ayuu helay.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="last">
+        <div class="wrap last-in">
+          <!-- Her own mark, drawn the same way the app icon is: the record, its grooves, its arm. -->
+          <svg class="last-mark" viewBox="0 0 512 512" width="84" height="84" aria-hidden="true">
+            <rect width="512" height="512" rx="118" fill="url(#b1)" />
+            <circle cx="238" cy="272" r="176" fill="url(#d1)" />
+            <g fill="none" stroke="#ffffff" stroke-opacity=".07">
+              <circle cx="238" cy="272" r="158" stroke-width="4" />
+              <circle cx="238" cy="272" r="140" stroke-width="4" />
+              <circle cx="238" cy="272" r="122" stroke-width="4" />
+              <circle cx="238" cy="272" r="104" stroke-width="4" />
+            </g>
+            <path d="M110 168a176 176 0 0 1 200-40l-14 30a138 138 0 0 0-158 32z" fill="#ffffff" fill-opacity=".10" />
+            <circle cx="238" cy="272" r="74" fill="url(#l1)" />
+            <circle cx="238" cy="272" r="13" fill="#f2f1ee" />
+            <circle cx="238" cy="272" r="6" fill="#141317" />
+            <g transform="rotate(24 404 132)">
+              <circle cx="404" cy="132" r="30" fill="#cfc9c2" />
+              <circle cx="404" cy="132" r="15" fill="#8b857d" />
+              <rect x="396" y="146" width="15" height="176" rx="7" fill="#ded9d3" />
+              <rect x="392" y="312" width="24" height="34" rx="7" fill="#f4f1ec" />
+            </g>
+          </svg>
+          <h2 data-i18n="last.h">Bilow dhageysiga hadda.</h2>
+          <p data-i18n="last.p">2,773 dhageysi iyo 1,045 hees ayaa diyaar u ah. Taabo hal mar.</p>
+          <a class="btn btn-primary btn-lg" href="./app/index.html#/home"><span data-i18n="last.cta">Fur Laxan</span></a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap foot-in">
+        <div class="foot-brand">
+          <!-- The same mark as the top of the page; the gradients live in the header's defs. -->
+          <svg viewBox="0 0 512 512" width="34" height="34" aria-label="Laxan" role="img">
+            <rect width="512" height="512" rx="118" fill="url(#b1)" />
+            <circle cx="238" cy="272" r="176" fill="url(#d1)" />
+            <g fill="none" stroke="#ffffff" stroke-opacity=".07">
+              <circle cx="238" cy="272" r="158" stroke-width="4" />
+              <circle cx="238" cy="272" r="140" stroke-width="4" />
+              <circle cx="238" cy="272" r="122" stroke-width="4" />
+              <circle cx="238" cy="272" r="104" stroke-width="4" />
+            </g>
+            <path d="M110 168a176 176 0 0 1 200-40l-14 30a138 138 0 0 0-158 32z" fill="#ffffff" fill-opacity=".10" />
+            <circle cx="238" cy="272" r="74" fill="url(#l1)" />
+            <circle cx="238" cy="272" r="13" fill="#f2f1ee" />
+            <circle cx="238" cy="272" r="6" fill="#141317" />
+            <g transform="rotate(24 404 132)">
+              <circle cx="404" cy="132" r="30" fill="#cfc9c2" />
+              <circle cx="404" cy="132" r="15" fill="#8b857d" />
+              <rect x="396" y="146" width="15" height="176" rx="7" fill="#ded9d3" />
+              <rect x="392" y="312" width="24" height="34" rx="7" fill="#f4f1ec" />
+            </g>
+          </svg>
+          <p><b>Laxan</b><span data-i18n="foot.tag">Codka Soomaaliyeed, hal meel.</span></p>
+        </div>
+        <nav class="foot-links" aria-label="Laxan">
+          <a href="./app/index.html#/home" data-i18n="foot.open">Fur Laxan</a>
+          <a href="#faq" data-i18n="nav.faq">Su'aalaha</a>
+          <a href="https://github.com/maryanjimale959-lab/lahn">GitHub</a>
+        </nav>
+        <div class="foot-meta">
+          <p data-i18n="foot.made">Sameeyay: Maryam J. · 2026</p>
+          <p data-i18n="foot.rights">Laxan kuma jiro App Store ama Play Store. Shelf-yadu waxay ka yimaadaan ilaha furan ee milkiilayaashoodu daadiyeen.</p>
+        </div>
+      </div>
+    </footer>
+
+    <div class="sheet-wrap" id="ios-sheet" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ios-title">
+        <h3 id="ios-title" data-i18n="ios.title">Ku dar shaashadda iPhone-ka</h3>
+        <ol class="sheet-steps">
+          <li data-i18n="ios.1">Safari ku fur linkigan.</li>
+          <li data-i18n="ios.2">Riix badhanka Share (sanduuqa wejiga sare leh).</li>
+          <li data-i18n="ios.3">Dooro «Add to Home Screen».</li>
+          <li data-i18n="ios.4">Riix Laxan shaashadda koowaad — wuxuu ka furmayaa ab oo dhan.</li>
+        </ol>
+        <button type="button" class="btn btn-ghost" data-close-sheet data-i18n="ios.close">Xir</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+  </body>
+</html>
