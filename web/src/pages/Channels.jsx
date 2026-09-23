@@ -5,7 +5,7 @@ import { Art } from '../components/Art.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { Section, Tile } from '../components/Tile.jsx';
 import { TrackRow } from '../components/TrackRow.jsx';
-import { api } from '../lib/api.js';
+import { DEMO, api } from '../lib/api.js';
 import { KIND_ICON, KIND_KEY, TALKS } from '../lib/kinds.js';
 import { useLibrary } from '../state/library.jsx';
 import { useUi } from '../state/ui.jsx';
@@ -57,16 +57,20 @@ export function Channels() {
   return (
     <>
       <PageHeader title={t('channels.title')}>
-        <button type="button" className="pill-btn ghost" onClick={sweep} disabled={sweeping}>
-          <span className={sweeping ? 'spin' : ''}>
-            <Icon.repeat />
-          </span>
-          {t('channels.refreshAll')}
-        </button>
-        <button type="button" className="pill-btn" onClick={() => setAdding((v) => !v)} aria-expanded={adding}>
-          <Icon.plus />
-          {t('channels.follow')}
-        </button>
+        {DEMO ? null : (
+          <>
+            <button type="button" className="pill-btn ghost" onClick={sweep} disabled={sweeping}>
+              <span className={sweeping ? 'spin' : ''}>
+                <Icon.repeat />
+              </span>
+              {t('channels.refreshAll')}
+            </button>
+            <button type="button" className="pill-btn" onClick={() => setAdding((v) => !v)} aria-expanded={adding}>
+              <Icon.plus />
+              {t('channels.follow')}
+            </button>
+          </>
+        )}
       </PageHeader>
 
       {adding && (
@@ -197,14 +201,18 @@ export function ChannelPage({ id }) {
   return (
     <>
       <PageHeader title={channel.name}>
-        <button type="button" className="icon-btn" onClick={pull} disabled={pulling} title={t('channels.refresh')} aria-label={t('channels.refresh')}>
-          <span className={pulling ? 'spin' : ''}>
-            <Icon.repeat />
-          </span>
-        </button>
-        <button type="button" className="icon-btn" onClick={remove} title={t('channels.unfollow')} aria-label={t('channels.unfollow')}>
-          <Icon.trash />
-        </button>
+        {DEMO ? null : (
+          <>
+            <button type="button" className="icon-btn" onClick={pull} disabled={pulling} title={t('channels.refresh')} aria-label={t('channels.refresh')}>
+              <span className={pulling ? 'spin' : ''}>
+                <Icon.repeat />
+              </span>
+            </button>
+            <button type="button" className="icon-btn" onClick={remove} title={t('channels.unfollow')} aria-label={t('channels.unfollow')}>
+              <Icon.trash />
+            </button>
+          </>
+        )}
       </PageHeader>
 
       <div className="channel-head">

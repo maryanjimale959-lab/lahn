@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api, audioUrl, coverFor } from '../lib/api.js';
+import { handsOff, openChannel } from '../lib/external.js';
 import { useSession } from './session.jsx';
 import { useUi } from './ui.jsx';
 
@@ -115,20 +116,38 @@ export function PlayerProvider({ children }) {
     (tracks, startIndex = 0) => {
       if (!tracks?.length) return;
       const list = tracks.filter(Boolean);
-      const o = shuffle ? shuffled(list.length, startIndex) : list.map((_, i) => i);
+      /* A song with no file of its own is not ours to stream: the listen goes to the page
+         that made it, where the view counts for its owner. */
+      const mine = list.filter((t) => !handsOff(t));
+      if (!mine.length) {
+        const tapped = list[startIndex] ?? list[0];
+        if (handsOff(tapped)) {
+          api.heard(tapped.id).catch(() => {});
+          openChannel(tapped);
+        }
+        return;
+      }
+      const first = list[startIndex] ?? list[0];
+      const origin = Math.max(0, mine.indexOf(first));
+      const o = shuffle ? shuffled(mine.length, origin) : mine.map((_, i) => i);
       /* A tap on this screen is an order: it takes the session from whatever else is
          playing, rather than starting a second copy the house then mutes. */
       takingOver.current = true;
       pendingSeek.current = 0;
-      setQueue(list);
+      setQueue(mine);
       setOrder(o);
-      loadAt(o.map((i) => list[i]), 0, true);
+      loadAt(o.map((i) => mine[i]), 0, true);
     },
     [loadAt, shuffle]
   );
 
   const playTrack = useCallback(
     (track, contextList) => {
+      if (handsOff(track)) {
+        api.heard(track.id).catch(() => {});
+        openChannel(track);
+        return;
+      }
       const list = contextList?.length ? contextList : [track];
       const index = Math.max(0, list.findIndex((t) => t.id === track.id));
       const tail = [...list.slice(index), ...list.slice(0, index)];

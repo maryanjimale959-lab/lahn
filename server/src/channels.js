@@ -480,10 +480,13 @@ const weave = (rows) => {
   return out;
 };
 
-/* Two saved searches can return the same upload; a shelf should never show it twice. */
+/* Two saved searches can return the same upload; a shelf should never show it twice. The identity
+   is the file or the page a row points at rather than its id, because six reciters all publish a
+   surah 001 and collapsing those leaves the Quraan shelf with one voice on it. */
+const face = (item) => item.audio ?? item.url ?? item.id;
 const dedupe = (list) => {
   const seen = new Set();
-  return list.filter((item) => !seen.has(item.id) && seen.add(item.id));
+  return list.filter((item) => !seen.has(face(item)) && seen.add(face(item)));
 };
 
 /**

@@ -8,3 +8,9 @@ shots/
 share/
 *.log
 .DS_Store
+web/dist-demo/
+site/img/
+site/dist/
+web/public/demo.json
+site/.Laxan.qoder.site
+.tmp-site/

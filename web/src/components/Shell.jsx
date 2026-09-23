@@ -1,5 +1,6 @@
 import { Icon } from './Icons.jsx';
 import { Logo } from './Logo.jsx';
+import { DEMO } from '../lib/api.js';
 import { useUi } from '../state/ui.jsx';
 
 export const NAV = [
@@ -13,6 +14,12 @@ export const NAV = [
   { to: '/playlists', key: 'nav.playlists', tab: 'nav.tab.playlists', icon: 'playlist' },
   { to: '/search', key: 'nav.search', icon: 'search', mobile: 'nav.tab.search' },
 ];
+
+/* The rooms below read a library — songs she saved, albums, playlists, artists resolved from her
+   own files. A page with no machine behind it has nothing to show in them, so it does not offer
+   a door onto an empty room. */
+const LIBRARY_ROOMS = new Set(['/songs', '/artists', '/albums', '/playlists']);
+const navFor = (demo) => NAV.filter((item) => !(demo && LIBRARY_ROOMS.has(item.to)));
 
 /* Two-level routes like #/shelf/quran are their own nav entry, so the whole path decides. */
 function useActive() {
@@ -30,7 +37,7 @@ export function Sidebar() {
         <Logo />
       </div>
       <nav className="nav">
-        {NAV.map((item) => {
+        {navFor(DEMO).map((item) => {
           const Glyph = Icon[item.icon];
           return (
             <a key={item.to} href={`#${item.to}`} className={active === item.to.slice(1) ? 'active' : ''}>
@@ -47,7 +54,7 @@ export function Sidebar() {
 export function Tabbar() {
   const { t } = useUi();
   const active = useActive();
-  const items = NAV.filter((n) => n.mobile);
+  const items = navFor(DEMO).filter((n) => n.mobile);
 
   return (
     <nav className="tabbar">

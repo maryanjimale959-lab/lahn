@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { clock } from '../lib/format.js';
 import { KIND_ICON } from '../lib/kinds.js';
-import { playUrl } from '../lib/api.js';
+import { DEMO, playUrl } from '../lib/api.js';
 import { warmGradient } from '../lib/art.js';
 import { Icon } from './Icons.jsx';
 import { Section } from './Tile.jsx';
@@ -23,7 +23,9 @@ export const streamTrack = (item) => ({
   cover: item.thumbnail,
   duration: item.duration ?? 0,
   kind: item.kind,
-  src: playUrl(streamKey(item)),
+  /* A row with a link and no stream address goes to its creator's page when tapped. */
+  link: item.link ?? null,
+  src: item.link && !item.audio ? null : playUrl(streamKey(item)),
 });
 
 /* Remote art fails often enough that a missing poster has to look deliberate. Recitation has no
@@ -48,6 +50,7 @@ export function CatalogCard({ item, onError }) {
   const { playList, current, playing, loading } = usePlayer();
 
   const key = streamKey(item);
+  const toChannel = Boolean(item.link) && !item.audio;
   const job = Object.values(jobs).find((j) => j.url === item.url) ?? null;
   const running = job && (job.status === 'queued' || job.status === 'running');
   const failed = job?.status === 'error' || job?.status === 'cancelled';
@@ -73,7 +76,9 @@ export function CatalogCard({ item, onError }) {
       ? t(STAGE_KEY[job.stage] ?? 'add.downloading')
       : failed
         ? t('add.retry')
-        : t('player.play');
+        : toChannel
+          ? t('common.onChannel')
+          : t('player.play');
 
   return (
     <article className={`cat ${saved ? 'saved' : ''} ${running ? 'busy' : ''} ${failed ? 'failed' : ''} ${onAir && loading ? 'waiting' : ''}`}>
@@ -86,6 +91,8 @@ export function CatalogCard({ item, onError }) {
             <Icon.disc className="spin" />
           ) : onAir && playing ? (
             <Icon.pause />
+          ) : toChannel ? (
+            <Icon.link />
           ) : (
             <Icon.play />
           )}
@@ -114,7 +121,7 @@ export function CatalogCard({ item, onError }) {
           {item.duration ? ` · ${clock(item.duration)}` : ''}
         </span>
       </div>
-      {saved || running ? null : (
+      {DEMO || saved || running ? null : (
         <button
           type="button"
           className="cat-save"

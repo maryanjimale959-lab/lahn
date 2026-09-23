@@ -3,6 +3,7 @@ import { Icon } from './Icons.jsx';
 import { Art } from './Art.jsx';
 import { AddToPlaylist } from './AddToPlaylist.jsx';
 import { api } from '../lib/api.js';
+import { handsOff } from '../lib/external.js';
 import { useUi } from '../state/ui.jsx';
 import { useLibrary } from '../state/library.jsx';
 import { usePlayer } from '../state/player.jsx';
@@ -47,7 +48,14 @@ export function TrackRow({ track, index, list, onRemove, showAlbum = true, showA
       <Art track={track} className="thumb" />
 
       <span className="meta">
-        <b>{track.title}</b>
+        <b>
+          {track.title}
+          {handsOff(track) && (
+            <span className="go-channel" title={t('common.onChannel')}>
+              <Icon.link />
+            </span>
+          )}
+        </b>
         <span>
           {[showArtist && track.artist, showAlbum && track.album !== 'Singles' && track.album]
             .filter(Boolean)

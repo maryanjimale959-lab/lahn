@@ -230,6 +230,7 @@ const dict = {
     'settings.privacy': 'Everything stays on your own devices. Nothing is uploaded.',
 
     'common.cancel': 'Cancel',
+    'common.close': 'Close',
     'common.save': 'Save',
     'common.delete': 'Delete',
     'common.remove': 'Remove',
@@ -240,6 +241,7 @@ const dict = {
     'common.error': 'Something went wrong',
     'common.offline': 'Lost the connection to your PC',
     'common.playAll': 'Play all',
+    'common.onChannel': 'Play it on the artist’s own page',
   },
   so: {
     'app.name': 'Laxan',
@@ -472,6 +474,7 @@ const dict = {
     'settings.privacy': 'Wax walba waxay ku jiraan aaladahaaga. Waxba lama soo geliyo.',
 
     'common.cancel': 'Jooji',
+    'common.close': 'Xir',
     'common.save': 'Kaydso',
     'common.delete': 'Tirtir',
     'common.remove': 'Ka saar',
@@ -482,6 +485,7 @@ const dict = {
     'common.error': 'Qalad ayaa dhacay',
     'common.offline': 'Xiriirka kombiyuutarka waayay',
     'common.playAll': 'Dhageyso dhammaan',
+    'common.onChannel': 'Bogga fannaanka ka dhageyso',
   },
 };
 

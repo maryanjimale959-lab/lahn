@@ -13,9 +13,13 @@
     "dev:server": "npm run dev --workspace server",
     "dev:web": "npm run dev --workspace web",
     "build": "npm run build --workspace web",
+    "demo:bake": "node scripts/demo.mjs",
+    "demo:build": "npm run build:demo --workspace web",
+    "site": "node scripts/site.mjs",
     "start": "npm run build --workspace web && npm start --workspace server",
     "doctor": "node server/src/doctor.js",
-    "reset-password": "node server/src/reset-password.js"
+    "reset-password": "node server/src/reset-password.js",
+    "site:shots": "node scripts/siteshots.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

@@ -17,3 +17,10 @@ createRoot(document.getElementById('root')).render(
     </AuthProvider>
   </UiProvider>
 );
+
+/* Without a worker on the page no browser offers to install Laxan, phone or desktop. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}

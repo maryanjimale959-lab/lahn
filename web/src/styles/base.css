@@ -689,6 +689,19 @@ a {
   white-space: nowrap;
 }
 
+/* A song that plays on its creator's page says so beside its name. */
+.go-channel {
+  display: inline-flex;
+  vertical-align: 2px;
+  margin-inline-start: 6px;
+  color: var(--accent);
+}
+
+.go-channel svg {
+  width: 14px;
+  height: 14px;
+}
+
 .track .dur {
   font-size: 13px;
   color: var(--ink-3);

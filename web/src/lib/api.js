@@ -1,6 +1,20 @@
+import { answer, mediaFor } from './demo.js';
+
 const BASE = '/api';
 
+/* A build made for a public URL carries no server: the catalogue is baked into the page's own
+   folder and `demo.js` answers from it. `LAHN_DEMO=1 npm run build` produces that build. */
+export const DEMO = import.meta.env.VITE_LAHN_DEMO === '1';
+
 async function request(method, route, body) {
+  if (DEMO) {
+    try {
+      return await answer(method, route, body);
+    } catch (err) {
+      if (method === 'GET' && err.status === 404) return null;
+      throw err;
+    }
+  }
   const res = await fetch(`${BASE}${route}`, {
     method,
     headers: body ? { 'content-type': 'application/json' } : undefined,
@@ -86,6 +100,8 @@ export const api = {
 };
 
 function openStream(route, onMessage) {
+  /* Nothing is shared with another screen from a page that has no server to share it through. */
+  if (DEMO) return () => {};
   const source = new EventSource(`${BASE}${route}`);
   source.onmessage = (event) => {
     try {
@@ -100,9 +116,12 @@ function openStream(route, onMessage) {
 export const watchJob = (id, onMessage) => openStream(`/jobs/${id}/events`, onMessage);
 export const watchSession = (onMessage) => openStream('/session/events', onMessage);
 
-export const audioUrl = (id) => `${BASE}/tracks/${id}/audio`;
+/* A saved track plays from the library; a shelf item plays through the server, which fetches it
+   and streams it back so nothing lands on the device. In a preview build both of those are the
+   same one thing: the link the publisher printed for the file, played straight from their server. */
+export const audioUrl = (id) => (DEMO ? mediaFor(id) : `${BASE}/tracks/${id}/audio`);
 /* A shelf item plays without ever being saved; the server fetches and streams it. */
-export const playUrl = (key) => `${BASE}/play/${encodeURIComponent(key)}/audio`;
+export const playUrl = (key) => (DEMO ? mediaFor(key) : `${BASE}/play/${encodeURIComponent(key)}/audio`);
 
 /* Covers are stored as "covers/<id>.jpg" in the library, but a channel or shelf can
    hand back a remote poster. Only the stored form needs the API prefix. */

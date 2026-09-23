@@ -3,6 +3,7 @@ import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { Section, Tile } from '../components/Tile.jsx';
 import { shelfTitle } from '../lib/shelves.js';
+import { DEMO } from '../lib/api.js';
 import { useShelves } from '../lib/useShelves.js';
 import { useMine } from '../lib/useMine.js';
 import { INTEREST_ART } from '../lib/kinds.js';
@@ -216,7 +217,7 @@ export function Home() {
         </Section>
       )}
 
-      {!stats?.tracks && stats && <Onboard />}
+      {!stats?.tracks && stats && !DEMO && <Onboard />}
     </>
   );
 }
