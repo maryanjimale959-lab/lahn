@@ -1,9 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { all, get, newId, now, run, sortKey } from './db.js';
-import { LIBRARY_DIR } from './config.js';
+import { LIBRARY_DIR, LICENSED_ONLY } from './config.js';
 import { log } from './log.js';
 import { fetchBinary, listUploads } from './ytdlp.js';
+import { DRIVERS, isLicensed } from './sources.js';
 
 const CACHE_MS = 6 * 60 * 60 * 1000;
 const LIMIT = 24;
@@ -43,6 +44,10 @@ const V = '/videos';
 /* A channel id needs `/channel/<id>`, a handle already carries its own `@`. */
 const vid = (idOrHandle) =>
   `https://www.youtube.com/${idOrHandle.startsWith('UC') ? `channel/${idOrHandle}` : idOrHandle}${V}`;
+
+/* mp3quran.net's own address for one reciter, which is the stable thing about them — the server
+   their audio sits on changes between narrations, their id does not. */
+const Q = (id) => `https://mp3quran.net/api/v3/reciters/${id}`;
 
 /**
  * Laxan's whole catalogue comes from these sources: the labels, studios and talk shows that
@@ -133,6 +138,32 @@ const DEFAULTS = [
   { name: 'Tanween', url: vid('UC2IhG2yHmAFYPqNZNMyOPkg'), kind: 'podcast', shelf: 'apodcast' },
   { name: 'Arabian Post', url: vid('UCdUp5vHINCdtZS31flL_prg'), kind: 'podcast', shelf: 'apodcast' },
   { name: 'بودكاست عربي', url: 'ytsearch40:بودكاست عربي حلقة طويلة', kind: 'podcast', shelf: 'apodcast' },
+  /* --- the half that publishes its audio for reuse ---
+     Recitation servers and podcast feeds. Everything above this line is scraped off YouTube,
+     which is fine on her own Wi-Fi and is not something to hand a stranger; these are the rows
+     a public Laxan keeps. Each one answers with a direct file link, so a tap on them starts at
+     once instead of waiting on a converter. */
+  { name: 'Abdul Basit', url: Q('51'), kind: 'quran', shelf: 'quran', driver: 'quran' },
+  { name: 'Al-Minshawi', url: Q('112'), kind: 'quran', shelf: 'quran', driver: 'quran' },
+  { name: 'Mishary Alafasy', url: Q('123'), kind: 'quran', shelf: 'quran', driver: 'quran' },
+  { name: "Abu Bakr Al-Shatri", url: Q('4'), kind: 'quran', shelf: 'quran', driver: 'quran' },
+  { name: 'Maher Al Meaqli', url: Q('102'), kind: 'quran', shelf: 'quran', driver: 'quran' },
+  { name: 'Maher Shakhashero', url: Q('149'), kind: 'quran', shelf: 'quran', driver: 'quran' },
+  { name: 'Tarjumaadda Quraanka', url: 'https://www.qurantranslations.net/podcast/Soomaali/Holy_Quran_in_the_Soomaali_Language.rss', kind: 'quran', shelf: 'quran', driver: 'rss' },
+  { name: 'Maamul Wanaag', url: 'https://rss.buzzsprout.com/1805404.rss', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Adeeg Wanaag', url: 'https://rss.buzzsprout.com/823555.rss', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Hiloow', url: 'https://www.spreaker.com/show/5803165/episodes/feed', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Garasho-wadaag', url: 'https://www.spreaker.com/show/5303135/episodes/feed', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Miizaan', url: 'https://feeds.transistor.fm/miizaan', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Hab Fikirka', url: 'https://feed.podbean.com/hilhod143/feed.xml', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Diiwaanka Mahad', url: 'https://rss.buzzsprout.com/2448538.rss', kind: 'podcast', shelf: 'podcasts', driver: 'rss' },
+  { name: 'Sheeko iyo Shaahid', url: 'https://rss.buzzsprout.com/2561549.rss', kind: 'story', shelf: 'stories', driver: 'rss' },
+  { name: 'Buugaag Codka Ubax', url: 'https://rss.buzzsprout.com/721491.rss', kind: 'book', shelf: 'books', driver: 'rss' },
+  { name: 'Duruus Manhaj', url: 'https://manhajonline.com/podcasts/sheekh-cabdilaahi-sheekh-xaashi/feed.xml', kind: 'lesson', shelf: 'lessons', driver: 'rss' },
+  { name: 'Arabi Post', url: 'https://www.omnycontent.com/d/playlist/93ede1a5-f219-4562-a4af-b0c100d3da54/0ade4ea1-fb11-4f07-849d-b27400fd178b/8ce65e43-e7bd-492c-b928-b27400fd1c74/podcast.rss', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
+  { name: 'afikra', url: 'https://feeds.simplecast.com/mQeVlZL1', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
+  { name: 'عَلاقات', url: 'https://podcasts.files.bbci.co.uk/p09m6x31.rss', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
+  { name: 'الأسبوع', url: 'https://feed.podbean.com/podcastsd/feed.xml', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
   ...ARTISTS.map((ar) => ({
     name: ar.name,
     url: ar.channel ? vid(ar.channel) : `ytsearch40:${ar.query}`,
@@ -169,6 +200,7 @@ const seedOwned = (row) => Boolean(row.shelf) || RETIRED.includes(row.url);
  * them are always kept.
  */
 export function seedChannels() {
+  const driverOf = (source) => source.driver ?? 'youtube';
   const byUrl = new Map(DEFAULTS.map((s) => [s.url, s]));
   const byName = new Map(DEFAULTS.map((s) => [sortKey(s.name), s]));
   const claimed = new Set();
@@ -183,13 +215,16 @@ export function seedChannels() {
   };
 
   /* A row that already carries the right url wins the source, so process those first. */
-  const rows = all('SELECT id, url, name, kind, shelf FROM channels').sort(
+  const rows = all('SELECT id, url, name, kind, shelf, driver FROM channels').sort(
     (a, b) => Number(!byUrl.has(b.url)) - Number(!byUrl.has(a.url))
   );
 
   for (const ch of rows) {
     if (!seedOwned(ch)) continue;
-    const source = byUrl.get(ch.url) ?? byName.get(sortKey(ch.name));
+    /* Matching on a name alone used to be enough, but a show can exist as both a channel and a
+       feed — the feed must not reach over and retitle the channel that got there first. */
+    const named = byName.get(sortKey(ch.name));
+    const source = byUrl.get(ch.url) ?? (named && driverOf(named) === (ch.driver ?? 'youtube') ? named : null);
     try {
       /* Two rows for one source — the old build's name and the new one's url, say. The second
          is a duplicate and its name would collide with the first, so it goes. */
@@ -199,11 +234,11 @@ export function seedChannels() {
       }
       claimed.add(source.url);
       if (ch.url === source.url) {
-        run('UPDATE channels SET name = ?, kind = ?, shelf = ?, sort_key = ? WHERE id = ?', source.name, source.kind, source.shelf ?? null, sortKey(source.name), ch.id);
+        run('UPDATE channels SET name = ?, kind = ?, shelf = ?, sort_key = ?, driver = ? WHERE id = ?', source.name, source.kind, source.shelf ?? null, sortKey(source.name), driverOf(source), ch.id);
         continue;
       }
       /* A different url means a different list: the cached one has to go. */
-      run('UPDATE channels SET url = ?, name = ?, kind = ?, shelf = ?, sort_key = ?, uploads = NULL, fetched_at = NULL WHERE id = ?', source.url, source.name, source.kind, source.shelf ?? null, sortKey(source.name), ch.id);
+      run('UPDATE channels SET url = ?, name = ?, kind = ?, shelf = ?, sort_key = ?, driver = ?, uploads = NULL, fetched_at = NULL WHERE id = ?', source.url, source.name, source.kind, source.shelf ?? null, sortKey(source.name), driverOf(source), ch.id);
       changed += 1;
     } catch (err) {
       log.warn(`starter source ${source?.name ?? ch.name} skipped:`, err.message);
@@ -213,7 +248,7 @@ export function seedChannels() {
   for (const source of DEFAULTS) {
     if (claimed.has(source.url)) continue;
     try {
-      run('INSERT INTO channels (id, url, name, sort_key, kind, image, added_at, uploads, fetched_at, shelf) VALUES (?, ?, ?, ?, ?, NULL, ?, NULL, NULL, ?)', newId(), source.url, source.name, sortKey(source.name), source.kind, now(), source.shelf ?? null);
+      run('INSERT INTO channels (id, url, name, sort_key, kind, image, added_at, uploads, fetched_at, shelf, driver) VALUES (?, ?, ?, ?, ?, NULL, ?, NULL, NULL, ?, ?)', newId(), source.url, source.name, sortKey(source.name), source.kind, now(), source.shelf ?? null, driverOf(source));
       changed += 1;
     } catch (err) {
       log.warn(`starter source ${source.name} skipped:`, err.message);
@@ -276,6 +311,7 @@ function row(channel) {
     uploadCount: list.length,
     preview: list[0]?.thumbnail ?? null,
     isSearch: String(channel.url).startsWith('ytsearch'),
+    licensed: isLicensed(channel.driver),
   };
 }
 
@@ -308,14 +344,18 @@ export function channelUploads(id) {
 const isFresh = (channel) => Date.now() - (channel.fetched_at ?? 0) < CACHE_MS;
 
 /**
- * Sources worth asking again: not fresh, and not one that just failed. The Home shelves come
- * first so the app fills up with something to play before the artist grids finish.
+ * Sources worth asking again: not fresh, and not one that just failed. The feeds and recitation
+ * servers answer in a second and the Home shelves come before the artist grids, so a first open
+ * fills up with something to play as early as it can.
  */
 function staleIds() {
-  const due = all('SELECT id, shelf, fetched_at FROM channels').filter(
-    (c) => !isFresh(c) && Date.now() - (failed.get(c.id) ?? 0) > FAILED_MS
-  );
-  const rank = (c) => (c.shelf && c.shelf.startsWith('a-') ? 1 : 0);
+  const due = all('SELECT id, shelf, fetched_at, driver FROM channels').filter((c) => {
+    /* A build that will not show them has no reason to spend its refresh cycle on the scraped
+       sources either. */
+    if (LICENSED_ONLY && !isLicensed(c.driver)) return false;
+    return !isFresh(c) && Date.now() - (failed.get(c.id) ?? 0) > FAILED_MS;
+  });
+  const rank = (c) => (isLicensed(c.driver) ? -1 : c.shelf && c.shelf.startsWith('a-') ? 1 : 0);
   return due.sort((a, b) => rank(a) - rank(b)).map((c) => c.id);
 }
 
@@ -325,9 +365,11 @@ export function catalog({ kind = null, shelf = null, q = null } = {}) {
   const needle = q ? String(q).trim().toLowerCase() : null;
   const items = [];
   for (const channel of all('SELECT * FROM channels')) {
+    if (LICENSED_ONLY && !isLicensed(channel.driver)) continue;
     if (kind && channel.kind !== kind) continue;
     if (shelf && channel.shelf !== shelf) continue;
     const name = niceName(channel.name);
+    const licensed = isLicensed(channel.driver);
     for (const u of parse(channel.uploads)) {
       if (needle && !`${u.title} ${name}`.toLowerCase().includes(needle)) continue;
       items.push({
@@ -335,6 +377,9 @@ export function catalog({ kind = null, shelf = null, q = null } = {}) {
         id: u.id,
         title: u.title,
         url: u.url,
+        /* Set when the source hands out the file itself. Playback reads it and skips the
+           converter, which is why these rows start the moment she taps them. */
+        audio: u.audio ?? null,
         duration: u.duration,
         thumbnail: u.thumbnail,
         uploadedAt: u.uploadedAt,
@@ -342,6 +387,8 @@ export function catalog({ kind = null, shelf = null, q = null } = {}) {
         shelf: channel.shelf,
         channelId: channel.id,
         channel: name,
+        driver: channel.driver,
+        licensed,
         savedTrackId: saved.get(u.id) ?? null,
       });
     }
@@ -351,11 +398,51 @@ export function catalog({ kind = null, shelf = null, q = null } = {}) {
 
 const take = (list, n = 18) => list.slice(0, n);
 
+/* Rows that carry their own file link come first within a shelf: they start the instant she
+   taps, where a scraped video needs the converter first. The rest keeps the newest-first order
+   the catalogue already came in with. */
+const leadWithDirectPlay = (list) =>
+  list.filter((i) => i.audio).concat(list.filter((i) => !i.audio));
+
+/* A shelf is one screen of choices, not one programme's whole discography: no single source gets
+   to fill it, so the six reciters behind the Quraan shelf all appear on it rather than the one
+   whose episodes happen to carry the newest dates. */
+const spread = (list, n = 18, perSource = 3) => {
+  const used = new Map();
+  const picked = [];
+  const taken = new Set();
+  for (const item of list) {
+    if (picked.length === n) break;
+    const key = item.channelId;
+    if ((used.get(key) ?? 0) >= perSource) continue;
+    used.set(key, (used.get(key) ?? 0) + 1);
+    picked.push(item);
+    taken.add(item.key);
+  }
+  /* A shelf with fewer sources than slots still fills up. */
+  for (const item of list) {
+    if (picked.length >= n) break;
+    if (taken.has(item.key)) continue;
+    picked.push(item);
+  }
+  return picked;
+};
+
 /* Two saved searches can return the same upload; a shelf should never show it twice. */
 const dedupe = (list) => {
   const seen = new Set();
   return list.filter((item) => !seen.has(item.id) && seen.add(item.id));
 };
+
+/**
+ * The whole shelf page, in the order she should meet it. Nothing is dropped — she can scroll to
+ * the bottom of any programme — but the sources take turns at the top, so one feed with recent
+ * dates cannot hide the five reciters published behind the same shelf.
+ */
+export function shelfPage(shelf) {
+  const list = dedupe(catalog({ shelf }));
+  return spread(leadWithDirectPlay(list), list.length);
+}
 
 const VIDEO_ID = /^[\w-]{6,40}$/;
 const SEARCH_MS = 30 * 60 * 1000;
@@ -366,6 +453,7 @@ const searches = new Map();
  * half an hour. The rows play through the same `search:<id>` key the player already uses.
  */
 export async function liveSearch(query, { limit = 15 } = {}) {
+  if (LICENSED_ONLY) return [];
   const needle = String(query ?? '').trim();
   if (needle.length < 3) return [];
   const hit = searches.get(needle.toLowerCase());
@@ -416,6 +504,7 @@ export function itemByKey(key) {
   }
   const channel = channelId ? channelById(channelId) : null;
   if (!channel) return null;
+  if (LICENSED_ONLY && !isLicensed(channel.driver)) return null;
   const found = parse(channel.uploads).find((u) => u.id === videoId || String(u.url).includes(videoId));
   if (!found) return null;
   return {
@@ -423,12 +512,15 @@ export function itemByKey(key) {
     id: found.id,
     title: found.title,
     url: found.url,
+    audio: found.audio ?? null,
     duration: found.duration,
     thumbnail: found.thumbnail,
     kind: channel.kind,
     shelf: channel.shelf,
     channelId: channel.id,
     channel: niceName(channel.name),
+    driver: channel.driver,
+    licensed: isLicensed(channel.driver),
   };
 }
 
@@ -442,7 +534,7 @@ export function shelves(interests = []) {
   const byShelf = (shelf) => dedupe(items.filter((i) => i.shelf === shelf));
   const picked = new Set(interests);
 
-  const rows = HOME_SHELVES.map((id) => ({ id, items: take(byShelf(id)) }))
+  const rows = HOME_SHELVES.map((id) => ({ id, items: spread(leadWithDirectPlay(byShelf(id))) }))
     .filter((shelf) => shelf.items.length)
     .sort((a, b) => Number(picked.has(b.id)) - Number(picked.has(a.id)));
 
@@ -533,11 +625,14 @@ export async function refreshChannel(id) {
   if (pending.has(id)) return pending.get(id);
 
   const work = (async () => {
-    const info = await listUploads(channel.url, { limit: LIMIT });
+    const fetcher = DRIVERS[channel.driver];
+    const info = fetcher ? await fetcher(channel.url, { limit: LIMIT, kind: channel.kind }) : await listUploads(channel.url, { limit: LIMIT });
     if (!info.entries.length) throw new Error(`Nothing came back from ${channel.name}.`);
     /* A saved search has no channel art of its own, so its top upload stands in for it. */
     const image = channel.url.startsWith('ytsearch') ? await cacheArt(id, info.entries[0]?.thumbnail) : await cacheArt(id, info.image);
-    const name = channel.url.startsWith('ytsearch') ? channel.name : info.name || channel.name;
+    /* Recitation servers and feeds are named here because their own titles are a programme
+       note, not what she looks for; a channel gets the name it publishes under. */
+    const name = fetcher || channel.url.startsWith('ytsearch') ? channel.name : info.name || channel.name;
     run('UPDATE channels SET uploads = ?, fetched_at = ?, image = COALESCE(?, image), name = ?, sort_key = ? WHERE id = ?', JSON.stringify(info.entries), now(), image, name, sortKey(name), id);
     return channelUploads(id);
   })().finally(() => pending.delete(id));

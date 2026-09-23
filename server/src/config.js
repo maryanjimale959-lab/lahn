@@ -20,6 +20,11 @@ export const WEB_DIST = path.join(REPO_ROOT, 'web', 'dist');
 
 export const AUDIO_EXTENSIONS = new Set(['.m4a', '.mp3', '.opus', '.ogg', '.wav', '.flac', '.mka', '.aac']);
 
+/* A build meant to be handed to strangers drops every shelf whose audio was scraped off a video
+   site and keeps the podcast feeds and recitation servers that publish for reuse. Her own
+   machine leaves this off, so nothing about the app she listens to changes. */
+export const LICENSED_ONLY = /^(1|true|yes)$/i.test(ENV('LAHN_LICENSED_ONLY', ''));
+
 const EXE = process.platform === 'win32' ? '.exe' : '';
 
 function fromPath(name) {

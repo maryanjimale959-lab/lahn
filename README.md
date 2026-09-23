@@ -65,13 +65,14 @@ home screen. `npm run doctor` prints the address to use.
 Everything has a sensible default; set these only if you want to move something. The `LAHN_`
 prefix is the internal one — the app is called Laxan.
 
-| Variable        | Default                | Purpose                                  |
-| --------------- | ---------------------- | ---------------------------------------- |
-| `LAHN_PORT`     | `4780`                 | HTTP port for the app and the API        |
-| `LAHN_LIBRARY`  | `./library`            | Where saved audio and cover art live     |
-| `LAHN_DATA`     | `./server/data`        | SQLite database, streamed audio, tools   |
-| `LAHN_YTDLP`    | auto-detected          | Absolute path to `yt-dlp`                |
-| `LAHN_FFMPEG`    | auto-detected          | Absolute path to `ffmpeg`                 |
+| Variable             | Default                | Purpose                                  |
+| -------------------- | ---------------------- | ---------------------------------------- |
+| `LAHN_PORT`          | `4780`                 | HTTP port for the app and the API        |
+| `LAHN_LIBRARY`       | `./library`            | Where saved audio and cover art live     |
+| `LAHN_DATA`          | `./server/data`        | SQLite database, streamed audio, tools   |
+| `LAHN_YTDLP`         | auto-detected          | Absolute path to `yt-dlp`                |
+| `LAHN_FFMPEG`        | auto-detected          | Absolute path to `ffmpeg`                |
+| `LAHN_LICENSED_ONLY` | off                    | Hide every scraped source — see below    |
 
 ## Layout
 
@@ -83,6 +84,34 @@ library/      your saved music (gitignored)
 server/data/  the database and the streaming cache (gitignored)
 ```
 
+## The two halves of the catalog
+
+Every source on the Channels page declares a **driver**, and the driver decides how the audio
+arrives:
+
+- `youtube` — a channel or a saved search, scraped with yt-dlp and converted with ffmpeg. This
+  is the half with the music: Heeso, Rap, Heeso jacyl, Muusiko Carabi, and the twenty artists.
+  It needs yt-dlp, it can take half a minute before the first play, and it is the half that is
+  against YouTube's terms once anyone but you is listening.
+- `rss` and `quran` — a podcast feed, or a recitation server. These publish a direct link to
+  the mp3 themselves, so Laxan just forwards the bytes (with real Range seeking) and never
+  touches the converter. Tap-to-sound is under two seconds.
+
+Set `LAHN_LICENSED_ONLY=1` and the second half is all the app shows: the scraped sources
+disappear from the shelves, the catalog, search and the refresh cycle, and the Quran, podcast,
+story, book, lesson and Arabic-podcast shelves stay — 438 items across six shelves on a fresh
+install. That is the build to hand to someone else, wrap as an APK, or put on a store.
+
+What it does **not** have is music. Somali and Arabic pop is not licensed anywhere that allows
+redistribution — archive.org's Creative Commons collections carry zero Somali songs, and the
+"Somali Songs" tags there are an uploader claiming rights to other people's work. Heeso only
+arrives through your own library folder or the scraped shelves, which is exactly why the
+publishable build leaves them out.
+
+```bash
+node scripts/licensed.mjs   # boots a licensed-only copy on :4791, plays one item per shelf, deletes itself
+```
+
 ## Development
 
 ```bash
@@ -90,6 +119,7 @@ npm run doctor                        # tools, ports, library, database
 node scripts/check.mjs                # sign in, wait for the catalog, play one item per shelf
 node scripts/streamtest.mjs           # every shelf, one item each, with the failure reason
 node scripts/catalogcheck.mjs         # search, the artist grid, one artist page
+node scripts/licensed.mjs             # the publishable half, on its own port, played end to end
 node scripts/preview.mjs              # 11 screenshots of the real app, desktop + phone
 node scripts/users.mjs                # list accounts, clean up test ones
 node scripts/shots.mjs                # the older full-screen walk with a playback assertion
@@ -111,3 +141,8 @@ for things you can already watch, running only on your own devices on your own n
 server binds to the LAN, there is no telemetry, and nothing leaves the machine. Keep it that
 way — it is not meant to be a public or shared service, and it is not a store of other
 people's work.
+
+The licensed half described above is the exception: those feeds and recitation servers publish
+their files for anyone to play, so a `LAHN_LICENSED_ONLY=1` build of Laxan is one you can put
+in front of other people. The scraped half is not, and turning it on for strangers — a hosted
+URL, a store listing — is how your name ends up on someone else's copyright claim.

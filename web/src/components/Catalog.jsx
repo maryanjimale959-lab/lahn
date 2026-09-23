@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { clock } from '../lib/format.js';
 import { KIND_ICON } from '../lib/kinds.js';
 import { playUrl } from '../lib/api.js';
+import { warmGradient } from '../lib/art.js';
 import { Icon } from './Icons.jsx';
 import { Section } from './Tile.jsx';
 import { useLibrary } from '../state/library.jsx';
@@ -25,13 +26,15 @@ export const streamTrack = (item) => ({
   src: playUrl(streamKey(item)),
 });
 
-/* Remote art fails often enough that a missing poster has to look deliberate. */
-function Poster({ src, kind }) {
+/* Remote art fails often enough that a missing poster has to look deliberate. Recitation has no
+   poster at all, so the tile earns its own colour from the surah's name rather than showing the
+   same flat glyph eleven rows in a row. */
+function Poster({ src, kind, seed }) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
     const Glyph = Icon[KIND_ICON[kind] ?? 'song'] ?? Icon.song;
     return (
-      <span className="cat-blank">
+      <span className="cat-blank" style={{ backgroundImage: warmGradient(seed) }}>
         <Glyph />
       </span>
     );
@@ -75,7 +78,7 @@ export function CatalogCard({ item, onError }) {
   return (
     <article className={`cat ${saved ? 'saved' : ''} ${running ? 'busy' : ''} ${failed ? 'failed' : ''} ${onAir && loading ? 'waiting' : ''}`}>
       <button type="button" className="cat-art" onClick={act} title={label} aria-label={`${label} — ${item.title}`}>
-        <Poster src={item.thumbnail} kind={item.kind} />
+        <Poster src={item.thumbnail} kind={item.kind} seed={item.title} />
         <span className="cat-fab">
           {running ? (
             <span className="cat-pct">{Math.round(job.percent ?? 0)}</span>

@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS channels (
   added_at INTEGER NOT NULL,
   uploads TEXT,
   fetched_at INTEGER,
-  shelf TEXT
+  shelf TEXT,
+  driver TEXT NOT NULL DEFAULT 'youtube'
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -108,6 +109,12 @@ if (!hasColumn('tracks', 'channel_id')) {
 if (!hasColumn('channels', 'shelf')) {
   db.exec('ALTER TABLE channels ADD COLUMN shelf TEXT');
   log.info('library schema updated: channels.shelf');
+}
+/* Which engine fills a source: a scraped video, a podcast feed, or a recitation server. The
+   last two carry their audio as a plain link and are the ones a public build may keep. */
+if (!hasColumn('channels', 'driver')) {
+  db.exec("ALTER TABLE channels ADD COLUMN driver TEXT NOT NULL DEFAULT 'youtube'");
+  log.info('library schema updated: channels.driver');
 }
 db.exec('CREATE INDEX IF NOT EXISTS tracks_kind_idx ON tracks (kind)');
 

@@ -1,7 +1,9 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
+import { Readable } from 'node:stream';
 import { CACHE_DIR, tools } from './config.js';
+import { log } from './log.js';
 
 mkdirSync(CACHE_DIR, { recursive: true });
 
@@ -122,5 +124,62 @@ export async function ensurePlayable(item) {
 }
 
 export const mimeFor = (file) => (path.extname(file).toLowerCase() === '.mp3' ? 'audio/mpeg' : 'audio/mp4');
+
+/**
+ * A licensed item is already a file on somebody's CDN, so there is nothing to convert: pass the
+ * byte range straight through and carry the answer back. Going through this server rather than
+ * pointing the browser at the CDN is what keeps the phone working when the host next door
+ * serves its audio without a cross-origin header, and keeps one origin for the whole app.
+ */
+export async function streamRemote(req, res, url) {
+  const target = new URL(url);
+  const abort = new AbortController();
+  const stop = () => abort.abort(new Error('the listener moved on'));
+  req.on('close', stop);
+  res.on('close', stop);
+
+  let upstream;
+  try {
+    upstream = await fetch(url, {
+      headers: {
+        'user-agent': 'Mozilla/5.0 (compatible; Laxan/0.1; personal music app)',
+        ...(req.headers.range ? { range: req.headers.range } : {}),
+      },
+      redirect: 'follow',
+      signal: abort.signal,
+    });
+  } catch (err) {
+    req.off('close', stop);
+    throw Object.assign(new Error(`${target.host} would not answer: ${err.message}`), { code: 'STREAM_FAILED' });
+  }
+
+  if (!upstream.ok && upstream.status !== 206) {
+    req.off('close', stop);
+    abort.abort(new Error('gone'));
+    throw Object.assign(new Error(`${target.host} answered ${upstream.status} for that episode.`), { code: 'STREAM_FAILED' });
+  }
+
+  const forward = ['content-length', 'content-range', 'content-type', 'accept-ranges'];
+  const headers = { 'cache-control': 'private, max-age=86400', 'accept-ranges': 'bytes' };
+  for (const name of forward) {
+    const value = upstream.headers.get(name);
+    if (value) headers[name] = value;
+  }
+  if (!headers['content-type']?.startsWith('audio')) headers['content-type'] = 'audio/mpeg';
+
+  res.writeHead(upstream.status, headers);
+  if (req.method === 'HEAD' || !upstream.body) {
+    req.off('close', stop);
+    return res.end();
+  }
+
+  const source = Readable.fromWeb(upstream.body, { highWaterMark: 256 * 1024 });
+  source.on('error', (err) => {
+    log.warn('remote stream broke:', err.message);
+    res.destroy();
+  });
+  source.on('close', () => req.off('close', stop));
+  source.pipe(res);
+}
 
 export { CACHE_DIR };

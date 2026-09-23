@@ -1,15 +1,15 @@
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import express from 'express';
-import { APP_VERSION, LIBRARY_DIR, PORT, tools } from './config.js';
+import { APP_VERSION, LIBRARY_DIR, LICENSED_ONLY, PORT, tools } from './config.js';
 import { all, get, isKind, newId, now, run, sortKey, stats, tx } from './db.js';
 import { lanAddresses } from './net.js';
 import { absolutePath, pruneMissing, pruneOrphans, scanLibrary, TRACK_SELECT, trackById } from './library.js';
 import { cancel, createJob, getJob, isDuplicateUrl, listJobs, subscribe, unsubscribe } from './jobs.js';
-import { addChannel, artistBySlug, artistsWithSaved, catalog, channelUploads, deleteChannel, INTERESTS, itemByKey, listChannels, liveSearch, refreshAll, refreshChannel, shelves } from './channels.js';
+import { addChannel, artistBySlug, artistsWithSaved, catalog, channelUploads, deleteChannel, INTERESTS, itemByKey, listChannels, liveSearch, refreshAll, refreshChannel, shelves, shelfPage } from './channels.js';
 import * as playback from './session.js';
 import { accountCount, dropAccount, endSession, interestsOf, isLocked, listHistory, listLikes, notePlayed, publicUser, renameUser, setInterests, signIn, signUp, startSession, toggleLike, userFromRequest } from './auth.js';
-import { cachedFile, ensurePlayable, mimeFor } from './stream.js';
+import { cachedFile, ensurePlayable, mimeFor, streamRemote } from './stream.js';
 import { log } from './log.js';
 
 const MIME = {
@@ -120,6 +120,13 @@ export function createApi() {
     const item = itemByKey(req.params.key);
     if (!item) return res.status(404).json({ error: 'Not on a shelf' });
     try {
+      /* Recitation and podcast episodes arrive as a file link, so they are passed through as
+         they are. A scraped video has to be turned into audio first, which is the slow path. */
+      if (item.audio) {
+        await streamRemote(req, res, item.audio);
+        notePlayed(req.user?.id, item, 0);
+        return;
+      }
       const file = await ensurePlayable(item);
       notePlayed(req.user?.id, item, 0);
       streamFile(req, res, file, mimeFor(file));
@@ -134,7 +141,7 @@ export function createApi() {
   router.get('/play/:key', async (req, res) => {
     const item = itemByKey(req.params.key);
     if (!item) return res.status(404).json({ error: 'Not on a shelf' });
-    res.json({ item, ready: Boolean(cachedFile(item.id)) });
+    res.json({ item, ready: Boolean(item.audio) || Boolean(cachedFile(item.id)) });
   });
 
   router.get('/health', (_req, res) => {
@@ -145,6 +152,8 @@ export function createApi() {
       name: 'Laxan',
       port: PORT,
       lan: lanAddresses(),
+      /* What this instance was started to be: her whole shelf, or only what may be published. */
+      licensedOnly: LICENSED_ONLY,
       libraryDir: LIBRARY_DIR,
       tools: { ytdlp: t.ytDlp, ffmpeg: t.ffmpeg, ffprobe: t.ffprobe },
       missing: [!t.ytDlp && 'yt-dlp', !t.ffmpeg && 'ffmpeg'].filter(Boolean),
@@ -426,7 +435,10 @@ export function createApi() {
   });
 
   router.get('/catalog', (req, res) => {
-    const items = catalog({ kind: isKind(req.query.kind), shelf: String(req.query.shelf ?? '').trim() || null, q: req.query.q });
+    const shelf = String(req.query.shelf ?? '').trim();
+    const items = shelf
+      ? shelfPage(shelf)
+      : catalog({ kind: isKind(req.query.kind), q: req.query.q });
     res.json({ items, ready: shelves().ready });
   });
 
