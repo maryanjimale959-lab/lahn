@@ -428,6 +428,25 @@ const spread = (list, n = 18, perSource = 3) => {
   return picked;
 };
 
+/* Home's top row is the mix she asked for, not one shelf shown twice: the shelves she picked
+   take turns sending a row down, so it reads as her own rather than as a copy of the row under
+   it. */
+const weave = (rows) => {
+  const out = [];
+  for (let n = 0; out.length < 18; n += 1) {
+    let any = false;
+    for (const items of rows) {
+      const item = items[n];
+      if (item && !out.includes(item)) {
+        out.push(item);
+        any = true;
+      }
+    }
+    if (!any) break;
+  }
+  return out;
+};
+
 /* Two saved searches can return the same upload; a shelf should never show it twice. */
 const dedupe = (list) => {
   const seen = new Set();
@@ -538,7 +557,7 @@ export function shelves(interests = []) {
     .filter((shelf) => shelf.items.length)
     .sort((a, b) => Number(picked.has(b.id)) - Number(picked.has(a.id)));
 
-  const mine = rows.filter((row) => picked.has(row.id)).flatMap((row) => row.items);
+  const mine = weave(rows.filter((row) => picked.has(row.id)).map((row) => row.items));
   const out = [{ id: 'foryou', items: take(mine) }, { id: 'fresh', items: take(dedupe(items)) }, ...rows].filter((shelf) => shelf.items.length);
 
   return {
