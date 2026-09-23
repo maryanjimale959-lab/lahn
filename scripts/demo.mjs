@@ -90,7 +90,22 @@ async function answers(url) {
 
 console.log('booting a throwaway Laxan that carries only what may be published…\n');
 if (!(await until('it to come up', async () => (await get('/health')).ok))) process.exit(1);
-await until('every source to answer', async () => (await get('/shelves')).ready, { tries: 120 });
+/* The first shelf read starts the sweep, and until it runs out a source can still be holding no
+   listing — a preview baked too early would open an artist onto an empty page, and the link check
+   below would time out links that are fine because the sweep is eating every lane. A scraped
+   channel costs a Python process each, so this is patient: it waits for the server to say it is
+   done, and prints what it is still waiting on. */
+let due = 0;
+for (let round = 0; round < 200; round += 1) {
+  if ((await get('/shelves')).ready) {
+    due = 0;
+    break;
+  }
+  due = (await get('/health')).sources.due;
+  if (round % 3 === 0) console.log(`  … ${due} source(s) still answering`);
+  await wait(5000);
+}
+if (due) console.log(`  ${due} source(s) never answered — their pages are checked below`);
 
 const home = await get('/shelves');
 const sources = (await get('/channels')).channels;
@@ -111,6 +126,7 @@ for (const kind of kinds) byKind[kind] = (await get(`/catalog?kind=${kind}`)).it
 const uploads = {};
 for (const channel of sources) uploads[channel.id] = (await get(`/channels/${channel.id}`)).uploads;
 
+
 /* ---- keep what a browser can fetch on its own, and what it can hand back to its owner ---- */
 const all = new Map();
 const handed = new Map();
@@ -127,8 +143,13 @@ const add = (item) => {
     });
   }
 };
-/* A channel's own upload list is read for its ordering only: those rows carry no shelf or kind,
-   so cataloguing them here would put bare items on the shelves. */
+/* A channel's own list is a row without a shelf, a kind or the shelf's key, so it is registered
+   under the key the rest of the file uses — before the shelf rows, which carry more about each
+   item and overwrite it. Without this an artist's page would open onto nothing. */
+for (const [channelId, list] of Object.entries(uploads)) {
+  const source = sources.find((c) => c.id === channelId);
+  for (const u of list) add({ ...u, kind: u.kind ?? source?.kind, key: `${channelId}:${u.id}`, channelId, channel: source?.name });
+}
 for (const list of [home.shelves.flatMap((s) => s.items), Object.values(pages).flat(), Object.values(byKind).flat()].flat()) add(list);
 
 console.log(`  ${all.size} carry their own file link, ${handed.size} live on their creator's page`);
@@ -152,18 +173,25 @@ console.log(`\n  ${all.size} play, ${dead.size} do not\n`);
 
 const keys = (list) => list.map((i) => i.key).filter((k) => all.has(k) || handed.has(k));
 
-/* A shelf is a screen of choices, not one artist's whole discography: the rows that live on
-   their creator's page are kept newest-first and thinned per shelf and per channel, so the file
-   a visitor downloads stays small and no single channel fills the preview. */
-const SONG_SHELVES = new Set(['music', 'rap', 'love', 'amusic']);
-const perSlot = new Map();
+/* A shelf is a screen of choices, not one artist's whole discography, so the rows that live on
+   their creator's page are kept newest-first and thinned. Two budgets apply, and a row needs room
+   in only one of them: every shelf may fill up to PER_SHELF, and every creator may fill her own
+   page up to PER_CHANNEL. Without the second one a busy shelf uses up its allowance on the three
+   singers who released this week, and the rest of the channels she added open onto nothing. */
+const PER_SHELF = 60;
+const PER_CHANNEL = 12;
+const used = { shelf: new Map(), channel: new Map() };
+const bump = (map, key) => {
+  const n = (map.get(key) ?? 0) + 1;
+  map.set(key, n);
+  return n;
+};
 const thin = (i) => {
-  const slot = i.shelf ?? `ch:${i.channelId}`;
-  /* Only the shelves with nothing licensed of their own are handed out; the rest already play. */
-  if (i.shelf && !SONG_SHELVES.has(i.shelf)) return false;
-  const used = perSlot.get(slot) ?? 0;
-  if (used >= 36) return false;
-  perSlot.set(slot, used + 1);
+  const shelfRoom = i.shelf && (used.shelf.get(i.shelf) ?? 0) < PER_SHELF;
+  const channelRoom = i.channelId && (used.channel.get(i.channelId) ?? 0) < PER_CHANNEL;
+  if (!shelfRoom && !channelRoom) return false;
+  if (shelfRoom) bump(used.shelf, i.shelf);
+  if (channelRoom) bump(used.channel, i.channelId);
   return true;
 };
 const ontoChannel = [...handed.values()].sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)).filter(thin);
@@ -187,6 +215,15 @@ const pick = (i) => ({
 });
 const items = [...all.values(), ...ontoChannel].map(pick);
 
+/* Each source's own page lists what survived, newest first. Built from the kept rows rather than
+   the server's ordering so a page never advertises a listing the preview cannot show. */
+const byChannel = new Map();
+for (const i of items) {
+  if (!i.channelId) continue;
+  (byChannel.get(i.channelId) ?? byChannel.set(i.channelId, []).get(i.channelId)).push(i);
+}
+const channelPage = Object.fromEntries([...byChannel].map(([id, list]) => [id, list.sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)).map((i) => i.key)]));
+
 const payload = {
   laxanDemo: 1,
   bakedAt: new Date().toISOString(),
@@ -208,16 +245,21 @@ const payload = {
     health: c.health,
     uploadCount: c.uploadCount,
   })),
-  channelPages: Object.fromEntries(Object.entries(uploads).map(([id, list]) => [id, keys(list)])),
+  channelPages: Object.fromEntries(sources.map((c) => [c.id, channelPage[c.id] ?? []])),
 };
 
 /* Anything scraped as audio, any private path, any address of hers: none of it may reach a public
-   file. What may reach it is a page address — the creator's own — and the artwork they publish. */
+   file. What may reach it is a page address — the creator's own — and the artwork they publish.
+   The video-host test belongs on the fields a browser would actually fetch: a song called
+   "Hees Cusub — YouTube" is a title she wrote, not a stream we hijacked, and testing the whole
+   file for the word throws away real music every time an artist names the platform in a title. */
 const offline = JSON.stringify({
   ...payload,
   items: payload.items.map(({ link, thumbnail, ...rest }) => rest),
   sources: payload.sources.map(({ image, preview, ...rest }) => rest),
 });
+const STREAM_FIELDS = JSON.stringify(payload.items.map((i) => i.audio));
+const GUARD_ON = { 'a scraped audio address': STREAM_FIELDS };
 for (const [what, re] of [
   ['a scraped audio address', /youtube|youtu\.be|googlevideo|ytimg/i],
   ['a Windows path', /[A-Za-z]:\\\\/],
@@ -225,7 +267,7 @@ for (const [what, re] of [
   ['an email address', /[\w.+-]+@[\w-]+\.[a-z]{2,}/i],
   ['her machine', /localhost|127\.0\.0\.1|192\.168\./i],
 ]) {
-  if (re.test(offline)) fail(`the payload still carries ${what}`);
+  if (re.test(GUARD_ON[what] ?? offline)) fail(`the payload still carries ${what}`);
 }
 if (payload.items.some((i) => i.audio && /youtube|youtu\.be|googlevideo|ytimg/i.test(i.audio))) {
   fail('an audio link points at a video host — nothing scraped may be streamed');
@@ -234,6 +276,13 @@ if (payload.items.some((i) => !i.audio && !i.link)) fail('a row can neither play
 if (payload.items.some((i) => /[^\x20-\x7e]/.test(`${i.audio}${i.link ?? ''}`))) fail('a link holds a character a URL cannot carry');
 if (payload.items.length < 120) fail(`only ${payload.items.length} playable items — too thin to show anybody`);
 if (payload.rows.filter((r) => !['foryou', 'fresh'].includes(r.id)).length < 3) fail('fewer than three shelves survived');
+/* She added these channels herself; a preview that opens one onto an empty page is worse than one
+   that never claimed to carry it. */
+const silent = payload.sources.filter((c) => c.uploadCount > 0 && !(payload.channelPages[c.id] ?? []).length);
+if (silent.length) fail(`${silent.length} source(s) have listings but no page: ${silent.slice(0, 5).map((c) => c.name).join(', ')}`);
+for (const kind of ['song', 'podcast', 'quran']) {
+  if ((payload.kindPages[kind] ?? []).length < 24) fail(`the ${kind} page holds only ${(payload.kindPages[kind] ?? []).length} rows`);
+}
 
 mkdirSync(path.dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(payload));

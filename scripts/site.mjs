@@ -1,6 +1,6 @@
 /* Assemble the public site: the landing page on top, the running preview underneath it at /app.
    Run: npm run demo:bake && npm run demo:build && npm run site */
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -30,9 +30,45 @@ if (linkless.length) fail(`${linkless.length} items can neither play nor hand of
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(path.join(OUT, 'app'), { recursive: true });
 
+/* What the page claims about itself is read off the catalogue it ships with, so the numbers, the
+   singers and the podcasters cannot drift away from what a visitor will actually find inside. */
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const local = (n) => n.toLocaleString('en-US');
+/* Arabic is written with its own numerals, so the Arabic copy cannot reuse the Latin ones. */
+const arabic = (n) => n.toLocaleString('ar-EG');
+const ofKind = (...kinds) =>
+  payload.sources
+    .filter((c) => kinds.includes(c.kind))
+    .map((c) => c.name)
+    .sort((a, b) => a.localeCompare(b, 'so'));
+/* Each row is written twice: the strip slides by exactly half its width, so the seam is invisible. */
+const strip = (names) => {
+  const spans = names.map((n) => `<span>${esc(n)}</span>`).join('');
+  return `${spans}${spans}`;
+};
+/* The songs are the ones the tap hands back to the artist who released them, and every number the
+   page shows is written in the digits that language uses. */
+const songs = payload.items.filter((i) => i.link && !i.audio && i.kind === 'song').length;
+const inLang = (n, lang) => n.toLocaleString(lang);
+const filled = {
+  ITEMS: String(payload.items.length),
+  'ITEMS.LOCAL': local(payload.items.length),
+  'ITEMS.AR': inLang(payload.items.length, 'ar-EG'),
+  SOURCES: String(payload.sources.length),
+  SONGS: String(songs),
+  'SONGS.LOCAL': local(songs),
+  'SONGS.AR': inLang(songs, 'ar-EG'),
+  'MARQUEE-SONGS': strip(ofKind('song')),
+  'MARQUEE-OTHERS': strip(ofKind('podcast', 'quran', 'story', 'lesson', 'book')),
+};
+const fill = (text) =>
+  text.replace(/\{\{([A-Z.-]+)\}\}/g, (token, name) => (name in filled ? filled[name] : fail(`nothing to fill ${token} with`)));
+
 for (const file of ['index.html', 'styles.css', 'site.js', 'icon.svg', 'apple-touch-icon.png']) {
   if (!existsSync(path.join(SITE, file))) fail(`missing site/${file}`);
-  cpSync(path.join(SITE, file), path.join(OUT, file));
+  const text = readFileSync(path.join(SITE, file), 'utf8');
+  if (file.endsWith('.html') || file.endsWith('.js')) writeFileSync(path.join(OUT, file), fill(text));
+  else cpSync(path.join(SITE, file), path.join(OUT, file));
 }
 cpSync(path.join(SITE, 'fonts'), path.join(OUT, 'fonts'), { recursive: true });
 cpSync(APP, path.join(OUT, 'app'), { recursive: true });

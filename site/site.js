@@ -85,7 +85,7 @@ const STRINGS = {
     q6: 'من صنع لَخان؟',
     a6: 'Maryam J. — شخص واحد أراد تطبيقاً يتحدث الصومالية بلا إعلانات. حين احتاجه غيره، وجد هذا الرابط.',
     'last.h': 'ابدأ الاستماع الآن.',
-    'last.p': '١٬١٥٢ مقطعاً و١٤٤ أغنية جاهزة. ضغطة واحدة.',
+    'last.p': '{{ITEMS.AR}} مقطعاً و{{SONGS.AR}} أغنية جاهزة. ضغطة واحدة.',
     'last.cta': 'افتح لَخان',
     'foot.tag': 'الأصوات الصومالية، في مكان واحد.',
     'foot.open': 'افتح لَخان',
@@ -136,7 +136,7 @@ const STRINGS = {
     'f4.h': 'Lessons and audiobooks',
     'f4.p': 'Duruus Manhaj and Buugaag Codka Ubax — lessons and books you can hear while walking, without looking at a screen.',
     'f5.h': 'Somali songs, and Arabic ones',
-    'f5.p': 'The Heeso, Rap and Jaceyl shelves: 144 songs. Tap one and you land on the artist’s own page, so the view is counted for them.',
+    'f5.p': 'The Heeso, Rap and Jaceyl shelves: {{SONGS.LOCAL}} songs. Tap one and you land on the artist’s own page, so the view is counted for them.',
     'f6.h': 'Yours, not advertising',
     'f6.p':
       'No ads. No tracking. No selling accounts. Laxan runs on your hardware, and you are the only one who sees what you listened to.',
@@ -170,7 +170,7 @@ const STRINGS = {
     a2: 'This public link: no. Open it and listen. Email and password accounts belong to the copy running on your own computer, where each person in the house gets their own list.',
     q3: 'Is the Somali music here?',
     a3:
-      'Yes. The Heeso, Rap and Jaceyl shelves are here — 144 songs. Every song has its own page, so a tap opens the artist’s page and the view goes to them. The Quran, podcasts and stories come from feeds that publish their own audio.',
+      'Yes. The Heeso, Rap and Jaceyl shelves are here — {{SONGS.LOCAL}} songs. Every song has its own page, so a tap opens the artist’s page and the view goes to them. The Quran, podcasts and stories come from feeds that publish their own audio.',
     q4: 'Does it work offline?',
     a4:
       'No. Laxan streams — nothing is stored on your device, so it needs internet. That is why it is open anywhere and never fills your storage.',
@@ -179,7 +179,7 @@ const STRINGS = {
     q6: 'Who made Laxan?',
     a6: 'Maryam J. — one person who wanted a Somali-language app with no ads. When someone else needed it, this link is what they got.',
     'last.h': 'Start listening now.',
-    'last.p': '1,152 listens and 144 songs are ready. One tap.',
+    'last.p': '{{ITEMS.LOCAL}} listens and {{SONGS.LOCAL}} songs are ready. One tap.',
     'last.cta': 'Open Laxan',
     'foot.tag': 'Somali voices, in one place.',
     'foot.open': 'Open Laxan',

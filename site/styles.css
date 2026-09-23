@@ -191,8 +191,9 @@ em {
   letter-spacing: -0.03em;
 }
 .brand svg {
+  /* The mark is a turntable with its arm resting on the record — it does not revolve. */
+  border-radius: 22%;
   filter: drop-shadow(0 4px 14px rgba(249, 122, 61, 0.35));
-  animation: spin 26s linear infinite;
 }
 .links {
   display: flex;
@@ -422,12 +423,11 @@ em {
   border-radius: 50%;
   background: #100e0d;
 }
-.disc-sm {
-  position: relative;
-  inset: auto;
-  width: 108px;
-  margin: 0 auto 26px;
-  animation-duration: 9s;
+.last-mark {
+  display: block;
+  margin: 0 auto 24px;
+  border-radius: 22%;
+  filter: drop-shadow(0 10px 30px rgba(249, 122, 61, 0.3));
 }
 .now-chip {
   position: absolute;

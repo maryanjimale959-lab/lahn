@@ -144,7 +144,7 @@ export async function answer(method, route, body) {
     if (!source) throw missing(route);
     return {
       channel: { ...source, licensed: true },
-      uploads: rows(data.channelPages[id]).map((i) => ({ id: i.id, title: i.title, audio: i.audio, link: i.link ?? null, duration: i.duration, thumbnail: i.thumbnail, uploadedAt: i.uploadedAt, savedTrackId: null })),
+      uploads: rows(data.channelPages[id]).map((i) => ({ id: i.id, key: i.key, title: i.title, artist: i.channel, audio: i.audio, link: i.link ?? null, duration: i.duration, thumbnail: i.thumbnail, uploadedAt: i.uploadedAt, kind: i.kind, savedTrackId: null })),
       /* "fresh" is what stops the real page from asking its source again on sight. Here nobody
          can: the list is the one that was baked. */
       fresh: true,
