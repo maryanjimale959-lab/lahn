@@ -494,6 +494,9 @@ const STORAGE = 'lahn.lang';
 export function loadLang() {
   const saved = localStorage.getItem(STORAGE);
   if (saved === 'en' || saved === 'so') return saved;
+  /* The public preview opens in Somali, the way the page that links to it reads. A visitor who
+     wants English finds the switch in the header and it is kept on their device. */
+  if (import.meta.env.VITE_LAHN_DEMO === '1') return 'so';
   return (navigator.language || 'en').toLowerCase().startsWith('so') ? 'so' : 'en';
 }
 
