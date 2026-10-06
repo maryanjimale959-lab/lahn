@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CatalogGrid, ShelfSkeleton } from '../components/Catalog.jsx';
+import { StreamList, ShelfSkeleton, streamTrack } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { api } from '../lib/api.js';
 import { shelfQuery, shelfTitle } from '../lib/shelves.js';
+import { usePlayer } from '../state/player.jsx';
 import { useUi } from '../state/ui.jsx';
 
 export function Shelf({ id }) {
   const { t, count } = useUi();
+  const { playList } = usePlayer();
   const [items, setItems] = useState(null);
   const [error, setError] = useState(null);
-  const [pulling, setPulling] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -41,31 +42,20 @@ export function Shelf({ id }) {
     };
   }, [load]);
 
-  const pull = async () => {
-    setPulling(true);
-    setError(null);
-    try {
-      await api.refreshChannels();
-      await load();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setPulling(false);
-    }
+  const playAll = () => {
+    if (!items?.length) return;
+    playList(items.map(streamTrack), 0);
   };
-
-  const notSaved = (items ?? []).filter((item) => !item.savedTrackId);
-  const kept = (items ?? []).filter((item) => item.savedTrackId);
 
   return (
     <>
       <PageHeader title={t(shelfTitle(id))}>
-        <button type="button" className="pill-btn ghost" onClick={pull} disabled={pulling}>
-          <span className={pulling ? 'spin' : ''}>
-            <Icon.repeat />
-          </span>
-          {t('channels.refresh')}
-        </button>
+        {items?.length > 0 && (
+          <button type="button" className="pill-btn play-all" onClick={playAll}>
+            <Icon.play />
+            {t('common.playAll')}
+          </button>
+        )}
       </PageHeader>
 
       {error && (
@@ -80,16 +70,8 @@ export function Shelf({ id }) {
         <p className="hint">{t('channels.noneYet')}</p>
       ) : (
         <>
-          <p className="hint browse-hint">{t('browse.hint')}</p>
-          {kept.length > 0 && (
-            <section className="section">
-              <div className="section-head">
-                <h2>{t('browse.kept')}</h2>
-              </div>
-              <CatalogGrid items={kept} />
-            </section>
-          )}
-          <CatalogGrid items={notSaved} />
+          <p className="shelf-count">{count(items.length, items[0]?.kind === 'song' || !items[0]?.kind ? 'song' : items[0].kind)}</p>
+          <StreamList items={items} />
         </>
       )}
     </>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAmbientGlow } from './components/Art.jsx';
+import { LogoMark } from './components/Logo.jsx';
 import { MiniPlayer } from './components/MiniPlayer.jsx';
 import { Elsewhere } from './components/Elsewhere.jsx';
 import { NowPlaying } from './components/NowPlaying.jsx';
 import { Sidebar, Tabbar } from './components/Shell.jsx';
+import { VideoStage } from './components/VideoStage.jsx';
 import { Albums, Artists, Songs } from './pages/Browse.jsx';
 import { ChannelPage, Channels } from './pages/Channels.jsx';
 import { AlbumPage, ArtistPage, PlaylistPage, Playlists } from './pages/Collections.jsx';
@@ -81,6 +83,7 @@ export function App() {
 
       <Tabbar />
 
+      <VideoStage open={playerOpen} />
       {remote && !playerOpen && <Elsewhere onTakeOver={() => setPlayerOpen(true)} />}
       {!remote && current && !playerOpen && <MiniPlayer onOpen={() => setPlayerOpen(true)} />}
       {playerOpen && <NowPlaying onClose={() => setPlayerOpen(false)} />}
@@ -99,6 +102,7 @@ export function Gate() {
   if (!checked) {
     return (
       <div className="splash">
+        <LogoMark size={64} />
         <span className="welcome-mark">Laxan</span>
       </div>
     );

@@ -7,6 +7,7 @@ import { DEMO } from '../lib/api.js';
 import { useShelves } from '../lib/useShelves.js';
 import { useMine } from '../lib/useMine.js';
 import { INTEREST_ART } from '../lib/kinds.js';
+import { warmGradient } from '../lib/art.js';
 import { useAuth } from '../state/auth.jsx';
 import { useLibrary } from '../state/library.jsx';
 import { usePlayer } from '../state/player.jsx';
@@ -22,7 +23,50 @@ const partOfDay = () => {
   return hour < 21 ? 'evening' : 'night';
 };
 
-/** The six short cuts along the top, the way Spotify opens its home. */
+/** Opening stage: brand + one featured listen, not a dashboard strip. */
+function HomeStage({ shelves, greeting }) {
+  const { t } = useUi();
+  const { playList } = usePlayer();
+  const featured = shelves.find((s) => s.items?.length) ?? null;
+  const lead = featured?.items?.[0] ?? null;
+  if (!lead) return null;
+
+  const play = () => playList(featured.items.slice(0, 24).map(streamTrack), 0);
+
+  return (
+    <section className="home-stage">
+      <div className="home-stage-copy">
+        <p className="home-stage-brand">Laxan</p>
+        <h2>{greeting}</h2>
+        <p className="home-stage-lede">{t('home.bannerHint')}</p>
+        <div className="home-stage-actions">
+          <button type="button" className="pill-btn play-all" onClick={play}>
+            <Icon.play />
+            {t('home.playFeatured')}
+          </button>
+          <a className="pill-btn ghost" href={`#/shelf/${featured.id}`}>
+            {t(shelfTitle(featured.id))}
+          </a>
+        </div>
+      </div>
+
+      <button type="button" className="home-stage-disc" onClick={play} aria-label={`${t('player.play')} — ${lead.title}`}>
+        <span className="home-stage-sleeve" style={lead.thumbnail ? undefined : { backgroundImage: warmGradient(lead.title) }}>
+          {lead.thumbnail ? <img src={lead.thumbnail} alt="" /> : <Icon.disc />}
+        </span>
+        <span className="home-stage-ring" aria-hidden="true" />
+        <span className="home-stage-play">
+          <Icon.play />
+        </span>
+        <span className="home-stage-caption">
+          <b>{lead.title}</b>
+          <span>{lead.channel || t(shelfTitle(featured.id))}</span>
+        </span>
+      </button>
+    </section>
+  );
+}
+
 function QuickPicks({ shelves }) {
   const { t } = useUi();
   const { playList } = usePlayer();
@@ -33,10 +77,11 @@ function QuickPicks({ shelves }) {
     <div className="quick">
       {picks.map((shelf) => {
         const Glyph = Icon[INTEREST_ART[shelf.id]] ?? Icon.library;
+        const cover = shelf.items[0]?.thumbnail;
         return (
           <a className="quick-tile" key={shelf.id} href={`#/shelf/${shelf.id}`}>
-            <span className="quick-art">
-              <Glyph />
+            <span className="quick-art" style={cover ? undefined : { backgroundImage: warmGradient(shelf.id) }}>
+              {cover ? <img src={cover} alt="" /> : <Glyph />}
             </span>
             <b>{t(shelfTitle(shelf.id))}</b>
             <span
@@ -59,10 +104,6 @@ function QuickPicks({ shelves }) {
   );
 }
 
-/**
- * Everything Laxan carries, one tap wide. The rows below are only what she picked; these chips
- * are how she reaches the rest without digging through the nav.
- */
 function ShelfChips({ shelves, picked }) {
   const { t } = useUi();
   const list = shelves.filter((shelf) => shelf.id !== 'fresh' && shelf.id !== 'foryou');
@@ -122,8 +163,6 @@ export function Home() {
   const { shelves, picked, ready, loaded, error, reload } = useShelves();
   const greeting = `${t(`home.greet.${partOfDay()}`)}${user?.name ? `, ${user.name}` : ''}`;
   const pickedSet = new Set(picked);
-  /* What she chose during sign-up is the app she gets. "Made for you" is still there, and
-     everything else stays one tap away in Browse. */
   const rows = pickedSet.size ? shelves.filter((shelf) => pickedSet.has(shelf.id) || shelf.id === 'foryou') : shelves;
   const played = history.map((row) => {
     const [channelId, id] = String(row.item_key).split(':');
@@ -132,7 +171,7 @@ export function Home() {
 
   return (
     <>
-      <PageHeader title={greeting} />
+      <PageHeader title={t('nav.home')} kicker="Laxan" />
 
       {!loaded || (!shelves.length && !error) ? (
         <Section title={t('home.loading')}>
@@ -148,9 +187,10 @@ export function Home() {
         </p>
       ) : (
         <>
-          {played.length > 0 && <CatalogRow title={t('home.continue')} items={played.slice(0, 12)} />}
+          <HomeStage shelves={rows} greeting={greeting} />
           <ShelfChips shelves={shelves} picked={picked} />
           <QuickPicks shelves={rows} />
+          {played.length > 0 && <CatalogRow title={t('home.continue')} items={played.slice(0, 12)} />}
           {rows.map((shelf) => (
             <CatalogRow key={shelf.id} title={t(shelfTitle(shelf.id))} more={`#/shelf/${shelf.id}`} items={shelf.items.slice(0, 12)} />
           ))}

@@ -1,7 +1,23 @@
-/* ---------- catalog shelves (browse & save) ---------- */
+/* ---------- catalog shelves (stream-first, Laxan vinyl look) ---------- */
 
 .browse-hint {
   margin: -8px 0 20px;
+}
+
+.shelf-count {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+
+.list-heading {
+  margin: 28px 0 8px;
+  font-family: var(--font-brand);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .err {
@@ -35,27 +51,27 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 12px;
   padding: 12px;
   border-radius: var(--radius-md);
-  background: var(--surface-soft);
-  border: 1px solid var(--line);
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s, background 0.25s;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background 0.22s, border-color 0.22s, transform 0.22s;
 }
 
 .cat:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-md);
-  background: var(--surface);
+  background: var(--surface-soft);
+  border-color: var(--line);
+  transform: translateY(-3px);
 }
 
 .cat-art {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1;
   padding: 0;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--bg-deep);
   box-shadow: var(--shadow-sm);
@@ -66,7 +82,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.45s ease;
 }
 
 .cat:hover .cat-art img {
@@ -79,21 +95,21 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(140deg, var(--glow), var(--glow-2));
-  color: var(--ink-3);
+  color: var(--on-accent);
 }
 
 .cat-blank svg {
   width: 34px;
   height: 34px;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 .cat-fab {
   position: absolute;
-  inset-inline-end: 9px;
-  bottom: 9px;
-  width: 42px;
-  height: 42px;
+  inset-inline-end: 10px;
+  bottom: 10px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -101,117 +117,30 @@
   color: var(--on-accent);
   box-shadow: var(--shadow-md);
   opacity: 0;
-  transform: translateY(9px) scale(0.92);
+  transform: translateY(8px) scale(0.94);
   transition: opacity 0.2s, transform 0.2s;
 }
 
 .cat:hover .cat-fab,
 .cat:focus-within .cat-fab,
-.cat.busy .cat-fab,
-.cat.failed .cat-fab {
+.cat.on-air .cat-fab,
+.cat.waiting .cat-fab {
   opacity: 1;
   transform: none;
+}
+
+.cat-fab:hover {
+  transform: scale(1.06);
 }
 
 .cat-fab svg {
-  width: 19px;
-  height: 19px;
-}
-
-.cat.saved .cat-fab {
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line-strong);
-}
-
-.cat.failed .cat-fab {
-  background: #d6453f;
-  color: #fff;
-}
-
-.cat-pct {
-  font-size: 12px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.cat-bar {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 4px;
-  background: rgba(0, 0, 0, 0.35);
-}
-
-.cat-bar i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--glow), var(--glow-2));
-  transition: width 0.4s ease;
-}
-
-/* A mis-tap on a 3-hour podcast should be undoable while it runs. */
-.cat-cancel {
-  position: absolute;
-  top: 20px;
-  inset-inline-end: 20px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  backdrop-filter: blur(6px);
-  transition: background 0.2s, transform 0.2s;
-}
-
-.cat-cancel:hover {
-  background: #d6453f;
-  transform: scale(1.08);
-}
-
-.cat-cancel svg {
-  width: 15px;
-  height: 15px;
-}
-
-/* Keeping a copy on the device is the rare case now, so it waits for a hover. */
-.cat-save {
-  position: absolute;
-  top: 20px;
-  inset-inline-end: 20px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 0.2s, transform 0.2s, background 0.2s;
-}
-
-.cat:hover .cat-save,
-.cat:focus-within .cat-save {
-  opacity: 1;
-  transform: none;
-}
-
-.cat-save:hover {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.cat-save svg {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
 }
 
 .cat-meta {
   min-width: 0;
+  padding: 0 2px 4px;
 }
 
 .cat-meta b {
@@ -219,9 +148,9 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 750;
-  line-height: 1.28;
+  line-height: 1.3;
   letter-spacing: -0.015em;
 }
 
@@ -242,13 +171,13 @@
 
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 10px 12px;
   margin-bottom: 26px;
 }
 
 .cat.sk .cat-art {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1;
   background: linear-gradient(90deg, var(--line) 20%, var(--line-strong) 40%, var(--line) 60%);
   background-size: 300% 100%;
   animation: shimmer 1.5s linear infinite;
@@ -267,6 +196,76 @@
   width: 55%;
 }
 
+/* Stream rows */
+
+.stream-list .track {
+  grid-template-columns: 40px 48px minmax(0, 1fr) 56px;
+  border-radius: var(--radius-sm);
+  min-height: 58px;
+  padding: 6px 12px;
+}
+
+.stream-row .idx {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.stream-row .idx-play {
+  display: none;
+}
+
+.stream-row .idx-play svg {
+  width: 14px;
+  height: 14px;
+}
+
+.stream-row:hover .idx-num {
+  display: none;
+}
+
+.stream-row:hover .idx-play {
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+}
+
+.stream-row .thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stream-row .thumb img,
+.stream-row .thumb .cat-blank {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.stream-row .thumb .cat-blank svg {
+  width: 18px;
+  height: 18px;
+}
+
+.stream-row.current .meta b {
+  color: var(--accent);
+}
+
+.pill-btn.play-all {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  font-weight: 800;
+}
+
+.pill-btn.play-all:hover {
+  transform: scale(1.03);
+  filter: brightness(1.06);
+}
+
 /* ---------- channel pages ---------- */
 
 .channel-head {
@@ -280,7 +279,7 @@
   width: 108px;
   height: 108px;
   flex: none;
-  border-radius: 26px;
+  border-radius: 18px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
@@ -350,7 +349,7 @@
   min-width: 0;
   min-height: 48px;
   padding: 0 16px;
-  border-radius: 15px;
+  border-radius: 12px;
   border: 1.5px solid var(--line-strong);
   background: var(--bg);
   color: var(--ink);
@@ -359,7 +358,7 @@
 
 .add-channel input:focus {
   outline: none;
-  border-color: var(--ink);
+  border-color: var(--accent);
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--glow) 34%, transparent);
 }
 
@@ -407,14 +406,20 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* A thumb with no hover state still has to say "tap me". */
 @media (hover: none) {
   .cat-fab {
     opacity: 1;
     transform: none;
   }
   .card-row {
-    grid-auto-columns: clamp(206px, 66vw, 280px);
+    grid-auto-columns: clamp(140px, 42vw, 180px);
+  }
+  .stream-row .idx-num {
+    display: none;
+  }
+  .stream-row .idx-play {
+    display: grid;
+    place-items: center;
   }
 }
 
@@ -425,7 +430,7 @@
   .channel-art {
     width: 78px;
     height: 78px;
-    border-radius: 20px;
+    border-radius: 14px;
   }
   .channel-sum h2 {
     font-size: 21px;

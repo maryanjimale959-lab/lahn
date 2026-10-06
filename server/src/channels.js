@@ -51,9 +51,9 @@ const Q = (id) => `https://mp3quran.net/api/v3/reciters/${id}`;
 
 /**
  * Laxan's whole catalogue comes from these sources: the labels, studios and talk shows that
- * actually post Somali and Arabic audio, plus a rolling saved search per shelf so new names
+ * actually post Somali audio, plus a rolling saved search per shelf so new names
  * still turn up. Every source names the shelf its rows land on, which is what keeps
- * recitation out of the podcast rows and the Arabic shelves on their own.
+ * recitation out of the podcast rows.
  */
 const DEFAULTS = [
   /* --- new Somali releases, carried by the labels that release them --- */
@@ -151,21 +151,6 @@ const DEFAULTS = [
   { name: 'Qulasada Filimada', url: vid('@QulasadaFilimada'), kind: 'book', shelf: 'books' },
   { name: 'Hiil Press', url: vid('UCX10pmDUFeBhHIc70pPEHIg'), kind: 'book', shelf: 'books' },
   { name: 'Buugaag Soomaali', url: 'ytsearch40:buugag somali la akhriyay cod', kind: 'book', shelf: 'books' },
-  /* --- Arabic music --- */
-  { name: 'Rotana', url: vid('UCNhqvQMXIgRfjAGmxQqdNRw'), kind: 'song', shelf: 'amusic' },
-  { name: 'Mazzika', url: vid('@Mazzika'), kind: 'song', shelf: 'amusic' },
-  { name: 'Ahlam', url: vid('UCoRF9Eqslz82_7whXnbhzRQ'), kind: 'song', shelf: 'amusic' },
-  { name: 'Abdel Halim', url: vid('UClyQuhkEIYzujgAaR24ExZA'), kind: 'song', shelf: 'amusic' },
-  { name: 'National Arab Orchestra', url: vid('@NationalArabOrchestra'), kind: 'song', shelf: 'amusic' },
-  { name: 'طرب', url: 'ytsearch40:اغاني طرب قديمة', kind: 'song', shelf: 'amusic' },
-  { name: 'أم كلثوم', url: 'ytsearch40:"أم كلثوم" أغنية كاملة', kind: 'song', shelf: 'amusic' },
-  /* --- Arabic podcasts --- */
-  { name: 'Thmanyah', url: vid('UCwjLh640nGXSGa9iHRS31ag'), kind: 'podcast', shelf: 'apodcast' },
-  { name: 'Atheer', url: vid('UCMQ18I4n6ccOSNDLfdhrUbQ'), kind: 'podcast', shelf: 'apodcast' },
-  { name: 'Nawafed', url: vid('UCBcLf1KYcb5h2j2GszqtihA'), kind: 'podcast', shelf: 'apodcast' },
-  { name: 'Tanween', url: vid('UC2IhG2yHmAFYPqNZNMyOPkg'), kind: 'podcast', shelf: 'apodcast' },
-  { name: 'Arabian Post', url: vid('UCdUp5vHINCdtZS31flL_prg'), kind: 'podcast', shelf: 'apodcast' },
-  { name: 'بودكاست عربي', url: 'ytsearch40:بودكاست عربي حلقة طويلة', kind: 'podcast', shelf: 'apodcast' },
   /* --- the half that publishes its audio for reuse ---
      Recitation servers and podcast feeds. Everything above this line is scraped off YouTube,
      which is fine on her own Wi-Fi and is not something to hand a stranger; these are the rows
@@ -188,10 +173,6 @@ const DEFAULTS = [
   { name: 'Sheeko iyo Shaahid', url: 'https://rss.buzzsprout.com/2561549.rss', kind: 'story', shelf: 'stories', driver: 'rss' },
   { name: 'Buugaag Codka Ubax', url: 'https://rss.buzzsprout.com/721491.rss', kind: 'book', shelf: 'books', driver: 'rss' },
   { name: 'Duruus Manhaj', url: 'https://manhajonline.com/podcasts/sheekh-cabdilaahi-sheekh-xaashi/feed.xml', kind: 'lesson', shelf: 'lessons', driver: 'rss' },
-  { name: 'Arabi Post', url: 'https://www.omnycontent.com/d/playlist/93ede1a5-f219-4562-a4af-b0c100d3da54/0ade4ea1-fb11-4f07-849d-b27400fd178b/8ce65e43-e7bd-492c-b928-b27400fd1c74/podcast.rss', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
-  { name: 'afikra', url: 'https://feeds.simplecast.com/mQeVlZL1', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
-  { name: 'عَلاقات', url: 'https://podcasts.files.bbci.co.uk/p09m6x31.rss', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
-  { name: 'الأسبوع', url: 'https://feed.podbean.com/podcastsd/feed.xml', kind: 'podcast', shelf: 'apodcast', driver: 'rss' },
   ...ARTISTS.map((ar) => ({
     name: ar.name,
     url: ar.channel ? vid(ar.channel) : `ytsearch40:${ar.query}`,
@@ -204,7 +185,7 @@ const DEFAULTS = [
  * What a listener can say they are into during sign-up. Each one is a shelf, and the ids are
  * the keys the app translates, so nothing here needs new strings per language.
  */
-export const HOME_SHELVES = ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books', 'amusic', 'apodcast'];
+export const HOME_SHELVES = ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books'];
 
 export const INTERESTS = HOME_SHELVES.map((id) => ({ id, shelf: id }));
 
@@ -213,7 +194,7 @@ export const cleanInterests = (list) => {
   return (Array.isArray(list) ? list : []).filter((id) => known.has(id)).slice(0, INTERESTS.length);
 };
 
-/* Sources from the very first cut that no Somali or Arabic listener asks for. */
+/* Sources from the very first cut that no Somali listener asks for. */
 const RETIRED = ['ABtalks', 'AJpluskibreet', 'm7ns', 'Alaraby-Tube', 'programmingwithmosh', 'WideBot'].map((h) => `https://www.youtube.com/@${h}/videos`);
 
 /* Everything the seed writes is stamped with a shelf, so a shelf-less row is one she added

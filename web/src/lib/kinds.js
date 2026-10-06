@@ -31,7 +31,5 @@ export const INTEREST_ART = {
   stories: 'story',
   lessons: 'lesson',
   books: 'library',
-  amusic: 'song',
-  apodcast: 'globe',
   quran: 'spark',
 };

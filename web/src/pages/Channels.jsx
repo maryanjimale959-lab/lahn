@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CatalogGrid } from '../components/Catalog.jsx';
+import { StreamList, streamTrack } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { Art } from '../components/Art.jsx';
 import { PageHeader } from '../components/Shell.jsx';
@@ -8,6 +8,7 @@ import { TrackRow } from '../components/TrackRow.jsx';
 import { DEMO, api } from '../lib/api.js';
 import { KIND_ICON, KIND_KEY, TALKS } from '../lib/kinds.js';
 import { useLibrary } from '../state/library.jsx';
+import { usePlayer } from '../state/player.jsx';
 import { useUi } from '../state/ui.jsx';
 
 const asItem = (entry, channel) => ({ ...entry, kind: channel.kind, channelId: channel.id, channel: channel.name });
@@ -134,6 +135,7 @@ export function Channels() {
 export function ChannelPage({ id }) {
   const { t, count } = useUi();
   const { refresh } = useLibrary();
+  const { playList } = usePlayer();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [pulling, setPulling] = useState(false);
@@ -197,10 +199,17 @@ export function ChannelPage({ id }) {
 
   const { channel, uploads, tracks } = data;
   const KindIcon = Icon[KIND_ICON[channel.kind]];
+  const latest = uploads.map((entry) => asItem(entry, channel));
 
   return (
     <>
       <PageHeader title={channel.name}>
+        {latest.length > 0 && (
+          <button type="button" className="pill-btn play-all" onClick={() => playList(latest.map(streamTrack), 0)}>
+            <Icon.play />
+            {t('common.playAll')}
+          </button>
+        )}
         {DEMO ? null : (
           <>
             <button type="button" className="icon-btn" onClick={pull} disabled={pulling} title={t('channels.refresh')} aria-label={t('channels.refresh')}>
@@ -224,10 +233,8 @@ export function ChannelPage({ id }) {
           </p>
           <h2>{channel.name}</h2>
           <p className="hint">
-            {count(tracks.length, channel.kind)} · {uploads.length} {t('channels.latestCount')}
+            {count(uploads.length, channel.kind)}
           </p>
-          {/* Whether the link still answers is the first thing she wants to know when a shelf is
-              short on something. It says so here instead of leaving her to guess. */}
           {channel.health !== 'ok' && (
             <p className={`src-note ${channel.health}`}>
               <span className="dot" />
@@ -255,7 +262,7 @@ export function ChannelPage({ id }) {
       )}
 
       <Section title={t('channels.latest')}>
-        {uploads.length ? <CatalogGrid items={uploads.map((entry) => asItem(entry, channel))} /> : <p className="hint">{t('channels.noneYet')}</p>}
+        {latest.length ? <StreamList items={latest} /> : <p className="hint">{t('channels.noneYet')}</p>}
       </Section>
     </>
   );

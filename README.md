@@ -1,6 +1,6 @@
 # Laxan
 
-Soomaali music, podcasts, Quran, true stories and lessons — in Somali and Arabic, on your
+Soomaali music, podcasts, Quran, true stories and lessons — Somali only, on your
 own machines. Open the app, sign in, choose what you like, and tap anything to play it. No
 subscription, no cloud, nothing uploaded anywhere.
 
@@ -12,17 +12,18 @@ subscription, no cloud, nothing uploaded anywhere.
 
 ## What it does
 
-- **Sign in, then say what you like.** Ten interests — Heeso Soomaali, Rap Soomaali, Heeso
-  jacyl, Podcast-yada, Quraan, Sheeko iyo kiisas dhab ah, Casharrada, Buugaag la dhageysto,
-  Muusiko Carabi, Podcast Carabi — and the home screen is built from the ones you pick. You
-  can change them any time in Settings.
+- **Sign in, then say what you like.** Eight interests — Heeso Soomaali, Rap Soomaali, Heeso
+  jacyl, Podcast-yada, Quraan, Sheeko iyo kiisas dhab ah, Casharrada, Buugaag la dhageysto —
+  and the home screen is built from the ones you pick. You can change them any time in Settings.
+- **Somali only.** Arabic music and Arabic podcast shelves are gone. Quran recitation stays
+  (including Arabic qira'at), because that is what Somali listeners ask for next to the heeso.
 - **Tap to play, nothing saved.** Laxan pulls the audio for that one item, streams it to the
   player with a working scrub bar, and prunes it later. The first play of a track can take
   half a minute; after that it is instant.
 - **Save what you want to keep.** The save button is the only thing that writes to your
   library, and it is optional — the shelves work without it.
 - **Separate shelves.** Quran is on the Quran page, podcasts on the podcast page, stories on
-  the stories page, Arabic music and Arabic podcasts on their own. They never mix.
+  the stories page. They never mix.
 - **Somali artists.** Twenty curated artists — Hodan Abdirahman, Qamar Suugaani, Abdirashid
   Qaraare, Aar Maanta, Hanad Bandz, Ilkacase, Sharma Boy, Yasin The Don, Amin Yare, Abwaan
   Qorane, K'naan, Hobollada Waaberi, Magool, Axmed Mooge Liibaan, Saado Cali Warsame, Sahra
@@ -34,7 +35,8 @@ subscription, no cloud, nothing uploaded anywhere.
 - **Works on the phone** — the server is also the web app, so opening
   `http://<your-pc>:4780` on any device on the home Wi-Fi gives you the same library. It is an
   installable PWA with Media Session, so the phone's lock screen gets play/pause and track info.
-- **English and Somali** — one tap to switch; the app opens in Somali on a Somali device.
+- **Somali first, English one tap away** — the app opens in Somali; switch any time in Settings
+  or on the welcome screen.
 - **Plain folders are still the source of truth** — anything you save lands as an ordinary
   audio file in `library/`; delete the database, rescan, and nothing is lost.
 
@@ -93,7 +95,7 @@ Every source on the Channels page declares a **driver**, and the driver decides 
 arrives:
 
 - `youtube` — a channel or a saved search, scraped with yt-dlp and converted with ffmpeg. This
-  is the half with the music: Heeso, Rap, Heeso jacyl, Muusiko Carabi, and the twenty artists.
+  is the half with the music: Heeso, Rap, Heeso jacyl, and the twenty artists.
   It needs yt-dlp, it can take half a minute before the first play, and it is the half that is
   against YouTube's terms once anyone but you is listening.
 - `rss` and `quran` — a podcast feed, or a recitation server. These publish a direct link to
@@ -102,10 +104,10 @@ arrives:
 
 Set `LAHN_LICENSED_ONLY=1` and the second half is all the app shows: the scraped sources
 disappear from the shelves, the catalog, search and the refresh cycle, and the Quran, podcast,
-story, book, lesson and Arabic-podcast shelves stay — 438 items across six shelves on a fresh
-install. That is the build to hand to someone else, wrap as an APK, or put on a store.
+story, book and lesson shelves stay — the licensed Somali half on a fresh install. That is the
+build to hand to someone else, wrap as an APK, or put on a store.
 
-What it does **not** have is music. Somali and Arabic pop is not licensed anywhere that allows
+What it does **not** have is music. Somali pop is not licensed anywhere that allows
 redistribution — archive.org's Creative Commons collections carry zero Somali songs, and the
 "Somali Songs" tags there are an uploader claiming rights to other people's work. Heeso only
 arrives through your own library folder or the scraped shelves, which is exactly why the

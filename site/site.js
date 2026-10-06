@@ -1,4 +1,4 @@
-/* Laxan's landing page. Somali is what the HTML already says; Arabic and English arrive from the
+/* Laxan's landing page. Somali is what the HTML already says; English arrives from the
    dictionary below, because a page about a Somali app must still read as Somali with JavaScript off.
    Everything that moves here is a turntable, a needle or a bar of equaliser — nothing decorative
    spins when the visitor has asked for less motion. */
@@ -13,98 +13,9 @@ const STRINGS = {
     'toast.android': 'Browser-ku install ma soo jeedinayo hadda — fur liiskiisa oo dooro «Add to Home Screen».',
     'toast.desktop': 'Kombiyuutarka: liiska browser-ka ka dooro «Install Laxan» si uu ab ahaan u joogo.',
   },
-  ar: {
-    'nav.screens': 'الشاشات',
-    'nav.features': 'المزايا',
-    'nav.arabic': 'العربية',
-    'nav.how': 'كيف يعمل',
-    'nav.faq': 'أسئلة',
-    'nav.open': 'افتح لَخان',
-    'hero.eyebrow': 'قرآن · أغانٍ · بودكاست · قصص · دروس',
-    'hero.t1': 'كل صوت',
-    'hero.t2': 'هو',
-    'hero.t3': 'صومالي',
-    'hero.t4': '— في تطبيق واحد.',
-    'hero.lede':
-      'لَخان هو تطبيق الأصوات الصومالية: قران بستة قرّاء، وأغانٍ صومالية، وبودكاست صومالي، وقصص، ودروس، وكتب مسموعة. اضغط واسمع — لا تنزيل، ولا بيانات تُرسل عنك.',
-    'hero.cta1': 'ابدأ الاستماع',
-    'hero.cta2': 'ثبّته على هاتفك',
-    'hero.fine': 'مجاني · بلا إعلانات · بلا تسجيل',
-    'hero.now': 'يُشغَّل الآن · Mishary Alafasy — سورة الفاتحة',
-    'stat.items': 'مقطع جاهز',
-    'stat.sources': 'مصدر صوت',
-    'stat.songs': 'أغانٍ على صفحات فنانيها',
-    'stat.surahs': 'سورة كاملة',
-    'features.kicker': 'ما هو جاهز لك',
-    'features.title': 'تطبيق واحد. أصوات كثيرة.',
-    'f1.h': 'قرآن كامل',
-    'f1.p': '١١٤ سورة بستة قرّاء معروفين — مشاري العفاسي، وعبد الباسط، والمنشاوي، وأبو بكر الشاطري، وماهر. اضغط على سورة لتبدأ.',
-    'f2.h': 'بودكاست صومالي',
-    'f2.p': 'Maamul Wanaag، وميزان، وهيلوو، وGarasho-wadaag، وAdeeg Wanaag، وDiiwaanka Mahad — أكثر من ١٤٠ حلقة بالصومالية.',
-    'f3.h': 'قصص وقضايا حقيقية',
-    'f3.p': 'Sheeko iyo Shaahid وقصص صومالية أخرى تُسمع بالليل — خزانة كاملة للقصص.',
-    'f4.h': 'دروس وكتب مسموعة',
-    'f4.p': 'Duruus Manhaj وBuugaag Codka Ubax — دروس وكتب تسمعها وأنت تمشي، دون أن تنظر إلى الشاشة.',
-    'f5.h': 'أغانٍ صومالية وعربية',
-    'f5.p': 'رفوف هييسو، وراب، وجاعيل، والموسيقى العربية: ١٤٤ أغنية. عند الضغط على أغنية تنتقل إلى صفحة صاحبها، فيُحسب المشاهدة له.',
-    'f6.h': 'لك، لا للإعلانات',
-    'f6.p': 'لا إعلانات. ولا تتبّع. ولا بيع لحساباتك. لَخان يعمل على أجهزتك، وأنت الوحيد الذي يسمع ما استمعت إليه.',
-    'how.kicker': 'كيف يعمل',
-    'how.title': 'ثلاث خطوات.',
-    's1.h': 'افتح الرابط',
-    's1.p': 'افتح لَخان على حاسوبك أو هاتفك — لا برنامج يُثبَّت، ولا حساب يُنشأ.',
-    's2.h': 'أضفه إلى الشاشة الرئيسية',
-    's2.p': 'على أندرويد: اضغط «ثبّته». على آيفون: Share ثم «Add to Home Screen». سيصير تطبيقاً بأيقونته.',
-    's3.h': 'اختر، اضغط، واسمع',
-    's3.p': 'قل ما تحب — قرآن، بودكاست، قصص، دروس، كتب — فتأتيك الرئيسية إلى هناك، وضغطة واحدة تبدأ الصوت.',
-    'priv.h': 'لَخان الكامل — نسخة بيتك',
-    'priv.p':
-      'هذا الرابط العام يعرض الرفوف التي أذن أصحابها للجميع بسماعها، وأغانٍ تُشغَّل من صفحات فنانيها. النسخة التي تعمل على حاسوبك فيها أيضاً حسابات بالبريد وأجهزة متصلة — حاسوبك هو الخادم، وهاتفك يتصل به في البيت.',
-    'priv.1': 'أغانٍ إضافية تضعها على حاسوبك',
-    'priv.2': 'حساب بريد وكلمة سر، ولكل فرد قائمته',
-    'priv.3': 'حاسوب وهاتف متصلان: ابدأ في مكان، وأكمل في آخر',
-    'install.kicker': 'التثبيت',
-    'install.title': 'خذ لَخان معك.',
-    'install.lede': 'يُثبَّت لَخان على شاشتك الرئيسية كتطبيق عادي — بلا متجر، بلا حساب.',
-    'badge.and.small': 'ثبّته على',
-    'badge.and.big': 'أندرويد',
-    'badge.ios.small': 'ثبّته على',
-    'install.note': 'لَخان ليس في App Store ولا Play Store — هو تطبيق مفتوح يصل من صفحتك، ولهذا هو مجاني.',
-    'faq.kicker': 'أسئلة',
-    'faq.title': 'ما يسأل عنه الناس.',
-    q1: 'هل هو مجاني؟',
-    a1: 'نعم، كله. لا إعلانات، ولا حدود، ولا بيع لكلمة سر. لَخان يعمل على أجهزتك، وليس خدمة تُبحث عن المال.',
-    q2: 'هل أحتاج إلى تسجيل؟',
-    a2: 'هذا الرابط العام: لا. افتح واسمع. الحسابات بالبريد وكلمة السر تكون في النسخة التي تعمل على حاسوبك، حيث يكون لكل فرد في البيت قائمته.',
-    q3: 'هل الموسيقى الصومالية موجودة هنا؟',
-    a3: 'نعم. رفوف هييسو، والراب، وجاعيل موجودة هنا — ١٤٤ أغنية. لكل أغنية صفحتها، فالضغطة تفتح صفحة الفنان وتُحسب له. أما القرآن والبودكاست والقصص فتأتي من مصادر تنشر صوتها بنفسها.',
-    q4: 'هل يعمل بلا إنترنت؟',
-    a4: 'لا. لَخان بث مباشر — لا شيء يُخزَّن على جهازك، ولهذا تحتاج إلى إنترنت. وهذا سبب كونه مفتوحاً في كل مكان ولا يملأ ذاكرة جهازك.',
-    q5: 'هل يعمل على هاتفي وحاسوبي؟',
-    a5: 'نعم. أندرويد وآيفون، وكروم وإيدج وسفاري وفيورفوكس. الواجهة بالصومالية والعربية (من اليمين) والإنجليزية، فاتحة وداكنة.',
-    q6: 'من صنع لَخان؟',
-    a6: 'Maryam J. — شخص واحد أراد تطبيقاً يتحدث الصومالية بلا إعلانات. حين احتاجه غيره، وجد هذا الرابط.',
-    'last.h': 'ابدأ الاستماع الآن.',
-    'last.p': '{{ITEMS.AR}} مقطعاً و{{SONGS.AR}} أغنية جاهزة. ضغطة واحدة.',
-    'last.cta': 'افتح لَخان',
-    'foot.tag': 'الأصوات الصومالية، في مكان واحد.',
-    'foot.open': 'افتح لَخان',
-    'foot.made': 'صنعه: Maryam J. · ٢٠٢٦',
-    'foot.rights': 'لَخان ليس في App Store ولا Play Store. الرفوف من مصادر مفتوحة أذن أصحابها بالنشر.',
-    'ios.title': 'أضفه إلى شاشة آيفون',
-    'ios.1': 'افتح هذا الرابط في Safari.',
-    'ios.2': 'اضغط زر Share (الصندوق ذو السهم للأعلى).',
-    'ios.3': 'اختر «Add to Home Screen».',
-    'ios.4': 'اضغط لَخان من شاشتك الرئيسية — سيفتح كتطبيق كامل.',
-    'ios.close': 'إغلاق',
-    'toast.ios': 'على آيفون: Share ثم «Add to Home Screen».',
-    'toast.android': 'لم يعرض المتصفح التثبيت الآن — افتح القائمة واختر «Add to Home Screen».',
-    'toast.desktop': 'على الحاسوب: من قائمة المتصفح اختر «Install Laxan» لتثبيته كتطبيق.',
-  },
   en: {
     'nav.screens': 'Screens',
     'nav.features': 'What it does',
-    'nav.arabic': 'Arabic',
     'nav.how': 'How it works',
     'nav.faq': 'FAQ',
     'nav.open': 'Open Laxan',
@@ -114,7 +25,7 @@ const STRINGS = {
     'hero.t3': 'Somali',
     'hero.t4': '— in one app.',
     'hero.lede':
-      "Laxan is the Somali audio app: Quran from six reciters, Somali songs, podcasts, stories, lessons and audiobooks. Tap and it plays — you download nothing, and nothing about you leaves the device.",
+      "Laxan is the Somali-only audio app: Quran from six reciters, Somali songs, podcasts, stories, lessons and audiobooks. Tap and it plays — you download nothing, and nothing about you leaves the device.",
     'hero.cta1': 'Start listening',
     'hero.cta2': 'Install on your phone',
     'hero.fine': 'Free · No ads · No sign-up',
@@ -124,7 +35,7 @@ const STRINGS = {
     'stat.songs': 'songs on their artists’ pages',
     'stat.surahs': 'surahs, complete',
     'features.kicker': 'What is ready for you',
-    'features.title': 'One app. Many voices.',
+    'features.title': 'One app. Many Somali voices.',
     'f1.h': 'The whole Quran',
     'f1.p':
       '114 surahs from six well-known reciters — Mishary Alafasy, Abdul Basit, Al-Minshawi, Abu Bakr Al-Shatri and Maher. Tap a surah and it starts.',
@@ -135,7 +46,7 @@ const STRINGS = {
     'f3.p': 'Sheeko iyo Shaahid and more Somali stories to listen to at night — a whole shelf of them.',
     'f4.h': 'Lessons and audiobooks',
     'f4.p': 'Duruus Manhaj and Buugaag Codka Ubax — lessons and books you can hear while walking, without looking at a screen.',
-    'f5.h': 'Somali songs, and Arabic ones',
+    'f5.h': 'Somali songs',
     'f5.p': 'The Heeso, Rap and Jaceyl shelves: {{SONGS.LOCAL}} songs. Tap one and you land on the artist’s own page, so the view is counted for them.',
     'f6.h': 'Yours, not advertising',
     'f6.p':
@@ -175,7 +86,7 @@ const STRINGS = {
     a4:
       'No. Laxan streams — nothing is stored on your device, so it needs internet. That is why it is open anywhere and never fills your storage.',
     q5: 'Does it work on my phone and computer?',
-    'a5': 'Yes. Android and iPhone, Chrome, Edge, Safari and Firefox. The interface speaks Somali, Arabic (right to left) and English, in light and dark.',
+    a5: 'Yes. Android and iPhone, Chrome, Edge, Safari and Firefox. The interface speaks Somali and English, in light and dark.',
     q6: 'Who made Laxan?',
     a6: 'Maryam J. — one person who wanted a Somali-language app with no ads. When someone else needed it, this link is what they got.',
     'last.h': 'Start listening now.',
@@ -197,24 +108,19 @@ const STRINGS = {
   },
 };
 
-const isRtl = (lang) => lang === 'ar';
-
 const stored = () => {
   const l = localStorage.getItem(LANG_KEY);
-  return l === 'ar' || l === 'en' || l === 'so' ? l : 'so';
+  return l === 'en' || l === 'so' ? l : 'so';
 };
 
-/* Somali and English count in Latin figures, Arabic in its own — a page that switches language
-   mid-number would otherwise show ١٬008. */
-const numberLocale = () => (document.documentElement.lang === 'ar' ? 'ar-EG' : 'en-US');
-const showNumber = (n) => n.toLocaleString(numberLocale());
+const showNumber = (n) => n.toLocaleString('en-US');
 
 function setLang(lang) {
   const root = document.documentElement;
   root.lang = lang;
-  root.dir = isRtl(lang) ? 'rtl' : 'ltr';
+  root.dir = 'ltr';
   /* The Somali text is the markup itself, so the first switch has to remember it — otherwise
-     "back to Somali" leaves an English or Arabic page behind. */
+     "back to Somali" leaves an English page behind. */
   const original = (node, html) => {
     if (!node.dataset.so) node.dataset.so = html ? node.innerHTML : node.textContent;
     return node.dataset.so;

@@ -9,8 +9,6 @@ import { useLibrary } from '../state/library.jsx';
 import { usePlayer } from '../state/player.jsx';
 import { useUi } from '../state/ui.jsx';
 
-const STAGE_KEY = { queued: 'add.probing', probing: 'add.probing', downloading: 'add.downloading', saving: 'add.saving' };
-
 /** The key the stream route answers to, and the queue's identity for the same thing. */
 export const streamKey = (item) => item.key ?? `${item.channelId}:${item.id}`;
 
@@ -23,9 +21,10 @@ export const streamTrack = (item) => ({
   cover: item.thumbnail,
   duration: item.duration ?? 0,
   kind: item.kind,
-  /* A row with a link and no stream address goes to its creator's page when tapped. */
   link: item.link ?? null,
-  src: item.link && !item.audio ? null : playUrl(streamKey(item)),
+  /* Full Laxan always streams through the server (Range, CORS, yt-dlp). The public demo has
+     no converter, so a row with only a creator link plays their own page. */
+  src: DEMO ? (item.audio || (item.link ? null : playUrl(streamKey(item)))) : playUrl(streamKey(item)),
 });
 
 /* Remote art fails often enough that a missing poster has to look deliberate. Recitation has no
@@ -44,76 +43,50 @@ function Poster({ src, kind, seed }) {
   return <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />;
 }
 
-export function CatalogCard({ item, onError }) {
-  const { t } = useUi();
-  const { tracks = [], save, jobs, cancel } = useLibrary();
-  const { playList, current, playing, loading } = usePlayer();
-
+function useStreamPlay(item) {
+  const { tracks = [] } = useLibrary();
+  const { playList, current, playing, loading, toggle } = usePlayer();
   const key = streamKey(item);
-  const toChannel = Boolean(item.link) && !item.audio;
-  const job = Object.values(jobs).find((j) => j.url === item.url) ?? null;
-  const running = job && (job.status === 'queued' || job.status === 'running');
-  const failed = job?.status === 'error' || job?.status === 'cancelled';
   const saved = tracks.find((x) => x.id === item.savedTrackId || (!!item.id && x.source_id === item.id)) ?? null;
-  /* With nothing playing and nothing saved, both sides of that comparison are
-     undefined — which once looked like "this card is already on air" and ate the tap. */
   const onAir = Boolean(current) && (current.id === key || (saved ? current.id === saved.id : false));
+  const waiting = onAir && loading;
 
-  const act = () => {
-    if (onAir) return null;
+  const playOne = () => {
+    if (onAir) return toggle();
     if (saved) return playList([saved], 0);
-    if (running) return null;
-    /* The first tap on something never played has to fetch it, which takes a while;
-       after that it is already warm and starts at once. */
     return playList([streamTrack(item)], 0);
   };
 
-  const label = onAir
-    ? playing
-      ? t('player.pause')
-      : t('player.play')
-    : running
-      ? t(STAGE_KEY[job.stage] ?? 'add.downloading')
-      : failed
-        ? t('add.retry')
-        : toChannel
-          ? t('common.onChannel')
-          : t('player.play');
+  const playFrom = (list) => {
+    if (onAir) return toggle();
+    const queue = list.map((row) => {
+      const hit = tracks.find((x) => x.id === row.savedTrackId || (!!row.id && x.source_id === row.id));
+      return hit ?? streamTrack(row);
+    });
+    const start = Math.max(
+      0,
+      list.findIndex((x) => streamKey(x) === key)
+    );
+    playList([...queue.slice(start), ...queue.slice(0, start)], 0);
+  };
+
+  return { onAir, waiting, playing: onAir && playing, playOne, playFrom };
+}
+
+/** Spotify-style album card — tap the cover to play. */
+export function CatalogCard({ item }) {
+  const { t } = useUi();
+  const { onAir, waiting, playing, playOne } = useStreamPlay(item);
+  const label = waiting ? t('player.preparing') : onAir && playing ? t('player.pause') : t('player.play');
 
   return (
-    <article className={`cat ${saved ? 'saved' : ''} ${running ? 'busy' : ''} ${failed ? 'failed' : ''} ${onAir && loading ? 'waiting' : ''}`}>
-      <button type="button" className="cat-art" onClick={act} title={label} aria-label={`${label} — ${item.title}`}>
+    <article className={`cat ${onAir ? 'on-air' : ''} ${waiting ? 'waiting' : ''}`}>
+      <button type="button" className="cat-art" onClick={playOne} title={label} aria-label={`${label} — ${item.title}`}>
         <Poster src={item.thumbnail} kind={item.kind} seed={item.title} />
         <span className="cat-fab">
-          {running ? (
-            <span className="cat-pct">{Math.round(job.percent ?? 0)}</span>
-          ) : onAir && loading ? (
-            <Icon.disc className="spin" />
-          ) : onAir && playing ? (
-            <Icon.pause />
-          ) : toChannel ? (
-            <Icon.link />
-          ) : (
-            <Icon.play />
-          )}
+          {waiting ? <Icon.disc className="spin" /> : onAir && playing ? <Icon.pause /> : <Icon.play />}
         </span>
-        {running && (
-          <span className="cat-bar" role="progressbar" aria-valuenow={Math.round(job.percent ?? 0)} aria-valuemin={0} aria-valuemax={100}>
-            <i style={{ width: `${Math.max(4, job.percent ?? 0)}%` }} />
-          </span>
-        )}
       </button>
-      {running && (
-        <button
-          type="button"
-          className="cat-cancel"
-          title={t('common.cancel')}
-          aria-label={`${t('common.cancel')} — ${item.title}`}
-          onClick={() => cancel(job.id).catch((err) => onError?.(err.message))}
-        >
-          <Icon.close />
-        </button>
-      )}
       <div className="cat-meta">
         <b>{item.title}</b>
         <span>
@@ -121,57 +94,93 @@ export function CatalogCard({ item, onError }) {
           {item.duration ? ` · ${clock(item.duration)}` : ''}
         </span>
       </div>
-      {DEMO || saved || running ? null : (
-        <button
-          type="button"
-          className="cat-save"
-          title={t('channels.save')}
-          aria-label={`${t('channels.save')} — ${item.title}`}
-          onClick={() => save(item.url, { kind: item.kind, channel: item.channelId }).catch((err) => onError?.(err.message))}
-        >
-          <Icon.download />
-        </button>
-      )}
     </article>
   );
 }
 
+/** Numbered stream row — whole row plays. */
+export function StreamRow({ item, index, list }) {
+  const { t } = useUi();
+  const { onAir, waiting, playing, playFrom } = useStreamPlay(item);
+
+  return (
+    <div
+      className={`track stream-row ${onAir ? 'current' : ''} ${waiting ? 'waiting' : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={() => playFrom(list)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          playFrom(list);
+        }
+      }}
+    >
+      <span className="idx" aria-hidden="true">
+        {waiting ? (
+          <Icon.disc className="spin" />
+        ) : onAir && playing ? (
+          <span className="bars">
+            <i />
+            <i />
+            <i />
+          </span>
+        ) : (
+          <>
+            <span className="idx-num">{index + 1}</span>
+            <span className="idx-play" title={t('player.play')}>
+              <Icon.play />
+            </span>
+          </>
+        )}
+      </span>
+
+      <span className="thumb">
+        <Poster src={item.thumbnail} kind={item.kind} seed={item.title} />
+      </span>
+
+      <span className="meta">
+        <b>{item.title}</b>
+        <span>{item.channel}</span>
+      </span>
+
+      <span className="dur">{item.duration ? clock(item.duration) : ''}</span>
+    </div>
+  );
+}
+
 export function CatalogRow({ items, title, more }) {
-  const [error, setError] = useState(null);
   if (!items?.length) return null;
   const body = (
-    <>
-      <div className="card-row">
-        {items.map((item) => (
-          <CatalogCard key={item.key ?? `${item.channelId}:${item.id}`} item={item} onError={setError} />
-        ))}
-      </div>
-      {error && (
-        <p className="hint" role="alert">
-          <span className="err">{error}</span>
-        </p>
-      )}
-    </>
+    <div className="card-row">
+      {items.map((item) => (
+        <CatalogCard key={item.key ?? `${item.channelId}:${item.id}`} item={item} />
+      ))}
+    </div>
   );
   return title ? <Section title={title} more={more}>{body}</Section> : body;
 }
 
 /** Same cards, but the row wraps instead of scrolling — for a page that is all one shelf. */
 export function CatalogGrid({ items }) {
-  const [error, setError] = useState(null);
   return (
-    <>
-      <div className="cat-grid">
-        {items.map((item) => (
-          <CatalogCard key={item.key ?? `${item.channelId}:${item.id}`} item={item} onError={setError} />
-        ))}
-      </div>
-      {error && (
-        <p className="hint" role="alert">
-          <span className="err">{error}</span>
-        </p>
-      )}
-    </>
+    <div className="cat-grid">
+      {items.map((item) => (
+        <CatalogCard key={item.key ?? `${item.channelId}:${item.id}`} item={item} />
+      ))}
+    </div>
+  );
+}
+
+/** Numbered list for a whole shelf. */
+export function StreamList({ items }) {
+  if (!items?.length) return null;
+  return (
+    <div className="track-list stream-list">
+      {items.map((item, i) => (
+        <StreamRow key={item.key ?? `${item.channelId}:${item.id}`} item={item} index={i} list={items} />
+      ))}
+    </div>
   );
 }
 

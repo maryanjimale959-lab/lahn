@@ -1,74 +1,56 @@
-import { useMemo, useState } from 'react';
-import { CatalogRow } from '../components/Catalog.jsx';
+import { useMemo } from 'react';
+import { CatalogRow, StreamList, streamTrack } from '../components/Catalog.jsx';
 import { Icon } from '../components/Icons.jsx';
 import { PageHeader } from '../components/Shell.jsx';
 import { Tile } from '../components/Tile.jsx';
-import { TrackRow } from '../components/TrackRow.jsx';
 import { shelfTitle } from '../lib/shelves.js';
 import { useShelves } from '../lib/useShelves.js';
 import { useLibrary } from '../state/library.jsx';
+import { usePlayer } from '../state/player.jsx';
 import { useUi } from '../state/ui.jsx';
-
-const SORTS = [
-  ['recent', 'songs.sort.recent'],
-  ['title', 'songs.sort.title'],
-  ['artist', 'songs.sort.artist'],
-  ['plays', 'songs.sort.plays'],
-];
 
 const MUSIC_SHELVES = ['music', 'rap', 'love'];
 
 export function Songs() {
   const { t, count } = useUi();
-  const { tracks = [] } = useLibrary();
-  const { shelves } = useShelves();
-  const [sort, setSort] = useState('recent');
-  /* Talks have their own shelf now; this page is the music. */
-  const music = useMemo(() => tracks.filter((track) => !track.kind || track.kind === 'song'), [tracks]);
-  const toSave = shelves.filter((shelf) => MUSIC_SHELVES.includes(shelf.id));
+  const { playList } = usePlayer();
+  const { shelves, loaded } = useShelves();
+  const musicShelves = shelves.filter((shelf) => MUSIC_SHELVES.includes(shelf.id));
+  const allItems = useMemo(() => musicShelves.flatMap((s) => s.items ?? []), [musicShelves]);
 
-  const list = useMemo(() => {
-    const copy = [...music];
-    if (sort === 'title') copy.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-    else if (sort === 'artist') copy.sort((a, b) => (a.artist ?? '').localeCompare(b.artist ?? '', undefined, { sensitivity: 'base' }) || a.title.localeCompare(b.title));
-    else if (sort === 'plays') copy.sort((a, b) => (b.plays ?? 0) - (a.plays ?? 0) || b.added_at - a.added_at);
-    else copy.sort((a, b) => b.added_at - a.added_at);
-    return copy;
-  }, [music, sort]);
+  const playAll = () => {
+    if (!allItems.length) return;
+    playList(allItems.slice(0, 80).map(streamTrack), 0);
+  };
 
   return (
     <>
-      <PageHeader title={t('songs.title')} />
-      {!list.length ? (
+      <PageHeader title={t('songs.title')}>
+        {allItems.length > 0 && (
+          <button type="button" className="pill-btn play-all" onClick={playAll}>
+            <Icon.play />
+            {t('common.playAll')}
+          </button>
+        )}
+      </PageHeader>
+
+      {!loaded ? (
+        <p className="hint">{t('home.loading')}</p>
+      ) : !allItems.length ? (
         <div className="onboard">
           <h2>{t('home.emptyTitle')}</h2>
           <p>{t('home.emptyBody')}</p>
-          <a className="pill-btn" href="#/shelf/music">
-            <Icon.channel />
-            {t('home.addFirst')}
-          </a>
         </div>
       ) : (
         <>
-          <div className="sortbar" role="tablist">
-            {SORTS.map(([value, key]) => (
-              <button key={value} type="button" role="tab" aria-selected={sort === value} className={`chip ${sort === value ? 'on' : ''}`} onClick={() => setSort(value)}>
-                {t(key)}
-              </button>
-            ))}
-            <span className="sort-count">{count(list.length, 'song')}</span>
-          </div>
-          <div className="track-list">
-            {list.map((track, i) => (
-              <TrackRow key={track.id} track={track} index={i} list={list} />
-            ))}
-          </div>
+          {musicShelves.map((shelf) => (
+            <CatalogRow key={shelf.id} title={t(shelfTitle(shelf.id))} more={`#/shelf/${shelf.id}`} items={shelf.items.slice(0, 12)} />
+          ))}
+          <h2 className="list-heading">{t('songs.title')}</h2>
+          <p className="shelf-count">{count(allItems.length, 'song')}</p>
+          <StreamList items={allItems.slice(0, 60)} />
         </>
       )}
-
-      {toSave.map((shelf) => (
-        <CatalogRow key={shelf.id} title={t(shelfTitle(shelf.id))} more={`#/shelf/${shelf.id}`} items={shelf.items.slice(0, 12)} />
-      ))}
     </>
   );
 }

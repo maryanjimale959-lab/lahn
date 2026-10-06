@@ -17,7 +17,7 @@ const res = await fetch(`${BASE}/api/signup`, {
     email: EMAIL,
     name: 'Maryam',
     password: PASSWORD,
-    interests: ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books', 'amusic', 'apodcast'],
+    interests: ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books'],
     terms: true,
   }),
 });
@@ -68,7 +68,7 @@ const all = [];
     ['#/shelf/quran', '02-quran-so'],
     ['#/shelf/podcasts', '03-podcasts-so'],
     ['#/artists', '04-artists-so'],
-    ['#/shelf/amusic', '05-arabic-music-so'],
+    ['#/shelf/love', '05-love-songs-so'],
   ]) {
     await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1200);

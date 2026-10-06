@@ -6,7 +6,7 @@ const PASSWORD = 'stream1234';
 const signup = await fetch(`${B}/signup`, {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ email: EMAIL, name: 'Stream', password: PASSWORD, interests: ['podcasts', 'apodcast', 'quran'], terms: true }),
+  body: JSON.stringify({ email: EMAIL, name: 'Stream', password: PASSWORD, interests: ['podcasts', 'quran', 'stories'], terms: true }),
 });
 let token = (signup.headers.get('set-cookie') ?? '').match(/lahn_token=([^;]+)/)?.[1];
 if (!token) {
@@ -19,7 +19,7 @@ const data = await (await fetch(`${B}/shelves`, { headers: H })).json();
 const byId = new Map((data.shelves ?? []).map((r) => [r.id, r]));
 console.log('total:', data.total, '| shelves:', (data.shelves ?? []).map((r) => `${r.id}:${r.items.length}`).join(' '));
 
-for (const shelf of process.argv.slice(2).length ? process.argv.slice(2) : ['podcasts', 'apodcast']) {
+for (const shelf of process.argv.slice(2).length ? process.argv.slice(2) : ['podcasts', 'quran']) {
   const items = (byId.get(shelf)?.items ?? []).slice(0, 4);
   for (const item of items) {
     const t0 = Date.now();

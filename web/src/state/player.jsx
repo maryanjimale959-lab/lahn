@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api, audioUrl, coverFor } from '../lib/api.js';
-import { handsOff, openChannel } from '../lib/external.js';
+import { halt, isPlaying, pause, play as playEmbed, resume, seekTo, videoOf, watching } from '../lib/embed.js';
 import { useSession } from './session.jsx';
 import { useUi } from './ui.jsx';
 
@@ -36,9 +36,16 @@ export function PlayerProvider({ children }) {
   const [repeat, setRepeat] = useState('off');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  /* The video on air when the row has no file of its own. Our <audio> element stays quiet
+     while this one is running, so the two never speak over each other. */
+  const [embed, setEmbed] = useState(null);
 
   const stateRef = useRef({});
   stateRef.current = { queue, order, slot, repeat, shuffle };
+  const embedRef = useRef(null);
+  embedRef.current = embed;
+  const timeRef = useRef(0);
+  timeRef.current = time;
 
   const { remote, publish } = useSession();
   const remoteRef = useRef(null);
@@ -48,6 +55,8 @@ export function PlayerProvider({ children }) {
      still mirroring has not cleared yet. It also holds off the pause-the-mirror effect. */
   const takingOver = useRef(false);
   const pendingSeek = useRef(0);
+  /* Bumps every time we start a new load so a late canplay from the previous song is ignored. */
+  const loadGen = useRef(0);
 
   const current = queue[order[slot] ?? slot] ?? queue[slot] ?? null;
   const currentRef = useRef(null);
@@ -61,7 +70,7 @@ export function PlayerProvider({ children }) {
       trackId: list[s]?.id ?? null,
       queueIds: list.map((t) => t.id),
       slot: s,
-      position: audio.currentTime || 0,
+      position: embedRef.current ? timeRef.current : audio.currentTime || 0,
       playing: !audio.paused,
       shuffle: sh,
       repeat: r,
@@ -89,14 +98,45 @@ export function PlayerProvider({ children }) {
       const track = list[bounded];
       if (!track) return;
       setLoading(true);
-      /* A saved track plays from the library; a shelf item carries its own stream
-         address and the server fetches it on demand, so nothing is stored. */
-      audio.src = track.src ?? audioUrl(track.id);
-      if (autoplay) {
-        audio.play().catch((err) => {
-          if (err.name !== 'AbortError') setError(err.message);
-          setLoading(false);
-        });
+      setError(null);
+      /* A row whose audio is its creator's plays through their own embed, here on this screen;
+         everything else plays from the stream address the source published. */
+      const video = videoOf(track);
+      if (video) {
+        audio.pause();
+        setEmbed(video);
+        playEmbed(video);
+      } else {
+        setEmbed(null);
+        halt();
+        const gen = (loadGen.current += 1);
+        /* Stop any previous request before starting a new one — otherwise Chrome aborts the
+           play() promise and the new song never starts. */
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        const src = track.src ?? audioUrl(track.id);
+        audio.src = src;
+        audio.load();
+        if (autoplay) {
+          const kick = () => {
+            if (loadGen.current !== gen) return;
+            audio.play().catch((err) => {
+              if (loadGen.current !== gen) return;
+              if (err.name !== 'AbortError') setError(err.message);
+              setLoading(false);
+            });
+          };
+          /* First song of a cold YouTube shelf can take half a minute; keep the spinner up
+             and retry play once the bytes start arriving. */
+          const onCanPlay = () => {
+            if (loadGen.current !== gen) return;
+            audio.removeEventListener('canplay', onCanPlay);
+            kick();
+          };
+          audio.addEventListener('canplay', onCanPlay);
+          kick();
+        }
       }
       if (track.src) api.heard(track.id).catch(() => {});
       else api.played(track.id).catch(() => {});
@@ -115,19 +155,9 @@ export function PlayerProvider({ children }) {
   const playList = useCallback(
     (tracks, startIndex = 0) => {
       if (!tracks?.length) return;
-      const list = tracks.filter(Boolean);
-      /* A song with no file of its own is not ours to stream: the listen goes to the page
-         that made it, where the view counts for its owner. */
-      const mine = list.filter((t) => !handsOff(t));
-      if (!mine.length) {
-        const tapped = list[startIndex] ?? list[0];
-        if (handsOff(tapped)) {
-          api.heard(tapped.id).catch(() => {});
-          openChannel(tapped);
-        }
-        return;
-      }
-      const first = list[startIndex] ?? list[0];
+      const mine = tracks.filter(Boolean);
+      if (!mine.length) return;
+      const first = mine[startIndex] ?? mine[0];
       const origin = Math.max(0, mine.indexOf(first));
       const o = shuffle ? shuffled(mine.length, origin) : mine.map((_, i) => i);
       /* A tap on this screen is an order: it takes the session from whatever else is
@@ -143,11 +173,6 @@ export function PlayerProvider({ children }) {
 
   const playTrack = useCallback(
     (track, contextList) => {
-      if (handsOff(track)) {
-        api.heard(track.id).catch(() => {});
-        openChannel(track);
-        return;
-      }
       const list = contextList?.length ? contextList : [track];
       const index = Math.max(0, list.findIndex((t) => t.id === track.id));
       const tail = [...list.slice(index), ...list.slice(0, index)];
@@ -158,6 +183,11 @@ export function PlayerProvider({ children }) {
 
   const toggle = useCallback(() => {
     if (!currentRef.current) return;
+    if (embedRef.current) {
+      if (isPlaying()) pause();
+      else resume();
+      return;
+    }
     if (audio.paused) audio.play().catch((err) => setError(err.message));
     else audio.pause();
   }, [audio]);
@@ -176,13 +206,16 @@ export function PlayerProvider({ children }) {
   }, [goTo]);
 
   const prev = useCallback(() => {
-    if (audio.currentTime > 3) {
-      audio.currentTime = 0;
+    const position = embedRef.current ? timeRef.current : audio.currentTime;
+    if (position > 3) {
+      if (embedRef.current) seekTo(0);
+      else audio.currentTime = 0;
       return;
     }
     const { slot: s } = stateRef.current;
     if (s <= 0) {
-      audio.currentTime = 0;
+      if (embedRef.current) seekTo(0);
+      else audio.currentTime = 0;
       return;
     }
     goTo(s - 1);
@@ -190,7 +223,8 @@ export function PlayerProvider({ children }) {
 
   const seek = useCallback(
     (seconds) => {
-      audio.currentTime = seconds;
+      if (embedRef.current) seekTo(seconds);
+      else audio.currentTime = seconds;
       setTime(seconds);
       beat();
     },
@@ -213,6 +247,8 @@ export function PlayerProvider({ children }) {
   const stop = useCallback(() => {
     audio.pause();
     audio.removeAttribute('src');
+    halt();
+    setEmbed(null);
     pendingSeek.current = 0;
     takingOver.current = false;
     setQueue([]);
@@ -291,6 +327,30 @@ export function PlayerProvider({ children }) {
     };
   }, [audio, next, t]);
 
+  /* The embed says where it got to and when it ran out, so the seek bar fills and the queue
+     moves on exactly as they do for a stream of ours. */
+  useEffect(
+    () =>
+      watching((event) => {
+        if (!embedRef.current && event.type !== 'error') return;
+        if (event.type === 'time') {
+          setTime(event.time);
+          if (event.duration) setDuration(event.duration);
+        } else if (event.type === 'state') {
+          setPlaying(event.playing);
+          if (event.playing) setLoading(false);
+          if (event.ended) {
+            if (stateRef.current.repeat === 'one') playEmbed(embedRef.current);
+            else next();
+          }
+        } else if (event.type === 'error') {
+          setLoading(false);
+          setError(t('player.playFailed'));
+        }
+      }),
+    [next, t]
+  );
+
   /* The driver announces every transport change, and keeps beating while a track is
      loaded — a screen that stops beating has been closed, and the house drops it. */
   useEffect(() => {
@@ -322,8 +382,14 @@ export function PlayerProvider({ children }) {
       album: current.album ?? '',
       artwork: cover ? [{ src: cover, sizes: '512x512', type: 'image/jpeg' }] : [],
     });
-    navigator.mediaSession.setActionHandler('play', () => audio.play().catch(() => {}));
-    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (embedRef.current) resume();
+      else audio.play().catch(() => {});
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (embedRef.current) pause();
+      else audio.pause();
+    });
     navigator.mediaSession.setActionHandler('previoustrack', prev);
     navigator.mediaSession.setActionHandler('nexttrack', next);
     navigator.mediaSession.setActionHandler('seekto', (details) => {
@@ -363,6 +429,7 @@ export function PlayerProvider({ children }) {
       repeat,
       error,
       upNext,
+      embed,
       playList,
       playTrack,
       takeover,
@@ -375,7 +442,7 @@ export function PlayerProvider({ children }) {
       goTo,
       stop,
     }),
-    [current, queue, slot, order, playing, loading, time, duration, shuffle, repeat, error, upNext, playList, playTrack, takeover, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo, stop]
+    [current, queue, slot, order, playing, loading, time, duration, shuffle, repeat, error, upNext, embed, playList, playTrack, takeover, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo, stop]
   );
 
   return <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>;

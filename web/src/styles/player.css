@@ -632,34 +632,43 @@
 
 .mini {
   position: fixed;
-  inset-inline: 12px;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  inset-inline: max(14px, calc(50% - 360px));
+  bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: 44;
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 13px;
   padding: 10px 12px;
-  border-radius: 22px;
-  background: var(--surface-glass);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(26px) saturate(1.6);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--line));
+  backdrop-filter: blur(26px) saturate(1.4);
   box-shadow: var(--shadow-lg);
   cursor: pointer;
   animation: mini-in 0.36s cubic-bezier(0.2, 0.9, 0.2, 1);
   overflow: hidden;
 }
 
+@media (max-width: 900px) {
+  .mini,
+  .elsewhere {
+    inset-inline: 14px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
 @keyframes mini-in {
   from {
-    transform: translateY(120%);
+    transform: translateY(40px);
+    opacity: 0;
   }
 }
 
 .mini .art {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
@@ -689,6 +698,14 @@
 .mini .t-btn {
   width: 44px;
   height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.mini .t-btn.next-peek {
+  background: transparent;
+  color: var(--ink);
 }
 
 .mini .t-btn svg {
@@ -700,9 +717,9 @@
   position: absolute;
   left: 0;
   bottom: 0;
-  height: 2.5px;
-  background: var(--ink);
-  opacity: 0.55;
+  height: 3px;
+  background: linear-gradient(90deg, var(--glow), var(--glow-2));
+  opacity: 0.95;
   transition: width 0.25s linear;
 }
 
@@ -857,4 +874,80 @@
 [data-theme='dark'] .mini,
 [data-theme='dark'] .elsewhere {
   background: color-mix(in oklab, var(--surface) 88%, transparent);
+}
+
+/* The embedded video: one surface that never moves in the DOM, only changes shape. On a phone it
+   is the picture on the player screen; on a desktop it is a card in the corner while you browse. */
+.yt-stage {
+  position: fixed;
+  z-index: 51;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(94vw, 520px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #000;
+  box-shadow: 0 16px 44px rgb(0 0 0 / 0.55);
+}
+
+.yt-stage:not(.big) {
+  z-index: 46;
+}
+
+.yt-stage.off {
+  top: -4000px;
+  left: -4000px;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.yt-host,
+.yt-host iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.yt-fold {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(10 9 12 / 0.72);
+  color: #fff;
+  cursor: pointer;
+}
+
+.yt-fold svg {
+  width: 13px;
+  height: 13px;
+}
+
+.now-video-space {
+  width: min(94vw, 520px);
+  aspect-ratio: 16 / 9;
+  margin: 0 auto 18px;
+}
+
+@media (min-width: 761px) {
+  .yt-stage {
+    top: 88px;
+    left: auto;
+    right: 26px;
+    transform: none;
+    width: 340px;
+  }
+  .now-video-space {
+    display: none;
+  }
 }

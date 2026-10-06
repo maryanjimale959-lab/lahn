@@ -12,7 +12,7 @@ import { useUi } from '../state/ui.jsx';
 export function NowPlaying({ onClose }) {
   const { t, lang } = useUi();
   const { refresh } = useLibrary();
-  const { current, playing, loading, time, duration, shuffle, repeat, upNext, slot, error, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo } = usePlayer();
+  const { current, playing, loading, time, duration, shuffle, repeat, upNext, slot, error, embed, toggle, next, prev, seek, setShuffle, cycleRepeat, goTo } = usePlayer();
   const [scrub, setScrub] = useState(null);
   const [queueOpen, setQueueOpen] = useState(false);
   /* A streamed item is not a row in the library, so a like on it belongs to the
@@ -63,7 +63,9 @@ export function NowPlaying({ onClose }) {
       </header>
 
       <div className="now-stage">
-        <Vinyl track={current} playing={playing} loading={loading} progress={duration ? time / duration : 0} />
+        {/* The video owns the top of this screen while it is on air, so the record steps aside
+            and leaves its place to the surface the picture is drawn into. */}
+        {embed ? <div className="now-video-space" aria-hidden="true" /> : <Vinyl track={current} playing={playing} loading={loading} progress={duration ? time / duration : 0} />}
 
         <div className="right">
           <div className="now-text">

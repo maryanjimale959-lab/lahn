@@ -58,6 +58,7 @@ export function Logo({ size = 34, stacked = false }) {
       <LogoMark size={size} spin />
       <span className="logo-word">
         <b>Laxan</b>
+        <span>Soomaali</span>
       </span>
     </span>
   );

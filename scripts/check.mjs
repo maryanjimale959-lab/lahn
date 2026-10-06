@@ -40,7 +40,7 @@ console.log('picked:', (data.picked ?? []).join(' ') || 'none');
 const rows = data.shelves ?? [];
 const byId = new Map(rows.map((row) => [row.id, row]));
 
-for (const want of ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books', 'amusic', 'apodcast']) {
+for (const want of ['music', 'rap', 'love', 'podcasts', 'quran', 'stories', 'lessons', 'books']) {
   const item = byId.get(want)?.items?.[0];
   if (!item) {
     console.log(`${want.padEnd(10)} EMPTY`);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../components/Icons.jsx';
+import { LogoMark } from '../components/Logo.jsx';
 import { INTEREST_ART } from '../lib/kinds.js';
 import { api } from '../lib/api.js';
 import { useAuth } from '../state/auth.jsx';
@@ -73,7 +74,10 @@ export function Welcome() {
     return (
       <div className="welcome pick">
         <div className="welcome-card">
-          <span className="welcome-mark">Laxan</span>
+          <div className="welcome-mark-row">
+            <LogoMark size={56} />
+            <span className="welcome-mark">Laxan</span>
+          </div>
           <h1>{t('auth.interestsTitle')}</h1>
           <p>{t('auth.interestsHint')}</p>
           <div className="pick-grid">
@@ -105,7 +109,10 @@ export function Welcome() {
     return (
       <div className="welcome">
         <form className="welcome-card" onSubmit={recover.sent ? setNewPassword : askCode}>
-          <span className="welcome-mark">Laxan</span>
+          <div className="welcome-mark-row">
+            <LogoMark size={56} />
+            <span className="welcome-mark">Laxan</span>
+          </div>
           <h1>{t('auth.recoverTitle')}</h1>
           <p>{recover.sent ? t('auth.codeSent') : t('auth.recoverHint')}</p>
 
@@ -191,7 +198,10 @@ export function Welcome() {
   return (
     <div className="welcome">
       <div className="welcome-brand">
-        <span className="welcome-mark">Laxan</span>
+        <div className="welcome-mark-row">
+          <LogoMark size={72} />
+          <span className="welcome-mark">Laxan</span>
+        </div>
         <h1>{t('auth.tagline')}</h1>
         <p>{t('browse.hint')}</p>
         <button type="button" className="welcome-lang" onClick={() => setLang(lang === 'en' ? 'so' : 'en')}>
