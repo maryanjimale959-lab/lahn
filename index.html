@@ -6,7 +6,7 @@
     <title>Laxan — dhageyso wax walba oo Soomaali leedahay</title>
     <meta
       name="description"
-      content="Laxan waa abka codadka Soomaaliyeed: Quraan akhriyayaal badan, podcast-yo, sheekooyin, casharro, buugaag iyo muusig Carabi ah. Taabo oo dhageyso — bilaash, xayeysiis la'aan."
+      content="Laxan waa abka codadka Soomaaliyeed: heeso, Quraan, podcast-yo, sheekooyin, casharro iyo buugaag. Taabo oo dhageyso — bilaash, xayeysiis la'aan."
     />
     <meta name="theme-color" content="#0b0a09" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
@@ -14,7 +14,7 @@
     <meta property="og:title" content="Laxan — codadka Soomaaliyeed, hal meel" />
     <meta
       property="og:description"
-      content="Quraan, podcast-yo Soomaaliyeed, sheekooyin, casharro, buugaag cod ah iyo muusig Carabi ah. Taabo oo dhageyso."
+      content="Heeso Soomaaliyeed, Quraan, podcast-yo, sheekooyin, casharro iyo buugaag. Taabo oo dhageyso."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="./apple-touch-icon.png" />
@@ -70,7 +70,6 @@
 
         <nav class="links" aria-label="Laxan">
           <a href="#features" data-i18n="nav.features">Astaamaha</a>
-          <a href="#arabic" data-i18n="nav.arabic">Carabi</a>
           <a href="#how" data-i18n="nav.how">Sida uu u shaqeeyo</a>
           <a href="#faq" data-i18n="nav.faq">Su'aalaha</a>
         </nav>
@@ -78,7 +77,6 @@
         <div class="top-cta">
           <div class="langs" role="group" aria-label="Luqadda">
             <button type="button" data-lang="so" aria-pressed="true">SO</button>
-            <button type="button" data-lang="ar" aria-pressed="false">ع</button>
             <button type="button" data-lang="en" aria-pressed="false">EN</button>
           </div>
           <a class="btn btn-primary" href="./app/index.html#/home" data-i18n="nav.open">Fur Laxan</a>
@@ -95,20 +93,16 @@
 
         <div class="wrap hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">
-              <span class="pulse" aria-hidden="true"></span>
-              <span data-i18n="hero.eyebrow">Quraan · Heeso · Podcast · Sheeko · Cashar</span>
-            </p>
+            <p class="hero-brand">Laxan</p>
             <h1>
-              <span data-i18n-html="hero.t1">Dhageyso wax walba</span><br />
+              <span data-i18n-html="hero.t1">Dhageyso wax walba</span>
+              <span class="hero-break"> </span>
               <span data-i18n-html="hero.t2">oo</span>
               <em data-i18n-html="hero.t3">Soomaali</em>
               <span data-i18n-html="hero.t4">leedahay.</span>
             </h1>
             <p class="lede" data-i18n="hero.lede">
-              Laxan waa abka codadka Soomaaliyeed. Quraan akhriyayaal badan, heeso Soomaaliyeed, podcast-yo,
-              sheekooyin, casharro iyo buugaag cod ah — hal meel. Taabo oo dhageyso: waxba ma soo dejisato,
-              xogtaaduna meel kale ma tagto.
+              Heeso, Quraan, podcast iyo sheeko — hal meel. Taabo oo dhageyso. Bilaash, xayeysiis la'aan.
             </p>
             <div class="hero-actions">
               <a class="btn btn-primary btn-lg" href="./app/index.html#/home">
@@ -123,34 +117,27 @@
             <p class="fineprint" data-i18n="hero.fine">Bilaash · Xayeysiis la'aan · Diiwaangelin la'aan</p>
           </div>
 
-          <div class="hero-stage">
-            <div class="disc" aria-hidden="true">
+          <div class="hero-stage" aria-hidden="true">
+            <div class="disc">
               <span class="disc-ring"></span>
               <span class="disc-ring"></span>
               <span class="disc-ring"></span>
               <span class="disc-label"><svg viewBox="0 0 24 24" width="26" height="26"><path d="M9 6.5v11l8.5-5.5z" fill="currentColor" /></svg></span>
             </div>
-            <div class="now-chip">
-              <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-              <span data-i18n="hero.now">Hadda oo socota · Mishary Alafasy, Suuradda Al-Faatixah</span>
-            </div>
           </div>
         </div>
+      </section>
 
-        <div class="stats">
-          <div class="wrap stats-in">
-            <p><b data-count="2773">2773</b><span data-i18n="stat.items">dhageysi diyaar ah</span></p>
-            <p><b data-count="141">141</b><span data-i18n="stat.sources">il cod</span></p>
-            <p><b data-count="1045">1045</b><span data-i18n="stat.songs">heeso fannaaniintooda leh</span></p>
-            <p><b data-count="114">114</b><span data-i18n="stat.surahs">suuruuc buuxa</span></p>
-          </div>
+      <section class="stats" aria-label="Tirakoob">
+        <div class="wrap stats-in">
+          <p><b data-count="2503">2503</b><span data-i18n="stat.items">dhageysi diyaar ah</span></p>
+          <p><b data-count="124">124</b><span data-i18n="stat.sources">il cod</span></p>
+          <p><b data-count="942">942</b><span data-i18n="stat.songs">heeso fannaaniintooda leh</span></p>
+          <p><b data-count="114">114</b><span data-i18n="stat.surahs">suuruuc buuxa</span></p>
         </div>
-
-        <!-- The names written here by `npm run site` come from the same catalogue the app carries,
-             so every source she added appears — singers on the top row, everything else below. -->
         <div class="marquee" aria-hidden="true">
-          <div class="marquee-row"><span>Aar Maanta</span><span>Abdel Halim Hafez - عبد الحليم حافظ</span><span>Abdi Aweys</span><span>Abdirashiid Qaraare</span><span>Abwaan Qorane somalia</span><span>Ahlam | أحلام</span><span>amin yare</span><span>Axmed Mooge Liibaan</span><span>Balanbaalis Studio</span><span>DHAAD MEDIA</span><span>DHUGMAAL LYRICS</span><span>Digaale Music</span><span>Faiza Amir</span><span>Fankii Hore</span><span>Gacanqabat Digital Studios 8K</span><span>Gallad Studio</span><span>Hanad Bandz</span><span>Heesaha Hirgalay</span><span>Heeso Jaceyl</span><span>HEESO QARAAMI</span><span>Heeso Soomaali</span><span>HIMILO SOMALI TV</span><span>Hobollada Waaberi</span><span>Hodan Abdirahman Artist</span><span>Ilkacase Qays</span><span>Jirday</span><span>K'naan</span><span>Kaafi Studío</span><span>Kiin Jamac</span><span>Ladan Maria</span><span>Liibaan Jama</span><span>lil_olee</span><span>MAADEYS</span><span>MAAHIR MEDIA PRO</span><span>Magool</span><span>Mattan Pro</span><span>Mazzika - مزيكا</span><span>MinnesotaColdTv</span><span>MOSTAFE KANTE</span><span>Mursal Muuse</span><span>National Arab Orchestra</span><span>NomadicStatus</span><span>Qamar Suugaani</span><span>Rap Soomaali</span><span>Rotana</span><span>Saado Cali Warsame</span><span>Sahra Halgan</span><span>Samiir Zaam</span><span>SERABTAA MUSIC🎶</span><span>Shareeco studio</span><span>Sharma Boy</span><span>Somali world Hip hop</span><span>SomaliSwiss</span><span>Suldaan Seeraar</span><span>Tusmo Films</span><span>Waqal WStudío</span><span>Wardi Pro</span><span>WareerMusic</span><span>Xaawo Taabo</span><span>Yaaska Pro</span><span>YasinTheDon</span><span>zakariyow</span><span>Zanka Prod</span><span>أم كلثوم</span><span>طرب</span><span>Aar Maanta</span><span>Abdel Halim Hafez - عبد الحليم حافظ</span><span>Abdi Aweys</span><span>Abdirashiid Qaraare</span><span>Abwaan Qorane somalia</span><span>Ahlam | أحلام</span><span>amin yare</span><span>Axmed Mooge Liibaan</span><span>Balanbaalis Studio</span><span>DHAAD MEDIA</span><span>DHUGMAAL LYRICS</span><span>Digaale Music</span><span>Faiza Amir</span><span>Fankii Hore</span><span>Gacanqabat Digital Studios 8K</span><span>Gallad Studio</span><span>Hanad Bandz</span><span>Heesaha Hirgalay</span><span>Heeso Jaceyl</span><span>HEESO QARAAMI</span><span>Heeso Soomaali</span><span>HIMILO SOMALI TV</span><span>Hobollada Waaberi</span><span>Hodan Abdirahman Artist</span><span>Ilkacase Qays</span><span>Jirday</span><span>K'naan</span><span>Kaafi Studío</span><span>Kiin Jamac</span><span>Ladan Maria</span><span>Liibaan Jama</span><span>lil_olee</span><span>MAADEYS</span><span>MAAHIR MEDIA PRO</span><span>Magool</span><span>Mattan Pro</span><span>Mazzika - مزيكا</span><span>MinnesotaColdTv</span><span>MOSTAFE KANTE</span><span>Mursal Muuse</span><span>National Arab Orchestra</span><span>NomadicStatus</span><span>Qamar Suugaani</span><span>Rap Soomaali</span><span>Rotana</span><span>Saado Cali Warsame</span><span>Sahra Halgan</span><span>Samiir Zaam</span><span>SERABTAA MUSIC🎶</span><span>Shareeco studio</span><span>Sharma Boy</span><span>Somali world Hip hop</span><span>SomaliSwiss</span><span>Suldaan Seeraar</span><span>Tusmo Films</span><span>Waqal WStudío</span><span>Wardi Pro</span><span>WareerMusic</span><span>Xaawo Taabo</span><span>Yaaska Pro</span><span>YasinTheDon</span><span>zakariyow</span><span>Zanka Prod</span><span>أم كلثوم</span><span>طرب</span></div>
-          <div class="marquee-row row-back"><span>Abdijaliil Show</span><span>Abdul Basit</span><span>ABDULAH HAFS</span><span>Abdullahi Qorshe</span><span>Abu Bakr Al-Shatri</span><span>Adeeg Wanaag</span><span>afikra</span><span>Al Hikma Somali Media</span><span>al Ikhlaas - Beneficial Lectures</span><span>Al Sheikh Maher Bin Hamad Al Muaiqly | الشيخ ماهر بن حمد المعيقلي</span><span>Al-Minshawi</span><span>Amiira sheeko xariiro</span><span>Arabi Post</span><span>Ardaa Media</span><span>Atheer - أثير</span><span>Ayaan Sheeko xariiro</span><span>Business Connect tv</span><span>Buugaag Codka Ubax</span><span>Buugaag Soomaali</span><span>Caweyska Dalmar</span><span>Codka Ubax Podcast</span><span>Daacad Production</span><span>DADWEYNAHA</span><span>Diiwaanka Mahad</span><span>Dugsiiye</span><span>Duruus Manhaj</span><span>English with Mima</span><span>Garasho-wadaag</span><span>GEEDKA NABADA</span><span>Guntiino Podcast</span><span>Hab Fikirka</span><span>Halkaraan</span><span>HIGSI NO.1</span><span>Hiil Press</span><span>Hiloow</span><span>Hoyga Luqadaha</span><span>IFIYE - Somali Audiobooks</span><span>IFIYE TALKS</span><span>Jannah Productions</span><span>Maamul Wanaag</span><span>Madari Podcast</span><span>Maher Al Meaqli</span><span>Maher Shakhashero</span><span>Miizaan</span><span>Mishary Alafasy</span><span>Moon Media</span><span>Nawafed - نوافذ</span><span>OGAANSHO</span><span>Qiso Central</span><span>Qulasada Filimada</span><span>Quraan Soomaali</span><span>Ridhwan Issack</span><span>Sahan Podcast</span><span>Sawda Bilan</span><span>Sawda Qaalib</span><span>SHEEKH AHMED SHEEKH شيخ أحمد شيخ</span><span>Sheeko Hub</span><span>Sheeko iyo Shaahid</span><span>Somali Sheeko Caruureed</span><span>Somali Voice</span><span>SULDAAN</span><span>SULTAN FILMS</span><span>Tadabbur Daily</span><span>Tarjumaadda Quraanka</span><span>Tilaawod Carabi</span><span>TusmoWeeklyShow</span><span>WAAYO WAAYIHII WACNAA</span><span>XOGGOOB</span><span>إذاعة ثمانية</span><span>الأسبوع</span><span>القارىء إسلام صبحي Islam Sobhi</span><span>بودكاست عربي</span><span>تنوين بودكاست | Tanween Podcasts</span><span>عبدالرحمن مسعد - Abdulrhman Mosad</span><span>عربي بوست - Arabic Post</span><span>عَلاقات</span><span>Abdijaliil Show</span><span>Abdul Basit</span><span>ABDULAH HAFS</span><span>Abdullahi Qorshe</span><span>Abu Bakr Al-Shatri</span><span>Adeeg Wanaag</span><span>afikra</span><span>Al Hikma Somali Media</span><span>al Ikhlaas - Beneficial Lectures</span><span>Al Sheikh Maher Bin Hamad Al Muaiqly | الشيخ ماهر بن حمد المعيقلي</span><span>Al-Minshawi</span><span>Amiira sheeko xariiro</span><span>Arabi Post</span><span>Ardaa Media</span><span>Atheer - أثير</span><span>Ayaan Sheeko xariiro</span><span>Business Connect tv</span><span>Buugaag Codka Ubax</span><span>Buugaag Soomaali</span><span>Caweyska Dalmar</span><span>Codka Ubax Podcast</span><span>Daacad Production</span><span>DADWEYNAHA</span><span>Diiwaanka Mahad</span><span>Dugsiiye</span><span>Duruus Manhaj</span><span>English with Mima</span><span>Garasho-wadaag</span><span>GEEDKA NABADA</span><span>Guntiino Podcast</span><span>Hab Fikirka</span><span>Halkaraan</span><span>HIGSI NO.1</span><span>Hiil Press</span><span>Hiloow</span><span>Hoyga Luqadaha</span><span>IFIYE - Somali Audiobooks</span><span>IFIYE TALKS</span><span>Jannah Productions</span><span>Maamul Wanaag</span><span>Madari Podcast</span><span>Maher Al Meaqli</span><span>Maher Shakhashero</span><span>Miizaan</span><span>Mishary Alafasy</span><span>Moon Media</span><span>Nawafed - نوافذ</span><span>OGAANSHO</span><span>Qiso Central</span><span>Qulasada Filimada</span><span>Quraan Soomaali</span><span>Ridhwan Issack</span><span>Sahan Podcast</span><span>Sawda Bilan</span><span>Sawda Qaalib</span><span>SHEEKH AHMED SHEEKH شيخ أحمد شيخ</span><span>Sheeko Hub</span><span>Sheeko iyo Shaahid</span><span>Somali Sheeko Caruureed</span><span>Somali Voice</span><span>SULDAAN</span><span>SULTAN FILMS</span><span>Tadabbur Daily</span><span>Tarjumaadda Quraanka</span><span>Tilaawod Carabi</span><span>TusmoWeeklyShow</span><span>WAAYO WAAYIHII WACNAA</span><span>XOGGOOB</span><span>إذاعة ثمانية</span><span>الأسبوع</span><span>القارىء إسلام صبحي Islam Sobhi</span><span>بودكاست عربي</span><span>تنوين بودكاست | Tanween Podcasts</span><span>عبدالرحمن مسعد - Abdulrhman Mosad</span><span>عربي بوست - Arabic Post</span><span>عَلاقات</span></div>
+          <div class="marquee-row"><span>Aar Maanta</span><span>Abdi Aweys</span><span>Abdirashiid Qaraare</span><span>Abwaan Qorane somalia</span><span>amin yare</span><span>Axmed Mooge Liibaan</span><span>Balanbaalis Studio</span><span>DHAAD MEDIA</span><span>DHUGMAAL LYRICS</span><span>Digaale Music</span><span>Faiza Amir</span><span>Fankii Hore</span><span>Gacanqabat Digital Studios 8K</span><span>Gallad Studio</span><span>Hanad Bandz</span><span>Heesaha Hirgalay</span><span>Heeso Jaceyl</span><span>HEESO QARAAMI</span><span>Heeso Soomaali</span><span>HIMILO SOMALI TV</span><span>Hobollada Waaberi</span><span>Hodan Abdirahman Artist</span><span>Ilkacase Qays</span><span>Jirday</span><span>K'naan</span><span>Kaafi Studío</span><span>Kiin Jamac</span><span>Ladan Maria</span><span>Liibaan Jama</span><span>lil_olee</span><span>MAADEYS</span><span>MAAHIR MEDIA PRO</span><span>Magool</span><span>Mattan Pro</span><span>MinnesotaColdTv</span><span>MOSTAFE KANTE</span><span>Mursal Muuse</span><span>NomadicStatus</span><span>Qamar Suugaani</span><span>Rap Soomaali</span><span>Saado Cali Warsame</span><span>Sahra Halgan</span><span>Samiir Zaam</span><span>SERABTAA MUSIC🎶</span><span>Shareeco studio</span><span>Sharma Boy</span><span>Somali world Hip hop</span><span>SomaliSwiss</span><span>Suldaan Seeraar</span><span>Tusmo Films</span><span>Waqal WStudío</span><span>Wardi Pro</span><span>WareerMusic</span><span>Xaawo Taabo</span><span>Yaaska Pro</span><span>YasinTheDon</span><span>zakariyow</span><span>Zanka Prod</span><span>Aar Maanta</span><span>Abdi Aweys</span><span>Abdirashiid Qaraare</span><span>Abwaan Qorane somalia</span><span>amin yare</span><span>Axmed Mooge Liibaan</span><span>Balanbaalis Studio</span><span>DHAAD MEDIA</span><span>DHUGMAAL LYRICS</span><span>Digaale Music</span><span>Faiza Amir</span><span>Fankii Hore</span><span>Gacanqabat Digital Studios 8K</span><span>Gallad Studio</span><span>Hanad Bandz</span><span>Heesaha Hirgalay</span><span>Heeso Jaceyl</span><span>HEESO QARAAMI</span><span>Heeso Soomaali</span><span>HIMILO SOMALI TV</span><span>Hobollada Waaberi</span><span>Hodan Abdirahman Artist</span><span>Ilkacase Qays</span><span>Jirday</span><span>K'naan</span><span>Kaafi Studío</span><span>Kiin Jamac</span><span>Ladan Maria</span><span>Liibaan Jama</span><span>lil_olee</span><span>MAADEYS</span><span>MAAHIR MEDIA PRO</span><span>Magool</span><span>Mattan Pro</span><span>MinnesotaColdTv</span><span>MOSTAFE KANTE</span><span>Mursal Muuse</span><span>NomadicStatus</span><span>Qamar Suugaani</span><span>Rap Soomaali</span><span>Saado Cali Warsame</span><span>Sahra Halgan</span><span>Samiir Zaam</span><span>SERABTAA MUSIC🎶</span><span>Shareeco studio</span><span>Sharma Boy</span><span>Somali world Hip hop</span><span>SomaliSwiss</span><span>Suldaan Seeraar</span><span>Tusmo Films</span><span>Waqal WStudío</span><span>Wardi Pro</span><span>WareerMusic</span><span>Xaawo Taabo</span><span>Yaaska Pro</span><span>YasinTheDon</span><span>zakariyow</span><span>Zanka Prod</span></div>
+          <div class="marquee-row row-back"><span>Abdijaliil Show</span><span>Abdul Basit</span><span>ABDULAH HAFS</span><span>Abdullahi Qorshe</span><span>Abu Bakr Al-Shatri</span><span>Adeeg Wanaag</span><span>Al Hikma Somali Media</span><span>al Ikhlaas - Beneficial Lectures</span><span>Al Sheikh Maher Bin Hamad Al Muaiqly | الشيخ ماهر بن حمد المعيقلي</span><span>Al-Minshawi</span><span>Amiira sheeko xariiro</span><span>Ardaa Media</span><span>Ayaan Sheeko xariiro</span><span>Business Connect TV</span><span>Buugaag Codka Ubax</span><span>Buugaag Soomaali</span><span>Caweyska Dalmar</span><span>Codka Ubax Podcast</span><span>Daacad Production</span><span>DADWEYNAHA</span><span>Diiwaanka Mahad</span><span>Dugsiiye</span><span>Duruus Manhaj</span><span>English with Mima</span><span>Garasho-wadaag</span><span>GEEDKA NABADA</span><span>Guntiino Podcast</span><span>Hab Fikirka</span><span>Halkaraan</span><span>HIGSI NO.1</span><span>Hiil Press</span><span>Hiloow</span><span>Hoyga Luqadaha</span><span>IFIYE - Somali Audiobooks</span><span>IFIYE TALKS</span><span>Jannah Productions</span><span>Maamul Wanaag</span><span>Madari Podcast</span><span>Maher Al Meaqli</span><span>Maher Shakhashero</span><span>Miizaan</span><span>Mishary Alafasy</span><span>Moon Media</span><span>OGAANSHO</span><span>Qiso Central</span><span>Qulasada Filimada</span><span>Quraan Soomaali</span><span>Ridhwan Issack</span><span>Sahan Podcast</span><span>Sawda Bilan</span><span>Sawda Qaalib</span><span>SHEEKH AHMED SHEEKH شيخ أحمد شيخ</span><span>Sheeko Hub</span><span>Sheeko iyo Shaahid</span><span>Somali Sheeko Caruureed</span><span>Somali Voice</span><span>SULDAAN</span><span>SULTAN FILMS</span><span>Tadabbur Daily</span><span>Tarjumaadda Quraanka</span><span>Tilaawod Carabi</span><span>TusmoWeeklyShow</span><span>WAAYO WAAYIHII WACNAA</span><span>XOGGOOB</span><span>القارىء إسلام صبحي Islam Sobhi</span><span>عبدالرحمن مسعد - Abdulrhman Mosad</span><span>Abdijaliil Show</span><span>Abdul Basit</span><span>ABDULAH HAFS</span><span>Abdullahi Qorshe</span><span>Abu Bakr Al-Shatri</span><span>Adeeg Wanaag</span><span>Al Hikma Somali Media</span><span>al Ikhlaas - Beneficial Lectures</span><span>Al Sheikh Maher Bin Hamad Al Muaiqly | الشيخ ماهر بن حمد المعيقلي</span><span>Al-Minshawi</span><span>Amiira sheeko xariiro</span><span>Ardaa Media</span><span>Ayaan Sheeko xariiro</span><span>Business Connect TV</span><span>Buugaag Codka Ubax</span><span>Buugaag Soomaali</span><span>Caweyska Dalmar</span><span>Codka Ubax Podcast</span><span>Daacad Production</span><span>DADWEYNAHA</span><span>Diiwaanka Mahad</span><span>Dugsiiye</span><span>Duruus Manhaj</span><span>English with Mima</span><span>Garasho-wadaag</span><span>GEEDKA NABADA</span><span>Guntiino Podcast</span><span>Hab Fikirka</span><span>Halkaraan</span><span>HIGSI NO.1</span><span>Hiil Press</span><span>Hiloow</span><span>Hoyga Luqadaha</span><span>IFIYE - Somali Audiobooks</span><span>IFIYE TALKS</span><span>Jannah Productions</span><span>Maamul Wanaag</span><span>Madari Podcast</span><span>Maher Al Meaqli</span><span>Maher Shakhashero</span><span>Miizaan</span><span>Mishary Alafasy</span><span>Moon Media</span><span>OGAANSHO</span><span>Qiso Central</span><span>Qulasada Filimada</span><span>Quraan Soomaali</span><span>Ridhwan Issack</span><span>Sahan Podcast</span><span>Sawda Bilan</span><span>Sawda Qaalib</span><span>SHEEKH AHMED SHEEKH شيخ أحمد شيخ</span><span>Sheeko Hub</span><span>Sheeko iyo Shaahid</span><span>Somali Sheeko Caruureed</span><span>Somali Voice</span><span>SULDAAN</span><span>SULTAN FILMS</span><span>Tadabbur Daily</span><span>Tarjumaadda Quraanka</span><span>Tilaawod Carabi</span><span>TusmoWeeklyShow</span><span>WAAYO WAAYIHII WACNAA</span><span>XOGGOOB</span><span>القارىء إسلام صبحي Islam Sobhi</span><span>عبدالرحمن مسعد - Abdulrhman Mosad</span></div>
         </div>
       </section>
 
@@ -183,33 +170,14 @@
             </article>
             <article class="card reveal">
               <span class="ico"><svg viewBox="0 0 24 24"><path d="M9 18V5.5l11-2V16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><circle cx="6.5" cy="18" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7" /><circle cx="17.5" cy="16" r="2.6" fill="none" stroke="currentColor" stroke-width="1.7" /></svg></span>
-              <h3 data-i18n="f5.h">Heeso Soomaaliyeed iyo Carabi</h3>
-              <p data-i18n="f5.p">Shelf-yada Heeso, Rap, Jaceyl iyo Muusiga Carabiga: 1,045 heesood. Heesta markii taabo, bogga fannaanka ayaa la tagayaa — daawashadu waxay u tagtaa qofkii sameeyay.</p>
+              <h3 data-i18n="f5.h">Heeso Soomaaliyeed</h3>
+              <p data-i18n="f5.p">Shelf-yada Heeso, Rap iyo Jaceyl: 942 heesood. Heesta markii taabo, bogga fannaanka ayaa la tagayaa — daawashadu waxay u tagtaa qofkii sameeyay.</p>
             </article>
             <article class="card reveal">
               <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 3v5c0 4.6-3 7.9-7.5 9-4.5-1.1-7.5-4.4-7.5-9v-5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><path d="m9 12 2.2 2.2L15.5 10" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
               <h3 data-i18n="f6.h">Waa adiga, ma aha xayeysiis</h3>
               <p data-i18n="f6.p">Xayeysiis ma jiro. La socod (tracking) ma jiro. Akoonno ma iibiso. Laxan wuxuu ka shaqeeyaa qalabkaaga, waana adiga ninka kaliya ee arka waxa aad dhageysatay.</p>
             </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- ---------------- the Arabic band, always in Arabic ---------------- -->
-      <section class="arabic" id="arabic">
-        <div class="wrap arabic-in">
-          <div class="arabic-copy" dir="rtl" lang="ar">
-            <p class="kicker">بالعربية أيضاً</p>
-            <h2>صوتك، بلغتك.</h2>
-            <p>
-              لَخان ليس صومالياً فقط. رفّ القرآن بستة قرّاء، وبودكاست عربي، وقصص ودروس — كلها بلا إعلانات
-              ولا تتبّع. افتح التطبيق وابدأ الاستماع، ولا تحتاج إلى تسجيل.
-            </p>
-            <ul class="arabic-list" dir="rtl">
-              <li>القرآن الكريم — سورة البقرة، آل عمران، والناس بصوت Mishary Alafasy وAbdul Basit</li>
-              <li>أفكار وعلاقات والأسبوع — بودكاست عربي كامل</li>
-              <li>الواجهة بالصومالية والعربية والإنجليزية</li>
-            </ul>
           </div>
         </div>
       </section>
@@ -297,7 +265,7 @@
             </details>
             <details>
               <summary data-i18n="q3">Heesaha Soomaaliyeed ma halkan bay ku jiraan?</summary>
-              <p data-i18n="a3">Haa. Shelf-yada Heeso, Rap iyo Jaceyl way ku jiraan, waana 1,045 heesood. Heestuba waxay leedahay boggeeda — markii taabo, bogga fannaanka ayaa la furayaa, daawashaduna waxay u tagtaa isagii sameeyay. Quraanka, podcast-yada iyo sheekooyinkuna waxay ka yimaadaan ilaha iyagu codkooda daadiyay.</p>
+              <p data-i18n="a3">Haa. Shelf-yada Heeso, Rap iyo Jaceyl way ku jiraan, waana 942 heesood. Heestuba waxay leedahay boggeeda — markii taabo, bogga fannaanka ayaa la furayaa, daawashaduna waxay u tagtaa isagii sameeyay. Quraanka, podcast-yada iyo sheekooyinkuna waxay ka yimaadaan ilaha iyagu codkooda daadiyay.</p>
             </details>
             <details>
               <summary data-i18n="q4">Ma shaqeynayaa internet la'aan?</summary>
@@ -339,7 +307,7 @@
             </g>
           </svg>
           <h2 data-i18n="last.h">Bilow dhageysiga hadda.</h2>
-          <p data-i18n="last.p">2,773 dhageysi iyo 1,045 hees ayaa diyaar u ah. Taabo hal mar.</p>
+          <p data-i18n="last.p">2,503 dhageysi iyo 942 hees ayaa diyaar u ah. Taabo hal mar.</p>
           <a class="btn btn-primary btn-lg" href="./app/index.html#/home"><span data-i18n="last.cta">Fur Laxan</span></a>
         </div>
       </section>

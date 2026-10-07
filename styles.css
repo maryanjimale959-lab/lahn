@@ -369,7 +369,21 @@ em {
   animation: pulse 2.4s ease-out infinite;
 }
 .hero-copy h1 {
-  margin-top: 22px;
+  margin-top: 10px;
+}
+.hero-brand {
+  margin: 0;
+  font-size: clamp(2.6rem, 12vw, 4.2rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-break {
+  display: none;
 }
 .hero-actions {
   display: flex;
@@ -502,9 +516,12 @@ em {
   font-weight: 600;
 }
 
-/* stats */
+/* stats sit below the first viewport */
 .stats {
-  margin-top: clamp(38px, 5vw, 62px);
+  position: relative;
+  margin-top: 8px;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--line);
 }
 .stats-in {
   display: grid;
@@ -1070,12 +1087,62 @@ em {
   .foot-in {
     grid-template-columns: minmax(0, 1fr);
   }
+  .hero {
+    /* phone first screen: brand + lede + CTA only */
+    min-height: calc(100svh - 72px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 28px 0 40px;
+  }
+  .hero-grid {
+    gap: 0;
+  }
   .hero-stage {
-    min-height: 340px;
-    order: -1;
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    z-index: 0;
+    opacity: 0.28;
+    pointer-events: none;
+  }
+  .hero-copy {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  .hero-brand {
+    font-size: clamp(3.2rem, 18vw, 4.6rem);
+  }
+  .hero-copy h1 {
+    margin-top: 14px;
+    font-size: clamp(1.45rem, 6.2vw, 2rem);
+    line-height: 1.2;
+  }
+  .hero-break {
+    display: inline;
+  }
+  .lede {
+    margin-inline: auto;
+    max-width: 32ch;
+    margin-top: 14px;
+    font-size: 1.02rem;
+  }
+  .hero-actions {
+    justify-content: center;
+    margin-top: 22px;
+  }
+  .fineprint {
+    text-align: center;
+  }
+  .disc {
+    width: min(320px, 72vw);
   }
   .now-chip {
-    inset-inline-start: 4%;
+    display: none;
+  }
+  .marquee {
+    display: none;
   }
   .foot-in {
     gap: 20px;
@@ -1086,22 +1153,43 @@ em {
   body {
     font-size: 16px;
   }
+  .topbar {
+    padding: 10px 0;
+  }
   .top-in {
-    gap: 12px;
+    gap: 10px;
+  }
+  .brand span {
+    font-size: 1.05rem;
   }
   .btn {
-    font-size: 0.88rem;
+    font-size: 0.9rem;
   }
   .btn-lg {
-    padding: 14px 20px;
+    padding: 15px 22px;
     width: 100%;
     justify-content: center;
   }
   .hero-actions {
     flex-direction: column;
   }
+  .hero-actions .btn-ghost {
+    /* keep one primary action loud on the phone; install is secondary */
+    border-color: transparent;
+    background: transparent;
+    color: var(--ink-2);
+    padding-block: 10px;
+  }
+  .stats {
+    margin-top: 0;
+    padding-top: 22px;
+  }
   .stats-in {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .stats p {
+    padding: 14px 14px;
   }
   .grid-features {
     grid-template-columns: minmax(0, 1fr);
